@@ -7,6 +7,11 @@
 
 clear all
 
+* --------------------------- *
+* Define macros for abstraction
+
+local p_row_names	""Insig" "Moderate" "Statistical" "Total""
+
 * ---------------------------- *
 * Execution - Summary of Results
 
@@ -16,6 +21,7 @@ foreach age of numlist 1 3 {
 	use agg-homo-`age', clear
 	
 	qui matrix by_program_`age' = J(4, 16, .)
+	qui matrix rownames by_program_`age' = `p_row_names'
 
 	local col = 1
 	
@@ -229,6 +235,8 @@ matrix by_scale_merge_1 = by_scale_1 ///
 						+ by_scale_ihdplow_1 + by_scale_ihdphigh_1 ///
 						+ by_scale_abc_1 ///
 						+ by_scale_carehv_1 + by_scale_careboth_1
+						
+qui matrix rownames by_scale_merge_1 = `p_row_names'
 
 cd "${homo_out}/home"
 frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
@@ -408,6 +416,8 @@ matrix by_scale_merge_3 = by_scale_3 ///
 						+ by_scale_ihdplow_3 + by_scale_ihdphigh_3 ///
 						+ by_scale_abc_3 ///
 						+ by_scale_carehv_3 + by_scale_careboth_3
+						
+qui matrix rownames by_scale_merge_3 = `p_row_names'
 
 cd "${homo_out}/home"
 frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter
