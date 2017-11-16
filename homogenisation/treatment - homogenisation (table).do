@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (table)
 * Author: Chanwool Kim
 * Date Created: 4 Nov 2017
-* Last Update: 4 Nov 2017
+* Last Update: 15 Nov 2017
 * --------------------------------------------------- *
 
 clear all
@@ -19,7 +19,7 @@ Poverty: 1 Over poverty line 0 Under poverty line
 Race: 1 White 0 Non-white
 */
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use distribution_D, clear
 mkmat abc
 
@@ -190,7 +190,7 @@ local carehv_labor_n		8
 foreach p of global programs {
 
 	foreach t of local `p'_tests {
-		cd "${homo_path}/working"
+		cd "$homo_working"
 		
 		if "`t'" == "home" {
 			use `p'-home-homo-merge, clear
@@ -354,7 +354,7 @@ foreach p of global programs {
 		}
 	}
 	
-	cd "${homo_path}/out/`t'"
+	cd "${homo_out}/`t'"
 	frmttable using `p'R_`t', statmat(R`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
 					rtitles(``p'_row') ///
 					annotate(R`t'_stars) asymbol(*,**,***)

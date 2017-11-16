@@ -2,7 +2,7 @@
 * Graphs of treatment effects - aggregate pile 
 * Author: Chanwool Kim
 * Date Created: 13 Sep 2017
-* Last Update: 5 Nov 2017
+* Last Update: 15 Nov 2017
 * ------------------------------------------ *
 
 clear all
@@ -12,7 +12,7 @@ clear all
 
 foreach p of global programs {
 
-cd "$data_home"
+cd "$pile_working"
 use "`p'-home-agg-pile.dta", clear
 
 * Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
@@ -75,7 +75,7 @@ local row_3 = 1
 			}
 	}
 		
-cd "${pile_path}/working"
+cd "$pile_working"
 
 svmat `p'R_1, names(col)
 rename `p'R_1num row_1
@@ -90,7 +90,7 @@ keep if row_3 != .
 save "`p'-pile-agg-3", replace
 }
 
-cd "${pile_path}/working"
+cd "$pile_working"
 
 use ehscenter-pile-agg-1, clear
 
@@ -113,7 +113,7 @@ save agg-pile-3, replace
 * --------*
 * Questions
 
-cd "${pile_path}/working"
+cd "$pile_working"
 
 use agg-pile-1, clear
 
@@ -149,7 +149,7 @@ save agg-pile-3, replace
 * Execution - P-value
 
 foreach age of numlist 1 3 {
-	cd "${pile_path}/working"
+	cd "$pile_working"
 	use agg-pile-`age', clear
 	
 	foreach p of global programs {
@@ -162,7 +162,7 @@ foreach age of numlist 1 3 {
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
 	
-	cd "${pile_path}/out"
+	cd "$pile_out"
 
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///

@@ -2,7 +2,7 @@
 * Data description
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 2 Nov 2017
+* Last Update: 15 Nov 2017
 * -------------- *
 
 set more off
@@ -88,7 +88,7 @@ global vlab7 "Mother's age at birth"
 global vlab8 "Mother's IQ"
 global vlab9 "Father/Boyfriend at home"
 
-cd "${main_path}/data_basic/out"
+cd "$data_out"
 cap file close texfile
 file open texfile using "`p'_datadesc.tex", write replace
 file write texfile "\begin{tabular}{lcccccc}" _newline

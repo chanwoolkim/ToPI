@@ -2,7 +2,7 @@
 * Data preparation - homogenisation
 * Author: Chanwool Kim
 * Date Created: 4 Jul 2017
-* Last Update: 2 Nov 2017
+* Last Update: 15 Nov 2017
 * ------------------------------- *
 
 clear all
@@ -49,7 +49,7 @@ replace race_g = 0 if race >= 2 & !missing(race)
 label var race_g "Race (estimated from mother's race)"
 label val race_g race
 
-cd "${homo_path}/working"
+cd "$homo_working"
 save ehs-control-homo, replace
 
 * ----------------------------------- *
@@ -125,7 +125,7 @@ replace race_g = 0 if race >= 3 & !missing(race)
 label var race_g "Race (estimated from mother's race)"
 label val race_g race
 
-cd "${homo_path}/working"
+cd "$homo_working"
 save ihdp-control-homo, replace
 
 * --------- *
@@ -270,7 +270,7 @@ label val race_g race
 
 keep if program == "abc"
 
-cd "${homo_path}/working"
+cd "$homo_working"
 save abc-control-homo, replace
 
 * -- *
@@ -414,5 +414,5 @@ label val race_g race
 
 keep if program == "care"
 
-cd "${homo_path}/working"
+cd "$homo_working"
 save care-control-homo, replace

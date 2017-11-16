@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (comparison)
 * Author: Chanwool Kim
 * Date Created: 26 Sep 2017
-* Last Update: 2 Nov 2017
+* Last Update: 15 Nov 2017
 * -------------------------------------------------------- *
 
 clear all
@@ -12,7 +12,7 @@ clear all
 
 * By program
 foreach age of numlist 1 3 {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use agg-homo-`age', clear
 	
 	qui matrix by_program_`age' = J(4, 16, .)
@@ -53,12 +53,12 @@ foreach age of numlist 1 3 {
 		local col = `col' + 1
 	}
 
-	cd "${homo_path}/out/home"
+	cd "${homo_out}/home"
 	frmttable using by_program_`age', statmat(by_program_`age') sdec(0) fragment tex replace nocenter
 }
 
 * By scale
-cd "${homo_path}/working"
+cd "$homo_working"
 
 use agg-homo-1, clear
 keep *coeff
@@ -139,7 +139,7 @@ foreach t of global early_home_types {
 	local col = `col' + 1
 }
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use item-homo-1, clear
 
 foreach p of global programs {
@@ -230,10 +230,10 @@ matrix by_scale_merge_1 = by_scale_1 ///
 						+ by_scale_abc_1 ///
 						+ by_scale_carehv_1 + by_scale_careboth_1
 
-cd "${homo_path}/out/home"
+cd "${homo_out}/home"
 frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
 
-cd "${homo_path}/working"
+cd "$homo_working"
 
 use agg-homo-3, clear
 keep *coeff
@@ -318,7 +318,7 @@ foreach t of global later_home_types {
 	local col = `col' + 1
 }
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use item-homo-3, clear
 
 foreach p of global programs {
@@ -409,5 +409,5 @@ matrix by_scale_merge_3 = by_scale_3 ///
 						+ by_scale_abc_3 ///
 						+ by_scale_carehv_3 + by_scale_careboth_3
 
-cd "${homo_path}/out/home"
+cd "${homo_out}/home"
 frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter

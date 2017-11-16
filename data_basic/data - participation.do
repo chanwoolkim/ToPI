@@ -2,7 +2,7 @@
 * Preliminary data preparation - participation
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 2 Nov 2017
+* Last Update: 5 Nov 2017
 * ------------------------------------------ *
 
 clear all

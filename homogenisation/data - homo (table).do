@@ -2,7 +2,7 @@
 * Data table - homogenisation
 * Author: Chanwool Kim
 * Date Created: 4 Jul 2017
-* Last Update: 5 Nov 2017
+* Last Update: 15 Nov 2017
 * ------------------------- *
 
 clear all
@@ -40,7 +40,7 @@ matrix colnames distribution = $program_name
 local col = 1
 	
 foreach p of global programs {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "`p'-home-homo-merge.dta", clear
 	di "`p'"
 	
@@ -106,14 +106,14 @@ foreach p of global programs {
 }
 
 matrix list distribution
-cd "${homo_path}/out"
+cd "$homo_out"
 frmttable using distribution, statmat(distribution) sdec(3) fragment tex replace nocenter
 
 matrix colnames distribution = $programs
 svmat distribution, names(col)
 keep $programs
 keep if abc != . & abc != 1
-cd "${homo_path}/working"
+cd "$homo_working"
 save distribution, replace
 
 * ---------------------- *
@@ -125,7 +125,7 @@ matrix colnames distribution_D = $program_name
 local col = 1
 	
 foreach p of global programs {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "`p'-home-homo-merge.dta", clear
 	di "`p'"
 	
@@ -191,12 +191,12 @@ foreach p of global programs {
 }
 
 matrix list distribution_D
-cd "${homo_path}/out"
+cd "$homo_out"
 frmttable using distribution_D, statmat(distribution_D) sdec(3) fragment tex replace nocenter
 
 matrix colnames distribution_D = $programs
 svmat distribution_D, names(col)
 keep $programs
 keep if abc != . & abc != 1
-cd "${homo_path}/working"
+cd "$homo_working"
 save distribution_D, replace

@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (item)
 * Author: Chanwool Kim
 * Date Created: 16 Sep 2017
-* Last Update: 5 Nov 2017
+* Last Update: 15 Nov 2017
 * -------------------------------------------------- *
 
 clear all
@@ -19,7 +19,7 @@ Poverty: 1 Over poverty line 0 Under poverty line
 Race: 1 White 0 Non-white
 */
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use distribution_D, clear
 mkmat abc
 
@@ -64,7 +64,7 @@ local cond_all "sibling != . & m_iq != . & sex != . & gestage != . & mf != . & !
 
 foreach p of global programs {
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use "`p'-home-homo-merge.dta", clear
 
 * Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
@@ -128,7 +128,7 @@ qui matrix colnames `p'R_3 = `p'R_3num `p'R_3coeff `p'R_3pval
 			}
 	}
 
-cd "${homo_path}/working"
+cd "$homo_working"
 
 svmat `p'R_1, names(col)
 rename `p'R_1num row_1
@@ -143,7 +143,7 @@ keep if row_3 != .
 save "`p'-homo-item-3", replace
 }
 
-cd "${homo_path}/working"
+cd "$homo_working"
 
 use ehscenter-homo-item-1, clear
 
@@ -166,7 +166,7 @@ save item-homo-3, replace
 * --------*
 * Questions
 
-cd "${homo_path}/working"
+cd "$homo_working"
 
 use item-homo-1, clear
 tostring row, gen(question)
@@ -324,7 +324,7 @@ save item-homo-3, replace
 * Execution - P-value
 
 foreach age of numlist 1 3 {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use item-homo-`age', clear
 	
 	foreach p of global programs {
@@ -337,7 +337,7 @@ foreach age of numlist 1 3 {
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
 	
-	cd "${homo_path}/out/home"
+	cd "${homo_out}/home"
 
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///

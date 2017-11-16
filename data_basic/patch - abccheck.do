@@ -2,7 +2,7 @@
 * Abecedarian - Check subscores
 * Author: Chanwool Kim
 * Date Created: 14 Apr 2017
-* Last Update: 4 Nov 2017
+* Last Update: 5 Nov 2017
 * --------------------------- *
 
 clear all

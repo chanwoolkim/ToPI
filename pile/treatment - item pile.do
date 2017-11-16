@@ -2,7 +2,7 @@
 * Graphs of treatment effects - item pile
 * Author: Chanwool Kim
 * Date Created: 5 Jun 2017
-* Last Update: 5 Nov 2017
+* Last Update: 15 Nov 2017
 * ------------------------------------- *
 
 clear all
@@ -12,7 +12,7 @@ clear all
 
 foreach p of global programs {
 
-cd "$data_home"
+cd "$pile_working"
 use "`p'-home-item-pile.dta", clear
 
 * Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
@@ -60,7 +60,7 @@ qui matrix colnames `p'R_3 = `p'R_3num `p'R_3coeff `p'R_3lower `p'R_3upper `p'R_
 			}
 	}
 		
-cd "${pile_path}/working"
+cd "$pile_working"
 
 svmat `p'R_1, names(col)
 rename `p'R_1num row_1
@@ -75,7 +75,7 @@ keep if row_3 != .
 save "`p'-pile-item-3", replace
 }
 
-cd "${pile_path}/working"
+cd "$pile_working"
 
 use ehscenter-pile-item-1, clear
 
@@ -98,7 +98,7 @@ save item-pile-3, replace
 * --------*
 * Questions
 
-cd "${pile_path}/working"
+cd "$pile_working"
 
 use item-pile-1, clear
 tostring row, gen(question)
@@ -256,7 +256,7 @@ save item-pile-3, replace
 * Execution - P-value
 
 foreach age of numlist 1 3 {
-	cd "${pile_path}/working"
+	cd "$pile_working"
 	use item-pile-`age', clear
 	
 	foreach p of global programs {
@@ -271,7 +271,7 @@ foreach age of numlist 1 3 {
 		replace `p'R0_01 = `p'R_`age'coeff if `p'R_`age'pval <= 0.01
 	}
 	
-	cd "${pile_path}/out"
+	cd "$pile_out"
 
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ehscenterR0_01 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ehshomeR0_01 ///

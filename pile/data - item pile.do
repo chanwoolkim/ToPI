@@ -2,17 +2,15 @@
 * Data for item pile treatment effects
 * Author: Chanwool Kim
 * Date Created: 27 Jun 2017
-* Last Update: 2 Nov 2017
+* Last Update: 15 Nov 2017
 * ---------------------------------- *
 
 clear all
 
-cd "$data_home"
-
 * EHS (by participation status)
 
 foreach t of global ehs_type {
-
+	cd "$data_home"
 	use "ehs`t'-home-item-merge.dta", clear
 	
 	rename home14_* home1_i*
@@ -86,24 +84,27 @@ foreach t of global ehs_type {
 	rename home3_i37 home3_54
 	
 	drop home1_i* home3_i*
-
+	
+	cd "$pile_working"
 	save ehs`t'-home-item-pile, replace
 }
 
 * IHDP (by birth weight group)
 
 foreach t of global ihdp_type {
-
+	cd "$data_home"
 	use "ihdp`t'-home-item-merge.dta", clear
 	
 	rename home12_* home1_*
 	rename home36_* home3_*
 	
+	cd "$pile_working"
 	save ihdp`t'-home-item-pile, replace
 }
 
 * ABC/CARE
 
+cd "$data_home"
 use "abc-home-item-merge.dta", clear
 
 rename home18_* home1_*
@@ -168,12 +169,13 @@ rename home3_i51 home3_55
 
 drop home3_i*
 
+cd "$pile_working"
 save abc-home-item-pile, replace
 
 * CARE (by home visit & both)
 
 foreach t of global care_type {
-
+	cd "$data_home"
 	use "care`t'-home-item-merge.dta", clear
 	
 	rename home18_* home1_*
@@ -238,5 +240,6 @@ foreach t of global care_type {
 	
 	drop home3_i*
 	
+	cd "$pile_working"
 	save care`t'-home-item-pile, replace
 }

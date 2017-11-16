@@ -2,7 +2,7 @@
 * Comparison - aggregate
 * Author: Chanwool Kim
 * Date Created: 22 Sep 2017
-* Last Update: 2 Nov 2017
+* Last Update: 15 Nov 2017
 * -------------------- *
 
 clear all
@@ -23,15 +23,15 @@ local careboth_color	purple
 * Merge original and homogenisation pile results
 
 foreach age of numlist 1 3 {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "agg-homo-`age'", clear
 	rename *R* homo_*R*
 	drop scale_num
 	
-	cd "${pile_path}/working"
+	cd "$pile_working"
 	merge 1:1 row using agg-pile-`age', nogen nolabel
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save agg-merge-`age', replace
 }
 
@@ -39,7 +39,7 @@ foreach age of numlist 1 3 {
 * Execution - Create graph
 
 foreach age of numlist 1 3 {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use agg-merge-`age', clear
 	
 	foreach p of global programs {
@@ -59,7 +59,7 @@ foreach age of numlist 1 3 {
 		
 		gen inv_`p'R_`age'coeff = `p'R_`age'coeff * -1
 		
-		cd "${homo_path}/out/comparison"
+		cd "${homo_out}/comparison"
 
 		graph dot `p'Rinsig `p'R0_1 `p'R0_05 ///
 				  homo_`p'Rinsig homo_`p'R0_1 homo_`p'R0_05, ///

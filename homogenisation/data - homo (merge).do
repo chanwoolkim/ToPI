@@ -2,7 +2,7 @@
 * Data - homogenisation (merge all)
 * Author: Chanwool Kim
 * Date Created: 14 Sep 2017
-* Last Update: 4 Nov 2017
+* Last Update: 15 Nov 2017
 * ------------------------------- *
 
 clear all
@@ -11,7 +11,7 @@ clear all
 * Early Head Start
 
 foreach t of global ehs_type {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "ehs-control-homo.dta", clear
 	
 	cd "$data_home"	
@@ -93,7 +93,7 @@ foreach t of global ehs_type {
 	
 	drop home1_i* home3_i*
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save ehs`t'-home-homo-merge, replace
 	
 	use "ehs-control-homo.dta", clear
@@ -101,7 +101,7 @@ foreach t of global ehs_type {
 	cd "$data_labor"	
 	merge 1:1 id using ehs`t'-labor-item-participation, nogen nolabel keep(match)
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save ehs`t'-labor-homo-merge, replace
 }
 
@@ -109,7 +109,7 @@ foreach t of global ehs_type {
 * Infant Health and Development Program
 
 foreach t of global ihdp_type {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "ihdp-control-homo.dta", clear
 	
 	cd "$data_home"
@@ -121,7 +121,7 @@ foreach t of global ihdp_type {
 	rename home12_* home1_*
 	rename home36_* home3_*
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save ihdp`t'-home-homo-merge, replace
 	
 	use "ihdp-control-homo.dta", clear
@@ -129,14 +129,14 @@ foreach t of global ihdp_type {
 	cd "$data_labor"	
 	merge 1:1 id using ihdp`t'-labor-item-participation, nogen nolabel keep(match)
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save ihdp`t'-labor-homo-merge, replace
 }
 
 * --------- *
 * Abecedarian
 
-cd "${homo_path}/working"
+cd "$homo_working"
 use "abc-control-homo.dta", clear
 
 cd "$data_home"
@@ -207,7 +207,7 @@ rename home3_i51 home3_55
 
 drop home3_i*
 
-cd "${homo_path}/working"
+cd "$homo_working"
 save abc-home-homo-merge, replace
 
 use "abc-control-homo.dta", clear
@@ -215,14 +215,14 @@ use "abc-control-homo.dta", clear
 cd "$data_labor"	
 merge 1:1 id using abc-labor-item-participation, nogen nolabel keep(match)
 	
-cd "${homo_path}/working"
+cd "$homo_working"
 save abc-labor-homo-merge, replace
 
 * -- *
 * CARE
 
 foreach t of global care_type {
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	use "care-control-homo.dta", clear
 
 	cd "$data_home"
@@ -293,7 +293,7 @@ foreach t of global care_type {
 	
 	drop home3_i*
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save care`t'-home-homo-merge, replace
 	
 	use "care-control-homo.dta", clear
@@ -301,6 +301,6 @@ foreach t of global care_type {
 	cd "$data_labor"	
 	merge 1:1 id using care`t'-labor-item-participation, nogen nolabel keep(match)
 	
-	cd "${homo_path}/working"
+	cd "$homo_working"
 	save care`t'-labor-homo-merge, replace
 }

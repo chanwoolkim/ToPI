@@ -16,20 +16,23 @@ global master_path		"C:/Users/chanw/Dropbox (Personal)"
 
 global main_path		"${master_path}/TOPI/treatment_effect"
 global raw_path			"${master_path}/std"
-global code 			"$main_path"
+global code 			"C:/Users/chanw/Desktop/ToPI"
 
 global data_ehs			"$raw_path"
 global data_ehs_h		"${master_path}/Harvard Dataverse Sensitive Original Data/parent_interview"
 global data_ihdp 		"$raw_path"
 global data_abc			"$raw_path"
 
-global data_home		"${main_path}/home_data"
-global data_labor		"${main_path}/labor_data"
+global data_home		"${main_path}/data/home"
+global data_labor		"${main_path}/data/labor"
 
-global basic_path		"${main_path}/analysis_basic"
-global pile_path		"${main_path}/pile"
-global homo_path		"${main_path}/homogenisation"
-global medi_path		"${main_path}/mediation"
+global data_out			"${main_path}/out/data_basic"
+global analysis_out		"${main_path}/out/analysis_basic"
+global pile_out			"${main_path}/out/pile"
+global homo_out			"${main_path}/out/homogenisation"
+
+global pile_working		"${main_path}/working/pile"
+global homo_working		"${main_path}/working/homogenisation"
 
 global covariates		m_age m_edu sibling m_iq race sex gestage mf
 global programs			ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
