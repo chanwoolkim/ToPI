@@ -30,9 +30,11 @@ global data_out			"${main_path}/out/data_basic"
 global analysis_out		"${main_path}/out/analysis_basic"
 global pile_out			"${main_path}/out/pile"
 global homo_out			"${main_path}/out/homogenisation"
+global subpop_out		"${main_path}/out/subpopulation"
 
 global pile_working		"${main_path}/working/pile"
 global homo_working		"${main_path}/working/homogenisation"
+global subpop_working	"${main_path}/working/subpopulation"
 
 global covariates		m_age m_edu sibling m_iq race sex gestage mf
 global programs			ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
@@ -113,6 +115,20 @@ cd "${code}/homogenisation"
 	include "treatment - homogenisation (comparison)"
 cd "${code}/homogenisation"
 	include "comparison - aggregate"
+	
+* ----------- *
+* Subpopulation
+
+cd "${code}/subpopulation"
+	include "data - subpop"
+cd "${code}/subpopulation"
+	include "data - subpop (merge)"
+cd "${code}/subpopulation"
+	include "data - subpop (table)"
+cd "${code}/subpopulation"
+	include "treatment - subpop (aggregate)"
+cd "${code}/subpopulation"
+	include "treatment - subpop (item)"
 	
 * ------- *
 * Mediation
