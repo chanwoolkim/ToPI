@@ -2,7 +2,7 @@
 * Data table - subpopulation
 * Author: Chanwool Kim
 * Date Created: 15 Nov 2017
-* Last Update: 15 Nov 2017
+* Last Update: 16 Nov 2017
 * ------------------------ *
 
 clear all
@@ -26,7 +26,7 @@ foreach p of global programs {
 	di "`p'"
 	
 	* Count total number of observations
-	count
+	count if !missing(D)
 	local total = r(N)
 	
 	count if race_g == 1 & !missing(D)
