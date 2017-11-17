@@ -2,7 +2,7 @@
 * Treatment effects - subpopulation (aggregate)
 * Author: Chanwool Kim
 * Date Created: 15 Nov 2017
-* Last Update: 15 Nov 2017
+* Last Update: 16 Nov 2017
 * ------------------------------------------- *
 
 clear all
@@ -224,7 +224,7 @@ foreach age of numlist 1 3 {
 		marker(16,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(17,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(18,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
 		marker(19,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thin)) marker(20,msize(large) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(21,msize(large) msymbol(O) mlc(purple) mfc(purple) mlw(thin)) ///
 		marker(22,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thin)) marker(23,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(24,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thin)) ///
-		over(scale, label(labsize(tiny)) sort(scale_num)) ///
+		over(scale, label(labsize(vsmall)) sort(scale_num)) ///
 		legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 		graphregion(fcolor(white))
 

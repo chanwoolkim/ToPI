@@ -2,7 +2,7 @@
 * Comparison - aggregate
 * Author: Chanwool Kim
 * Date Created: 22 Sep 2017
-* Last Update: 15 Nov 2017
+* Last Update: 16 Nov 2017
 * -------------------- *
 
 clear all
@@ -65,7 +65,7 @@ foreach age of numlist 1 3 {
 				  homo_`p'Rinsig homo_`p'R0_1 homo_`p'R0_05, ///
 		marker(1,msize(large) msymbol(O) mlc(``p'_color') mfc(``p'_color'*0) mlw(thin)) marker(2,msize(large) msymbol(O) mlc(``p'_color') mfc(``p'_color'*0.5) mlw(thin)) marker(3,msize(large) msymbol(O) mlc(``p'_color') mfc(``p'_color') mlw(thin)) ///
 		marker(4,msize(large) msymbol(T) mlc(``p'_color') mfc(``p'_color'*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(``p'_color') mfc(``p'_color'*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(``p'_color') mfc(``p'_color') mlw(thin)) ///
-		over(scale_num, label(labsize(tiny)) sort(inv_`p'R_`age'coeff)) ///
+		over(scale_num, label(labsize(vsmall)) sort(inv_`p'R_`age'coeff)) ///
 		legend (order (3 "Original" 6 "Homogenisation") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 		graphregion(fcolor(white))
 
