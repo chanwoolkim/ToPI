@@ -56,7 +56,7 @@ local row_3 = 1
 			local nprop = `ndiff'/`nobs'
 			
 			if `nprop' < 0.01 | `ndiff' < 2 {
-			di "Not much variability - `t'`s'_`age'"
+			di "Not much variability"
 			qui regress norm_home_`r'1y R $covariates if !missing(D)
 			}
 			
@@ -107,7 +107,7 @@ local row_3 = 1
 			local nprop = `ndiff'/`nobs'
 			
 			if `nprop' < 0.01 | `ndiff' < 2 {
-			di "Not much variability - `t'`s'_`age'"
+			di "Not much variability"
 			qui regress norm_home_`r'3y R $covariates if !missing(D)
 			}
 			
@@ -118,12 +118,11 @@ local row_3 = 1
 			qui matrix list r(table)
 			qui matrix r = r(table)
 		
-			qui matrix `p'D_3[`row_1',2] = r[1,1]
-			qui matrix `p'D_3[`row_1',3] = r[5,1]
-			qui matrix `p'D_3[`row_1',4] = r[6,1]
-			qui matrix `p'D_3[`row_1',5] = r[4,1]
-			
-			
+			qui matrix `p'D_3[`row_3',2] = r[1,1]
+			qui matrix `p'D_3[`row_3',3] = r[5,1]
+			qui matrix `p'D_3[`row_3',4] = r[6,1]
+			qui matrix `p'D_3[`row_3',5] = r[4,1]
+						
 			local row_3 = `row_3' + 1
 			}
 			
