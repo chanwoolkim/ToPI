@@ -2,21 +2,23 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 6 Nov 2017
+* Last Update: 11 Jan 2018
 * ---- *
 
 clear all
 set more off
 ssc install outreg, replace
 adoupdate outreg
+ssc install hotdeck, replace
+adoupdate hotdeck
 
 global klmshare 		: env klmshare
 
-global master_path		"C:/Users/chanw/Dropbox (Personal)"
+global master_path		"/Users/ckim/Dropbox (Personal)"
 
 global main_path		"${master_path}/TOPI/treatment_effect"
 global raw_path			"${master_path}/std"
-global code 			"C:/Users/chanw/Desktop/ToPI"
+global code 			"/Users/ckim/Desktop/ToPI"
 
 global data_ehs			"$raw_path"
 global data_ehs_h		"${master_path}/Harvard Dataverse Sensitive Original Data/parent_interview"
@@ -31,10 +33,12 @@ global analysis_out		"${main_path}/out/analysis_basic"
 global pile_out			"${main_path}/out/pile"
 global homo_out			"${main_path}/out/homogenisation"
 global subpop_out		"${main_path}/out/subpopulation"
+global homo_subpop_out	"${main_path}/out/homo_subpop"
 
 global pile_working		"${main_path}/working/pile"
 global homo_working		"${main_path}/working/homogenisation"
 global subpop_working	"${main_path}/working/subpopulation"
+global homo_subpop_working	"${main_path}/working/homo_subpop"
 
 global covariates		m_age m_edu sibling m_iq race sex gestage mf
 global programs			ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
@@ -129,7 +133,17 @@ cd "${code}/subpopulation"
 	include "treatment - subpop (aggregate)"
 cd "${code}/subpopulation"
 	include "treatment - subpop (item)"
-	
+
+* ---------------------------- *
+* Homogenisation + Subpopulation
+
+cd "${code}/homo_subpop"
+	include "data - homo_subpop (table)"
+cd "${code}/homo_subpop"
+	include "treatment - homo_subpop (aggregate)"
+cd "${code}/homo_subpop"
+	include "treatment - homo_subpop (item)"
+
 * ------- *
 * Mediation
 
