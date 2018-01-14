@@ -67,7 +67,7 @@ foreach p of global programs {
 				 + distribution[5,`col'] ///
 				 + distribution[6,`col'] ///
 				 + distribution[7,`col'] ///
-				 + distribution[8,`col'] ///
+				 + distribution[8,`col']
 	matrix distribution[9,`col'] = `psum'
 	
 	local col = `col' + 1
@@ -128,7 +128,7 @@ foreach p of global programs {
 				 + distribution_D[5,`col'] ///
 				 + distribution_D[6,`col'] ///
 				 + distribution_D[7,`col'] ///
-				 + distribution_D[8,`col'] ///
+				 + distribution_D[8,`col']
 	matrix distribution_D[9,`col'] = `psum'
 	
 	local col = `col' + 1
