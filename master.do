@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 11 Jan 2018
+* Last Update: 14 Jan 2018
 * ---- *
 
 clear all
@@ -12,45 +12,45 @@ adoupdate outreg
 ssc install hotdeck, replace
 adoupdate hotdeck
 
-global klmshare 		: env klmshare
+global klmshare 			: env klmshare
 
-global master_path		"/Users/ckim/Dropbox (Personal)"
+global master_path			"/Users/ckim/Dropbox (Work)"
 
-global main_path		"${master_path}/TOPI/treatment_effect"
-global raw_path			"${master_path}/std"
-global code 			"/Users/ckim/Desktop/ToPI"
+global main_path			"${master_path}/TOPI/treatment_effect"
+global raw_path				"${master_path}/Data/std"
+global code 				"/Users/ckim/Desktop/ToPI"
 
-global data_ehs			"$raw_path"
-global data_ehs_h		"${master_path}/Harvard Dataverse Sensitive Original Data/parent_interview"
-global data_ihdp 		"$raw_path"
-global data_abc			"$raw_path"
+global data_ehs				"$raw_path"
+global data_ehs_h			"${master_path}/Data/Harvard Dataverse Sensitive Original Data/parent_interview"
+global data_ihdp 			"$raw_path"
+global data_abc				"$raw_path"
 
-global data_home		"${main_path}/data/home"
-global data_labor		"${main_path}/data/labor"
+global data_home			"${main_path}/data/home"
+global data_labor			"${main_path}/data/labor"
 
-global data_out			"${main_path}/out/data_basic"
-global analysis_out		"${main_path}/out/analysis_basic"
-global pile_out			"${main_path}/out/pile"
-global homo_out			"${main_path}/out/homogenisation"
-global subpop_out		"${main_path}/out/subpopulation"
-global homo_subpop_out	"${main_path}/out/homo_subpop"
+global data_out				"${main_path}/out/data_basic"
+global analysis_out			"${main_path}/out/analysis_basic"
+global pile_out				"${main_path}/out/pile"
+global homo_out				"${main_path}/out/homogenisation"
+global subpop_out			"${main_path}/out/subpopulation"
+global homo_subpop_out		"${main_path}/out/homo_subpop"
 
-global pile_working		"${main_path}/working/pile"
-global homo_working		"${main_path}/working/homogenisation"
-global subpop_working	"${main_path}/working/subpopulation"
+global pile_working			"${main_path}/working/pile"
+global homo_working			"${main_path}/working/homogenisation"
+global subpop_working		"${main_path}/working/subpopulation"
 global homo_subpop_working	"${main_path}/working/homo_subpop"
 
-global covariates		m_age m_edu sibling m_iq race sex gestage mf
-global programs			ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
-global program_name		""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
-global measure			home labor
+global covariates			m_age m_edu sibling m_iq race sex gestage mf
+global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
+global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
+global measure				home labor
 
-global ehs_type			center home mixed
-global ihdp_type		high low
-global care_type		both hv
+global ehs_type				center home mixed
+global ihdp_type			high low
+global care_type			both hv
 
-global early_home_types	total warmth verbal hostility learning activity develop
-global later_home_types	total learning reading verbal warmth exterior interior activity hostility
+global early_home_types		total warmth verbal hostility learning activity develop
+global later_home_types		total learning reading verbal warmth exterior interior activity hostility
 
 * -------------- *
 * Data Preperation
