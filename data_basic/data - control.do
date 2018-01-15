@@ -2,7 +2,7 @@
 * Preliminary data preparation - controls
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 2 Nov 2017
+* Last Update: 14 Jan 2018
 * ------------------------------------- *
 
 clear all
@@ -199,3 +199,104 @@ foreach t of global measure {
 	save abc-`t'-control, replace
 }
 
+* ---- *
+* Impute
+
+foreach p of local ehs ihdp abc {
+	foreach t of global measure {
+		cd "${data_`t'}"
+		use `p'-`t'-control, clear
+		
+		quietly {
+		reg m_age m_edu sibling m_iq race sex gestage mf
+		local df_r = e(df_r)
+		predict m_age_p, xb
+		gen m_age_r = m_age - m_age_p
+		qui sum m_age_r
+		local var_r = r(Var)
+		sum m_age_p
+		replace m_age_p = r(mean) if missing(m_age_p)
+		replace m_age_p = m_age_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace m_age = m_age_p if missing(m_age)
+		
+		reg m_edu m_age sibling m_iq race sex gestage mf
+		local df_r = e(df_r)
+		predict m_edu_p, xb
+		gen m_edu_r = m_edu - m_edu_p
+		qui sum m_edu_r
+		local var_r = r(Var)
+		sum m_edu_p
+		replace m_edu_p = r(mean) if missing(m_edu_p)
+		replace m_edu_p = m_edu_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace m_edu = m_edu_p if missing(m_edu)
+		
+		reg sibling m_age m_edu m_iq race sex gestage mf
+		local df_r = e(df_r)
+		predict sibling_p, xb
+		gen sibling_r = sibling - sibling_p
+		qui sum sibling_r
+		local var_r = r(Var)
+		sum sibling_p
+		replace sibling_p = r(mean) if missing(sibling_p)
+		replace sibling_p = sibling_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace sibling = sibling_p if missing(sibling)
+		
+		reg m_iq m_age m_edu sibling race sex gestage mf
+		local df_r = e(df_r)
+		predict m_iq_p, xb
+		gen m_iq_r = m_iq - m_iq_p
+		qui sum m_iq_r
+		local var_r = r(Var)
+		sum m_iq_p
+		replace m_iq_p = r(mean) if missing(m_iq_p)
+		replace m_iq_p = m_iq_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace m_iq = m_iq_p if missing(m_iq)
+		
+		reg race m_age m_edu sibling m_iq sex gestage mf
+		local df_r = e(df_r)
+		predict race_p, xb
+		gen race_r = race - race_p
+		qui sum race_r
+		local var_r = r(Var)
+		sum race_p
+		replace race_p = r(mean) if missing(race_p)
+		replace race_p = race_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace race = race_p if missing(race)
+		
+		reg sex m_age m_edu sibling m_iq race gestage mf
+		local df_r = e(df_r)
+		predict sex_p, xb
+		gen sex_r = sex - sex_p
+		qui sum sex_r
+		local var_r = r(Var)
+		sum sex_p
+		replace sex_p = r(mean) if missing(sex_p)
+		replace sex_p = sex_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace sex = sex_p if missing(sex)
+		
+		reg gestage m_age m_edu sibling m_iq race gestage mf
+		local df_r = e(df_r)
+		predict gestage_p, xb
+		gen gestage_r = gestage - gestage_p
+		qui sum gestage_r
+		local var_r = r(Var)
+		sum gestage_p
+		replace gestage_p = r(mean) if missing(gestage_p)
+		replace gestage_p = gestage_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace gestage = gestage_p if missing(gestage)
+		
+		reg mf m_age m_edu sibling m_iq race sex gestage
+		local df_r = e(df_r)
+		predict mf_p, xb
+		gen mf_r = mf - mf_p
+		qui sum mf_r
+		local var_r = r(Var)
+		sum mf_p
+		replace mf_p = r(mean) if missing(mf_p)
+		replace mf_p = mf_p + rnormal()*sqrt(`var_r'/`df_r')
+		replace mf = mf_p if missing(mf)
+		}
+		
+		save `p'-`t'-control, replace
+	}
+}
