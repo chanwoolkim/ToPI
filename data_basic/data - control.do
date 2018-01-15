@@ -202,7 +202,7 @@ foreach t of global measure {
 * ---- *
 * Impute
 
-foreach p of local ehs ihdp abc {
+foreach p in ehs ihdp abc {
 	foreach t of global measure {
 		cd "${data_`t'}"
 		use `p'-`t'-control, clear
@@ -295,6 +295,8 @@ foreach p of local ehs ihdp abc {
 		replace mf_p = r(mean) if missing(mf_p)
 		replace mf_p = mf_p + rnormal()*sqrt(`var_r'/`df_r')
 		replace mf = mf_p if missing(mf)
+		
+		drop *_p *_r
 		}
 		
 		save `p'-`t'-control, replace
