@@ -37,7 +37,7 @@ use "ihdp`t'-home-agg-pile.dta", clear
 		capture confirm variable norm_home_`r'1y
 			if !_rc {
 			* Randomisation variable
-			qui xi: regress norm_home_`r'1y i.R*bw if !missing(D)
+			qui xi: regress norm_home_`r'1y i.R*bw $covariates if !missing(D)
 			* r(table) stores values from regression (ex. coeff, var, CI).
 			qui matrix list r(table)
 			qui matrix r = r(table)
@@ -63,7 +63,7 @@ use "ihdp`t'-home-agg-pile.dta", clear
 		capture confirm variable norm_home_`r'3y
 			if !_rc {
 			* Randomisation variable
-			qui xi: regress norm_home_`r'3y i.R*bw if !missing(D)
+			qui xi: regress norm_home_`r'3y i.R*bw $covariates if !missing(D)
 			* r(table) stores values from regression (ex. coeff, var, CI).
 			qui matrix list r(table)
 			qui matrix r = r(table)
@@ -176,7 +176,7 @@ foreach age of numlist 1 3 {
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05 ///
 			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
-			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05 ///
+			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05, ///
 	marker(1,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(2,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(3,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
 	marker(4,msize(large) msymbol(T) mlc(green) mfc(green*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(green) mfc(green*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(green) mfc(green) mlw(thin)) ///
 	marker(7,msize(large) msymbol(S) mlc(green) mfc(green*0) mlw(thin)) marker(8,msize(large) msymbol(S) mlc(green) mfc(green*0.5) mlw(thin)) marker(9,msize(large) msymbol(S) mlc(green) mfc(green) mlw(thin)) ///
