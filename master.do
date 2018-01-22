@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 14 Jan 2018
+* Last Update: 22 Jan 2018
 * ---- *
 
 clear all
@@ -45,9 +45,9 @@ global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv carebo
 global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
 global measure				home labor
 
-global ehs_type				center home mixed
-global ihdp_type			high low
-global care_type			both hv
+global ehs_type				""center" "home" "mixed" """
+global ihdp_type			""high" "low" """
+global care_type			""both" "hv""
 
 global early_home_types		total warmth verbal hostility learning activity develop
 global later_home_types		total learning reading verbal warmth exterior interior activity hostility
@@ -95,6 +95,8 @@ cd "${code}/pile"
 	include "data - item pile"
 cd "${code}/pile"
 	include "treatment - aggregate pile"
+cd "${code}/pile"
+	include "treatment - aggregate pile (ihdp sub)"
 cd "${code}/pile"
 	include "treatment - item pile"
 cd "${code}/pile"
