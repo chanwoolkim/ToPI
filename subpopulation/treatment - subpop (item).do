@@ -2,7 +2,7 @@
 * Treatment effects - subpopulation (item)
 * Author: Chanwool Kim
 * Date Created: 15 Nov 2017
-* Last Update: 15 Nov 2017
+* Last Update: 23 Jan 2018
 * -------------------------------------- *
 
 clear all
@@ -324,6 +324,7 @@ foreach age of numlist 1 3 {
 		marker(22,msize(small) msymbol(T) mlc(purple) mfc(purple*0) mlw(vthin)) marker(23,msize(small) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(24,msize(small) msymbol(T) mlc(purple) mfc(purple) mlw(vthin)) ///
 		over(question, label(labsize(tiny)) sort(scale_row)) ///
 		legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+		ylabel($item_axis_range) ///
 		ysize(11) xsize(8.5) graphregion(fcolor(white))
 
 		graph export "item_subpop_R_`t'_`age'.pdf", replace

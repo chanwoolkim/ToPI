@@ -2,10 +2,12 @@
 * Graphs of treatment effects - aggregate pile (IHDP substitution effect)
 * Author: Chanwool Kim
 * Date Created: 22 Jan 2018
-* Last Update: 22 Jan 2018
+* Last Update: 23 Jan 2018
 * --------------------------------------------------------------------- *
 
 clear all
+
+local ihdp_axis_range	-0.0015(0.0005)0.0015
 
 * ------------ *
 * Prepare matrix
@@ -182,6 +184,7 @@ foreach age of numlist 1 3 {
 	marker(7,msize(large) msymbol(S) mlc(green) mfc(green*0) mlw(thin)) marker(8,msize(large) msymbol(S) mlc(green) mfc(green*0.5) mlw(thin)) marker(9,msize(large) msymbol(S) mlc(green) mfc(green) mlw(thin)) ///
 	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
 	legend (order (3 "IHDP-All" 6 "IHDP-High" 9 "IHDP-Low") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	ylabel(`ihdp_axis_range') ///
 	graphregion(fcolor(white))
 
 	graph export "ihdp_sub_agg_pile_R_`age'.pdf", replace

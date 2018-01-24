@@ -2,7 +2,7 @@
 * Graphs of treatment effects - item pile
 * Author: Chanwool Kim
 * Date Created: 5 Jun 2017
-* Last Update: 15 Nov 2017
+* Last Update: 23 Jan 2018
 * ------------------------------------- *
 
 clear all
@@ -299,6 +299,7 @@ foreach age of numlist 1 3 {
 	marker(31,msize(small) msymbol(T) mlc(purple) mfc(purple*0.75) mlw(vthin)) marker(32,msize(small) msymbol(T) mlc(purple) mfc(purple) mlw(vthin)) ///
 	over(question, label(labsize(tiny)) sort(scale_row)) ///
 	legend (order (4 "EHS-Center" 8 "EHS-Home" 12 "EHS-Mixed" 16 "IHDP-High" 20 "IHDP-Low" 24 "ABC" 28 "CARE-Both" 32 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	ylabel($item_axis_range) ///
 	ysize(11) xsize(8.5) graphregion(fcolor(white))
 
 	graph export "item_pile_R_`age'.pdf", replace

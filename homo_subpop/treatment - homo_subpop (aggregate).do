@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation and subpopulation (aggregate)
 * Author: Chanwool Kim
 * Date Created: 11 Jan 2018
-* Last Update: 11 Jan 2018
+* Last Update: 23 Jan 2018
 * ------------------------------------------------------------------------- *
 
 clear all
@@ -234,6 +234,7 @@ foreach age of numlist 1 3 {
 	marker(22,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thin)) marker(23,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(24,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thin)) ///
 	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
 	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
 
 	graph export "agg_homo_subpop_R_`age'.pdf", replace

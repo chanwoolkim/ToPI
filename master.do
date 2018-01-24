@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 22 Jan 2018
+* Last Update: 23 Jan 2018
 * ---- *
 
 clear all
@@ -51,6 +51,9 @@ global care_type			""both" "hv""
 
 global early_home_types		total warmth verbal hostility learning activity develop
 global later_home_types		total learning reading verbal warmth exterior interior activity hostility
+
+global agg_axis_range		-1.5(0.5)1.5
+global item_axis_range		-1(0.25)1
 
 * -------------- *
 * Data Preperation
