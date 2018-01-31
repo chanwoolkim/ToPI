@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (table)
 * Author: Chanwool Kim
 * Date Created: 4 Nov 2017
-* Last Update: 15 Nov 2017
+* Last Update: 27 Jan 2018
 * --------------------------------------------------- *
 
 clear all

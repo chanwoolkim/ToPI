@@ -110,8 +110,34 @@ save abc-home-participation, replace
 cd "$data_labor"
 save abc-labor-participation, replace
 
+cd "$data_parent"
+save abc-parent-participation, replace
+
 * -- *
 * CARE
+
+cd "$data_abc"
+use "append-abccare.dta", clear
+
+keep if program == "care"
+
+drop R
+gen R = random != 0
+gen Dany = D == 1 | homevisit > 0
+tab Dany
+drop D
+rename Dany D
+
+keep id program R D
+
+cd "$data_home"
+save care-home-participation, replace
+
+cd "$data_labor"
+save care-labor-participation, replace
+
+cd "$data_parent"
+save care-parent-participation, replace
 
 cd "$data_abc"
 use "append-abccare.dta", clear
@@ -134,6 +160,9 @@ save careboth-home-participation, replace
 cd "$data_labor"
 save careboth-labor-participation, replace
 
+cd "$data_parent"
+save careboth-parent-participation, replace
+
 cd "$data_abc"
 use "append-abccare.dta", clear
 
@@ -155,3 +184,5 @@ save carehv-home-participation, replace
 cd "$data_labor"
 save carehv-labor-participation, replace
 
+cd "$data_parent"
+save carehv-parent-participation, replace

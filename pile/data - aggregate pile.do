@@ -2,7 +2,7 @@
 * Data for aggregate pile treatment effects
 * Author: Chanwool Kim
 * Date Created: 13 Sep 2017
-* Last Update: 15 Nov 2017
+* Last Update: 26 Jan 2018
 * --------------------------------------- *
 
 clear all
@@ -40,6 +40,7 @@ foreach t of global ihdp_type {
 cd "$data_home"
 use "abc-home-agg-merge.dta", clear
 
+rename norm_home_*6	 norm_home_*6m
 rename norm_home_*18 norm_home_*1y
 rename norm_home_*42 norm_home_*3y
 

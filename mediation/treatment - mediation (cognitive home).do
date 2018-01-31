@@ -1,9 +1,9 @@
-* ---------------- *
-* Mediation analysis
+* ---------------------------- *
+* Mediation analysis (IQ - HOME)
 * Author: Chanwool Kim
 * Date Created: 20 Apr 2017
-* Last Update: 28 Nov 2017
-* ---------------- *
+* Last Update: 27 Jan 2018
+* ---------------------------- *
 
 clear all
 

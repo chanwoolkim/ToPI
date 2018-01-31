@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 23 Jan 2018
+* Last Update: 29 Jan 2018
 * ---- *
 
 clear all
@@ -27,6 +27,7 @@ global data_abc				"$raw_path"
 
 global data_home			"${main_path}/data/home"
 global data_labor			"${main_path}/data/labor"
+global data_parent			"${main_path}/data/parental"
 
 global data_out				"${main_path}/out/data_basic"
 global analysis_out			"${main_path}/out/analysis_basic"
@@ -43,17 +44,25 @@ global homo_subpop_working	"${main_path}/working/homo_subpop"
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
 global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
-global measure				home labor
+global programs_merge		ehs ihdp abc care
+global measure				home labor parent
 
 global ehs_type				""center" "home" "mixed" """
 global ihdp_type			""high" "low" """
-global care_type			""both" "hv""
+global abc_type				""""
+global care_type			""both" "hv" """
 
 global early_home_types		total warmth verbal hostility learning activity develop
 global later_home_types		total learning reading verbal warmth exterior interior activity hostility
+global parent_types			kidi pari pase
+global kidi_types			total accuracy attempted right
+global pari_types			dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo
+global pase_types			auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ
 
 global agg_axis_range		-1.5(0.5)1.5
 global item_axis_range		-1(0.25)1
+global sub_axis_range		-0.002(0.0005)0.002
+global parent_axis_range	-1.5(0.5)1.5
 
 * -------------- *
 * Data Preperation
@@ -68,6 +77,8 @@ cd "${code}/data_basic"
 	include "data - home item"
 cd "${code}/data_basic"
 	include "data - home aggregate"
+cd "${code}/data_basic"
+	include "data - parental info"
 cd "${code}/data_basic"
 	include "data - merge"
 	
@@ -97,11 +108,15 @@ cd "${code}/pile"
 cd "${code}/pile"
 	include "data - item pile"
 cd "${code}/pile"
+	include "data - parent pile"
+cd "${code}/pile"
 	include "treatment - aggregate pile"
 cd "${code}/pile"
-	include "treatment - aggregate pile (ihdp sub)"
+	include "treatment - aggregate pile (substitution)"
 cd "${code}/pile"
 	include "treatment - item pile"
+cd "${code}/pile"
+	include "treatment - parent pile"
 cd "${code}/pile"
 	include "treatment - pile (comparison)"
 	
@@ -153,4 +168,4 @@ cd "${code}/homo_subpop"
 * Mediation
 
 cd "${code}/mediation"
-	include "treatment - mediation"
+	include "treatment - mediation (cognitive home)"

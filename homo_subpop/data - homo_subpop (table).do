@@ -1,9 +1,9 @@
-* ----------------------------------------- *
-* Data table - homogenisation + subpopulation
+* ------------------------------------------------- *
+* Data table - homogenisation + subpopulation (table)
 * Author: Chanwool Kim
 * Date Created: 11 Jan 2018
-* Last Update: 11 Jan 2018
-* ----------------------------------------- *
+* Last Update: 27 Jan 2018
+* ------------------------------------------------- *
 
 clear all
 

@@ -1,8 +1,8 @@
 * ------------------------------------------ *
-* Graphs of treatment effects - aggregate pile 
+* Graphs of treatment effects - aggregate pile
 * Author: Chanwool Kim
 * Date Created: 13 Sep 2017
-* Last Update: 23 Jan 2018
+* Last Update: 26 Jan 2018
 * ------------------------------------------ *
 
 clear all

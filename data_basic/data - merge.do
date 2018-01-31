@@ -2,7 +2,7 @@
 * Preliminary data preparation - merge
 * Author: Chanwool Kim
 * Date Created: 12 Sep 2017
-* Last Update: 5 Nov 2017
+* Last Update: 29 Jan 2018
 * ---------------------------------- *
 
 clear all
@@ -51,6 +51,23 @@ foreach t of global ehs_type {
 	save ehs`t'-labor-item-merge, replace
 }
 
+cd "$data_parent"
+
+foreach t of global ehs_type {
+	use "ehs`t'-parent-participation.dta", clear
+	merge 1:1 id using ehs-parent, nogen nolabel keep(match)
+	
+	* Normalise to have in-group sample mean 0 and variance 1
+	foreach m of numlist 14 24 {
+		capture egen norm_kidi_total`m' = std(kidi_total`m')
+	}
+	
+	save ehs`t'-parent-participation, replace
+
+	merge 1:1 id using ehs-parent-control, nogen nolabel keep(match)
+	save ehs`t'-parent-merge, replace
+}
+
 * ----------------------------------- *
 * Infant Health and Development Program
 
@@ -95,6 +112,25 @@ foreach t of global ihdp_type {
 	save ihdp`t'-labor-item-merge, replace
 }
 
+cd "$data_parent"
+
+foreach t of global ihdp_type {
+	use "ihdp`t'-parent-participation.dta", clear
+	merge 1:1 id using ihdp-parent, nogen nolabel keep(match)
+	
+	* Normalise to have in-group sample mean 0 and variance 1
+	foreach s in total accuracy attempted right {
+		foreach m of numlist 12 24 {
+			capture egen norm_kidi_`s'`m' = std(kidi_`s'`m')
+		}
+	}
+	
+	save ihdp`t'-parent-participation, replace
+
+	merge 1:1 id using ihdp-parent-control, nogen nolabel keep(match)
+	save ihdp`t'-parent-merge, replace
+}
+
 * --------- *
 * Abecedarian
 
@@ -134,6 +170,29 @@ save abc-labor-item-participation, replace
 
 merge 1:1 id using abc-labor-control, nogen nolabel keep(match)
 save abc-labor-item-merge, replace
+
+cd "$data_parent"
+
+use "abc-parent-participation.dta", clear
+merge 1:1 id using abc-parent, nogen nolabel keep(match)
+
+* Normalise to have in-group sample mean 0 and variance 1
+foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
+	foreach m of numlist 6 18 {
+	capture egen norm_pari_`s'`m' = std(pari_`s'`m')
+	}
+}
+
+foreach s in auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ {
+	foreach m of numlist 66 96 {
+	capture egen norm_pase_`s'`m' = std(pase_`s'`m')
+	}
+}
+
+save abc-parent-participation, replace
+
+merge 1:1 id using abc-parent-control, nogen nolabel keep(match)
+save abc-parent-merge, replace
 
 * -- *
 * CARE
@@ -177,4 +236,29 @@ foreach t of global care_type {
 	
 	merge 1:1 id using abc-labor-control, nogen nolabel keep(match)
 	save care`t'-labor-item-merge, replace
+}
+
+cd "$data_parent"
+
+foreach t of global care_type {
+	use "care`t'-parent-participation.dta", clear
+	merge 1:1 id using abc-parent, nogen nolabel keep(match)
+	
+	* Normalise to have in-group sample mean 0 and variance 1
+	foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
+		foreach m of numlist 6 18 {
+		capture egen norm_pari_`s'`m' = std(pari_`s'`m')
+		}
+	}
+	
+	foreach s in auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ {
+		foreach m of numlist 66 96 {
+		capture egen norm_pase_`s'`m' = std(pase_`s'`m')
+		}
+	}
+
+	save care`t'-parent-participation, replace
+
+	merge 1:1 id using abc-parent-control, nogen nolabel keep(match)
+	save care`t'-parent-merge, replace
 }
