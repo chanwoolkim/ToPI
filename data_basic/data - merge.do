@@ -2,7 +2,7 @@
 * Preliminary data preparation - merge
 * Author: Chanwool Kim
 * Date Created: 12 Sep 2017
-* Last Update: 29 Jan 2018
+* Last Update: 3 Feb 2018
 * ---------------------------------- *
 
 clear all
@@ -119,9 +119,12 @@ foreach t of global ihdp_type {
 	merge 1:1 id using ihdp-parent, nogen nolabel keep(match)
 	
 	* Normalise to have in-group sample mean 0 and variance 1
-	foreach s in total accuracy attempted right {
-		foreach m of numlist 12 24 {
+	foreach m of numlist 12 24 {
+		foreach s in total accuracy attempted right {
 			capture egen norm_kidi_`s'`m' = std(kidi_`s'`m')
+		}
+		forvalues i = 1/20 {
+				capture egen norm_kidi`m'_`i' = std(kidi`m'_`i')
 		}
 	}
 	
@@ -177,9 +180,12 @@ use "abc-parent-participation.dta", clear
 merge 1:1 id using abc-parent, nogen nolabel keep(match)
 
 * Normalise to have in-group sample mean 0 and variance 1
-foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
-	foreach m of numlist 6 18 {
+foreach m of numlist 6 18 {
+	foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
 	capture egen norm_pari_`s'`m' = std(pari_`s'`m')
+	}
+	forvalues i = 1/55 {
+	capture egen norm_pari`m'_`i' = std(pari`m'_`i')
 	}
 }
 
@@ -245,9 +251,12 @@ foreach t of global care_type {
 	merge 1:1 id using abc-parent, nogen nolabel keep(match)
 	
 	* Normalise to have in-group sample mean 0 and variance 1
-	foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
-		foreach m of numlist 6 18 {
+	foreach m of numlist 6 18 {
+		foreach s in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
 		capture egen norm_pari_`s'`m' = std(pari_`s'`m')
+		}
+		forvalues i = 1/55 {
+		capture egen norm_pari`m'_`i' = std(pari`m'_`i')
 		}
 	}
 	

@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 29 Jan 2018
+* Last Update: 3 Feb 2018
 * ---- *
 
 clear all
@@ -117,6 +117,8 @@ cd "${code}/pile"
 	include "treatment - item pile"
 cd "${code}/pile"
 	include "treatment - parent pile"
+cd "${code}/pile"
+	include "treatment - parent item pile"
 cd "${code}/pile"
 	include "treatment - pile (comparison)"
 	

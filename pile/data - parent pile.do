@@ -2,7 +2,7 @@
 * Data for parent pile treatment effects
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 29 Jan 2018
+* Last Update: 3 Feb 2018
 * ------------------------------------ *
 
 clear all
@@ -29,6 +29,9 @@ foreach t of global ihdp_type {
 	rename norm_kidi_*12 norm_kidi_*1y
 	rename norm_kidi_*24 norm_kidi_*2y
 	
+	rename norm_kidi12_* norm_kidi1y_*
+	rename norm_kidi24_* norm_kidi2y_*
+	
 	cd "$pile_working"
 	save ihdp`t'-parent-pile, replace
 }
@@ -40,6 +43,9 @@ use "abc-parent-merge.dta", clear
 
 rename norm_pari_*6	 norm_pari_*1y
 rename norm_pari_*18 norm_pari_*2y
+
+rename norm_pari6_*  norm_pari1y_*
+rename norm_pari18_* norm_pari2y_*
 
 rename norm_pase_*66 norm_pase_*5y6m
 rename norm_pase_*18 norm_pase_*8y
@@ -55,6 +61,9 @@ foreach t of global care_type {
 
 	rename norm_pari_*6	 norm_pari_*1y
 	rename norm_pari_*18 norm_pari_*2y
+	
+	rename norm_pari6_*  norm_pari1y_*
+	rename norm_pari18_* norm_pari2y_*
 	
 	cd "$pile_working"
 	save care`t'-parent-pile, replace
