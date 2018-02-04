@@ -35,11 +35,13 @@ global pile_out				"${main_path}/out/pile"
 global homo_out				"${main_path}/out/homogenisation"
 global subpop_out			"${main_path}/out/subpopulation"
 global homo_subpop_out		"${main_path}/out/homo_subpop"
+global by_site_out			"${main_path}/out/by_site"
 
 global pile_working			"${main_path}/working/pile"
 global homo_working			"${main_path}/working/homogenisation"
 global subpop_working		"${main_path}/working/subpopulation"
 global homo_subpop_working	"${main_path}/working/homo_subpop"
+global by_site_working		"${main_path}/working/by_site"
 
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
@@ -63,6 +65,7 @@ global agg_axis_range		-1.5(0.5)1.5
 global item_axis_range		-1(0.25)1
 global sub_axis_range		-0.002(0.0005)0.002
 global parent_axis_range	-1.5(0.5)1.5
+global by_site_axis_range	-0.1(0.025)0.1
 
 * -------------- *
 * Data Preperation
@@ -171,3 +174,9 @@ cd "${code}/homo_subpop"
 
 cd "${code}/mediation"
 	include "treatment - mediation (cognitive home)"
+	
+* ------------ *
+* By-Site (IHDP)
+
+cd "${code}/by_site"
+	include "treatment - by site (ihdp)"

@@ -74,6 +74,8 @@ foreach t of global measure {
 cd "$data_ihdp"
 use "base-ihdp.dta", clear
 
+drop if missing(pag)
+
 rename admin_treat	treat
 rename ihdp			id
 
@@ -136,6 +138,7 @@ sex
 gestage
 mf
 bw
+state
 ;
 #delimit cr
 
