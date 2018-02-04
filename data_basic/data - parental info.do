@@ -2,7 +2,7 @@
 * Preliminary data preparation - parent info
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 29 Jan 2018
+* Last Update: 3 Feb 2018
 * ---------------------------------------- *
 
 clear all
@@ -137,8 +137,8 @@ foreach q in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde a
 }
 
 forvalues i = 1/55 {
-	rename pari6i`i'		pari_6`i'
-	rename par18i`i'		pari_18`i'
+	rename pari6i`i'		pari6_`i'
+	rename par18i`i'		pari18_`i'
 }
 
 * PASE
@@ -150,7 +150,7 @@ foreach q in auth cnfv cntr do dtch indp obey pos prog sdv socv talk {
 
 rename pase_educ5y6m		pase_educ66
 
-keep id treat program pari_* pari_6* pari_18* pase_*
+keep id treat program pari_* pari6_* pari18_* pase_*
 
 cd "$data_parent"
 save abc-parent, replace

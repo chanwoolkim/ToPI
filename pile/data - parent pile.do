@@ -48,7 +48,7 @@ rename norm_pari6_*  norm_pari1y_*
 rename norm_pari18_* norm_pari2y_*
 
 rename norm_pase_*66 norm_pase_*5y6m
-rename norm_pase_*18 norm_pase_*8y
+rename norm_pase_*96 norm_pase_*8y
 
 cd "$pile_working"
 save abc-parent-pile, replace

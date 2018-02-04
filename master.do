@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 3 Feb 2018
+* Last Update: 4 Feb 2018
 * ---- *
 
 clear all
@@ -81,7 +81,7 @@ cd "${code}/data_basic"
 	include "data - parental info"
 cd "${code}/data_basic"
 	include "data - merge"
-	
+
 * -------- *
 * Diagnostic
 
