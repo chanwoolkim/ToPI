@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 4 Feb 2018
+* Last Update: 11 Feb 2018
 * ---- *
 
 clear all
@@ -47,6 +47,8 @@ global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
 global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
 global programs_merge		ehs ihdp abc care
+global programs_all			ehscenter ehshome ehsmixed ehs ihdphigh ihdplow ihdp abc careboth carehv care
+global program_name_all		""EHS-Center" "EHS-Home" "EHS-Mixed" "EHS-All" "IHDP-High" "IHDP-Low" "IHDP-All" "ABC" "CARE-Both" "CARE-Home" "CARE-All"
 global measure				home labor parent
 
 global ehs_type				""center" "home" "mixed" """
