@@ -2,7 +2,7 @@
 * By-site analysis (IHDP)
 * Author: Chanwool Kim
 * Date Created: 4 Feb 2018
-* Last Update: 4 Feb 2018
+* Last Update: 12 Feb 2018
 * --------------------- *
 
 clear all
@@ -11,7 +11,8 @@ clear all
 * Define macros for abstraction
 
 * IHDP
-local cogs		ppvt sb
+local cogs			ppvt sb
+local matrix_type	random parenting interaction
 
 * ------- *
 * Execution
@@ -34,14 +35,18 @@ foreach t of global ihdp_type {
 			replace `c'_result = ``c'_`s'_result' if state == "`s'"
 		}
 	
-	qui matrix ihdp`t'_`c'R_3 = J(9, 5, .) // for randomisation variable
-	qui matrix colnames ihdp`t'_`c'R_3 = ihdp`t'_`c'R_3num ihdp`t'_`c'R_3coeff ihdp`t'_`c'R_3lower ihdp`t'_`c'R_3upper ihdp`t'_`c'R_3pval
+	foreach s of local matrix_type {
+		qui matrix ihdp`t'_`c'`s'_3 = J(9, 4, .) // for randomisation variable
+		qui matrix colnames ihdp`t'_`c'`s'_3 = ihdp`t'_`c'`s'_3num ihdp`t'_`c'`s'_3coeff ihdp`t'_`c'`s'_3se ihdp`t'_`c'`s'_3pval
+	}
 	
 	local row_`c'3 = 1
 	
 	* Loop over rows to fill in values into the empty matrix.
 	foreach r of global later_home_types {
-		qui matrix ihdp`t'_`c'R_3[`row_`c'3',1] = `row_`c'3'
+		qui matrix ihdp`t'_`c'random_3[`row_`c'3',1] = `row_`c'3'
+		qui matrix ihdp`t'_`c'parenting_3[`row_`c'3',1] = `row_`c'3'
+		qui matrix ihdp`t'_`c'interaction_3[`row_`c'3',1] = `row_`c'3'
 				
 		capture confirm variable norm_home_`r'36
 			if !_rc {
@@ -51,10 +56,17 @@ foreach t of global ihdp_type {
 			qui matrix list r(table)
 			qui matrix r = r(table)
 
-			qui matrix ihdp`t'_`c'R_3[`row_`c'3',2] = r[1,3]
-			qui matrix ihdp`t'_`c'R_3[`row_`c'3',3] = r[5,3]
-			qui matrix ihdp`t'_`c'R_3[`row_`c'3',4] = r[6,3]
-			qui matrix ihdp`t'_`c'R_3[`row_`c'3',5] = r[4,3]
+			qui matrix ihdp`t'_`c'random_3[`row_`c'3',2] = r[1,1]
+			qui matrix ihdp`t'_`c'random_3[`row_`c'3',3] = r[2,1]
+			qui matrix ihdp`t'_`c'random_3[`row_`c'3',4] = r[4,1]
+			
+			qui matrix ihdp`t'_`c'parenting_3[`row_`c'3',2] = r[1,2]
+			qui matrix ihdp`t'_`c'parenting_3[`row_`c'3',3] = r[2,2]
+			qui matrix ihdp`t'_`c'parenting_3[`row_`c'3',4] = r[4,2]
+			
+			qui matrix ihdp`t'_`c'interaction_3[`row_`c'3',2] = r[1,3]
+			qui matrix ihdp`t'_`c'interaction_3[`row_`c'3',3] = r[2,3]
+			qui matrix ihdp`t'_`c'interaction_3[`row_`c'3',4] = r[4,3]
 
 			local row_`c'3 = `row_`c'3' + 1
 			}
@@ -65,12 +77,15 @@ foreach t of global ihdp_type {
 		}
 	
 	cd "$by_site_working"
-	svmat ihdp`t'_`c'R_3, names(col)
-	rename ihdp`t'_`c'R_3num row_3
-	keep row_3 ihdp`t'_`c'R_3coeff ihdp`t'_`c'R_3lower ihdp`t'_`c'R_3upper ihdp`t'_`c'R_3pval
-	keep if row_3 != .
-	save "ihdp`t'-`c'-pile-agg-sub-3", replace
 	
+	foreach s of local matrix_type {
+		clear
+		svmat ihdp`t'_`c'`s'_3, names(col)
+		rename ihdp`t'_`c'`s'_3num row_3
+		keep row_3 ihdp`t'_`c'`s'_3coeff ihdp`t'_`c'`s'_3se ihdp`t'_`c'`s'_3pval
+		keep if row_3 != .
+		save "ihdp`t'-`c'`s'-pile-agg-sub-3", replace
+	}
 	}
 }
 
@@ -83,10 +98,12 @@ cd "$by_site_working"
 
 foreach c of local cogs {
 
-	use ihdp-`c'-pile-agg-sub-3, clear
+	use ihdp-`c'random-pile-agg-sub-3, clear
 
 	foreach t of global ihdp_type {
-		merge 1:1 row_3 using ihdp`t'-`c'-pile-agg-sub-3, nogen nolabel
+		foreach s of local matrix_type {
+			merge 1:1 row_3 using ihdp`t'-`c'`s'-pile-agg-sub-3, nogen nolabel
+		}
 	}
 
 	rename row_3 row
@@ -111,30 +128,39 @@ foreach c of local cogs {
 
 foreach c of local cogs {
 	cd "$by_site_working"
+	
 	use ihdp-`c'-agg-pile-sub-3, clear
 	
-	foreach t of global ihdp_type {
-		gen inv_ihdp`t'_`c'Rcoeff = ihdp`t'_`c'R_3coeff * -1
-		gen ihdp`t'_`c'Rinsig = .
-		gen ihdp`t'_`c'R0_1 = .
-		gen ihdp`t'_`c'R0_05 = .
-		replace ihdp`t'_`c'Rinsig = ihdp`t'_`c'R_3coeff if ihdp`t'_`c'R_3pval > 0.1
-		replace ihdp`t'_`c'R0_1 = ihdp`t'_`c'R_3coeff if ihdp`t'_`c'R_3pval <= 0.1 & ihdp`t'_`c'R_3pval > 0.05
-		replace ihdp`t'_`c'R0_05 = ihdp`t'_`c'R_3coeff if ihdp`t'_`c'R_3pval <= 0.05
+	foreach p in ihdp ihdphigh ihdplow {
+		gen `p'_`c'random_3dup = 1
+		gen `p'_`c'parenting_3dup = 1
+		gen `p'_`c'interaction_3dup = 1
 	}
 	
-	cd "$by_site_out"
+	mkmat ihdp_`c'random_3coeff ihdp_`c'random_3se ihdp_`c'parenting_3coeff ihdp_`c'parenting_3se ihdp_`c'interaction_3coeff ihdp_`c'interaction_3se ///
+		  ihdphigh_`c'random_3coeff ihdphigh_`c'random_3se ihdphigh_`c'parenting_3coeff ihdphigh_`c'parenting_3se ihdphigh_`c'interaction_3coeff ihdphigh_`c'interaction_3se ///
+		  ihdplow_`c'random_3coeff ihdplow_`c'random_3se ihdplow_`c'parenting_3coeff ihdplow_`c'parenting_3se ihdplow_`c'interaction_3coeff ihdplow_`c'interaction_3se, ///
+		  matrix(main_`c') rownames(scale_num)
+		  
+	mkmat ihdp_`c'random_3pval ihdp_`c'random_3dup ihdp_`c'parenting_3pval ihdp_`c'parenting_3dup ihdp_`c'interaction_3pval ihdp_`c'interaction_3dup ///
+		  ihdphigh_`c'random_3pval ihdphigh_`c'random_3dup ihdphigh_`c'parenting_3pval ihdphigh_`c'parenting_3dup ihdphigh_`c'interaction_3pval ihdphigh_`c'interaction_3dup ///
+		  ihdplow_`c'random_3pval ihdplow_`c'random_3dup ihdplow_`c'parenting_3pval ihdplow_`c'parenting_3dup ihdplow_`c'interaction_3pval ihdplow_`c'interaction_3dup, ///
+		  matrix(pval_`c') rownames(scale_num)
+		  
+	local nrow_`c' = rowsof(pval_`c')
+	local ncol_`c' = colsof(pval_`c')
+	
+	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0) // for randomisation (stars)
 
-	graph dot ihdp_`c'Rinsig ihdp_`c'R0_1 ihdp_`c'R0_05 ///
-			  ihdphigh_`c'Rinsig ihdphigh_`c'R0_1 ihdphigh_`c'R0_05 ///
-			  ihdplow_`c'Rinsig ihdplow_`c'R0_1 ihdplow_`c'R0_05, ///
-		  marker(1,msize(large) msymbol(D) mlc(green) mfc(green*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(green) mfc(green*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(green) mfc(green) mlw(thin)) ///
-		  marker(4,msize(large) msymbol(T) mlc(green) mfc(green*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(green) mfc(green*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(green) mfc(green) mlw(thin)) ///
-		  marker(7,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(8,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(9,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
-		  over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-		  legend (order (3 "IHDP-All" 6 "IHDP-High" 9 "IHDP-Low") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
-		  ylabel($by_site_axis_range) ///
-		  graphregion(fcolor(white))
-
-	graph export "ihdp_by_site_agg_pile_R_3.pdf", replace
+	forvalues k = 1/`nrow_`c'' {
+		forvalues l = 1/`ncol_`c'' {
+			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
+											+ (pval_`c'[`k',`l'] < 0.05) ///
+											+ (pval_`c'[`k',`l'] < 0.01)
+		}
+	}
+	
+	cd "${by_site_out}"
+	frmttable using table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
 }
