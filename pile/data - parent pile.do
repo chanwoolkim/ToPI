@@ -2,7 +2,7 @@
 * Data for parent pile treatment effects
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 3 Feb 2018
+* Last Update: 15 Feb 2018
 * ------------------------------------ *
 
 clear all
@@ -29,8 +29,19 @@ foreach t of global ihdp_type {
 	rename norm_kidi_*12 norm_kidi_*1y
 	rename norm_kidi_*24 norm_kidi_*2y
 	
-	rename norm_kidi12_* norm_kidi1y_*
-	rename norm_kidi24_* norm_kidi2y_*
+	drop kidi12_19 kidi12_20 kidi36_18
+	rename norm_kidi12_19 kidi12_19
+	rename norm_kidi12_20 kidi12_20
+	rename norm_kidi36_18 kidi36_18
+	
+	rename kidi12_* kidi1y_*
+	rename kidi24_* kidi2y_*
+	
+	rename norm_sameroff_*12 norm_sameroff_*1y
+	rename norm_sameroff_*36 norm_sameroff_*3y
+	
+	rename norm_sameroff12_* norm_sameroff1y_*
+	rename norm_sameroff36_* norm_sameroff3y_*
 	
 	cd "$pile_working"
 	save ihdp`t'-parent-pile, replace

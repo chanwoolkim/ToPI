@@ -2,7 +2,7 @@
 * Preliminary data preparation - merge
 * Author: Chanwool Kim
 * Date Created: 12 Sep 2017
-* Last Update: 3 Feb 2018
+* Last Update: 15 Feb 2018
 * ---------------------------------- *
 
 clear all
@@ -123,11 +123,17 @@ foreach t of global ihdp_type {
 		foreach s in total accuracy attempted right {
 			capture egen norm_kidi_`s'`m' = std(kidi_`s'`m')
 		}
-		forvalues i = 1/20 {
-				capture egen norm_kidi`m'_`i' = std(kidi`m'_`i')
-		}
 	}
 	
+	foreach m of numlist 12 36 {
+		foreach s in total cat prsp {
+			capture egen norm_sameroff_`s'`m' = std(sameroff_`s'`m')
+		}
+		forvalues i = 1/20 {
+			capture egen norm_sameroff`m'_`i' = std(sameroff`m'_`i')
+		}
+	}
+
 	save ihdp`t'-parent-participation, replace
 
 	merge 1:1 id using ihdp-parent-control, nogen nolabel keep(match)

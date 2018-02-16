@@ -2,7 +2,7 @@
 * Graphs of treatment effects - parent item pile
 * Author: Chanwool Kim
 * Date Created: 3 Feb 2018
-* Last Update: 4 Feb 2018
+* Last Update: 15 Feb 2018
 * -------------------------------------------- *
 
 clear all
@@ -11,8 +11,8 @@ clear all
 * Prepare matrix
 
 * IHDP - KIDI
-local 1_row = 20
-local 2_row = 18
+local 1_row = 26
+local 2_row = 21
 
 foreach t of global ihdp_type {
 	foreach age of numlist 1 2 {
@@ -32,10 +32,10 @@ foreach t of global ihdp_type {
 		forvalues r = 1/``age'_row' {
 			qui matrix ihdp`t'R_`age'[`row_`age'',1] = `row_`age''
 			
-			capture confirm variable norm_kidi`age'y_`r'
+			capture confirm variable kidi`age'y_`r'
 				if !_rc {
 				* Randomisation variable
-				qui regress norm_kidi`age'y_`r' R $covariates if !missing(D)
+				qui regress kidi`age'y_`r' R $covariates if !missing(D)
 				* r(table) stores values from regression (ex. coeff, var, CI).
 				qui matrix list r(table)
 				qui matrix r = r(table)
@@ -82,6 +82,79 @@ foreach t of global ihdp_type {
 
 rename row_2 row
 save ihdp-kidi-pile-2, replace
+
+* IHDP - Sameroff
+local 1_row = 20
+local 3_row = 20
+
+foreach t of global ihdp_type {
+	foreach age of numlist 1 3 {
+
+	cd "$pile_working"
+	use "ihdp`t'-parent-pile.dta", clear
+
+	* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
+	qui matrix ihdp`t'R_`age' = J(``age'_row', 5, .) // for randomisation variable
+
+	qui matrix colnames ihdp`t'R_`age' = ihdp`t'R_`age'num ihdp`t'R_`age'coeff ihdp`t'R_`age'lower ihdp`t'R_`age'upper ihdp`t'R_`age'pval
+
+	local row_`age' = 1
+
+	* Loop over rows to fill in values into the empty matrix.
+
+		forvalues r = 1/``age'_row' {
+			qui matrix ihdp`t'R_`age'[`row_`age'',1] = `row_`age''
+			
+			capture confirm variable norm_sameroff`age'y_`r'
+				if !_rc {
+				* Randomisation variable
+				qui regress norm_sameroff`age'y_`r' R $covariates if !missing(D)
+				* r(table) stores values from regression (ex. coeff, var, CI).
+				qui matrix list r(table)
+				qui matrix r = r(table)
+
+				qui matrix ihdp`t'R_`age'[`row_`age'',2] = r[1,1]
+				qui matrix ihdp`t'R_`age'[`row_`age'',3] = r[5,1]
+				qui matrix ihdp`t'R_`age'[`row_`age'',4] = r[6,1]
+				qui matrix ihdp`t'R_`age'[`row_`age'',5] = r[4,1]
+					
+				local row_`age' = `row_`age'' + 1
+				}
+				
+				else {
+				local row_`age' = `row_`age'' + 1
+				}
+		}
+
+		svmat ihdp`t'R_`age', names(col)
+		rename ihdp`t'R_`age'num row_`age'
+		keep row_`age' ihdp`t'R_`age'coeff ihdp`t'R_`age'lower ihdp`t'R_`age'upper ihdp`t'R_`age'pval
+		keep if row_`age' != .
+		save "ihdp`t'-pile-sameroff-`age'", replace
+	}
+}
+
+cd "$pile_working"
+
+* Randomisation
+
+use ihdp-pile-sameroff-1, clear
+
+foreach t of global ihdp_type {
+	merge 1:1 row_1 using ihdp`t'-pile-sameroff-1, nogen nolabel
+}
+
+rename row_1 row
+save ihdp-sameroff-pile-1, replace
+
+use ihdp-pile-sameroff-2, clear
+
+foreach t of global ihdp_type {
+	merge 1:1 row_2 using ihdp`t'-pile-sameroff-2, nogen nolabel
+}
+
+rename row_2 row
+save ihdp-sameroff-pile-2, replace
 
 * ABC/CARE - PARI
 local 1_row = 55
@@ -183,8 +256,14 @@ replace scale = "KIDI: 5mo know what 'no' means" if scale_num == "15"
 replace scale = "KIDI: 1yo children will cooperate and share when they play together" if scale_num == "16"
 replace scale = "KIDI: baby is 7mo before he/she can reach for and grab vthings" if scale_num == "17"
 replace scale = "KIDI: babies usually say first word at 6mo." if scale_num == "18"
-replace scale = "KIDI: best way to deal with 1yo who keeps playing with breakable vthings" if scale_num == "19"
-replace scale = "KIDI: most appropriate game for 1yo" if scale_num == "20"
+replace scale = "KIDI: 1yo playing with breakable things: keep him or her in a playpen" if scale_num == "19"
+replace scale = "KIDI: 1yo playing with breakable things: slap the baby's hand" if scale_num == "20"
+replace scale = "KIDI: 1yo playing with breakable things: tell the child No! and expect him to obey" if scale_num == "21"
+replace scale = "KIDI: 1yo playing with breakable things: put things out of reach until child is older" if scale_num == "22"
+replace scale = "KIDI: most appropriate game for 1yo: stringing small beads" if scale_num == "23"
+replace scale = "KIDI: most appropriate game for 1yo: cutting out shapes with scissors" if scale_num == "24"
+replace scale = "KIDI: most appropriate game for 1yo: rolling a ball back and forth with an adult" if scale_num == "25"
+replace scale = "KIDI: most appropriate game for 1yo: sorting things by shape and color" if scale_num == "26"
 
 save ihdp-kidi-pile-1, replace
 
@@ -209,9 +288,41 @@ replace scale = "KIDI: most infants are ready to be toilet trained by 1yo" if sc
 replace scale = "KIDI: 1yo children will cooperate and share when they play together" if scale_num == "15"
 replace scale = "KIDI: infants of 12mo can remember toys they have watched being hidden" if scale_num == "16"
 replace scale = "KIDI: babies usually say first word at 6mo." if scale_num == "17"
-replace scale = "KIDI: which is the best way to avoid future trantrums by 2yo?" if scale_num == "18"
+replace scale = "KIDI: best way to avoid future trantrums by 2yo?: give the child a different toy" if scale_num == "18"
+replace scale = "KIDI: best way to avoid future trantrums by 2yo?: ignore the temper tantrum" if scale_num == "19"
+replace scale = "KIDI: best way to avoid future trantrums by 2yo?: spank the child's bottom" if scale_num == "20"
+replace scale = "KIDI: best way to avoid future trantrums by 2yo?: let the child have his own way" if scale_num == "21"
 
 save ihdp-kidi-pile-2, replace
+
+foreach age of numlist 1 3 {
+	use ihdp-sameroff-pile-`age', clear
+	
+	tostring row, gen(scale_num)
+	
+	replace scale = "Sameroff: Children have to be treated differently as they grow older" if scale_num == "1"
+	replace scale = "Sameroff: Parents must keep to their standards and rules no matter what their child is like" if scale_num == "2"
+	replace scale = "Sameroff: It is not easy to define a good home because a good home is made up of many different things" if scale_num == "3"
+	replace scale = "Sameroff: Fathers cannot raise their children as well as mothers" if scale_num == "4"
+	replace scale = "Sameroff: The mischief that 2-year-olds get into is part of a passing stage they'll grow out of" if scale_num == "5"
+	replace scale = "Sameroff: A child who isn't toilet trained by 3 years of age must have something wrong with him " if scale_num == "6"
+	replace scale = "Sameroff: Parents need to be sensitive to the needs of their children" if scale_num == "7"
+	replace scale = "Sameroff: Girls tend to be easier babies to take care of than are boys" if scale_num == "8"
+	replace scale = "Sameroff: Difficult babies will grow out of it" if scale_num == "9"
+	replace scale = "Sameroff: There's not much anyone can do to help emotionally disturbed children" if scale_num == "10"
+	replace scale = "Sameroff: Children's problems seldom have a single cause" if scale_num == "11"
+	replace scale = "Sameroff: The father's role is to provide the discipline in the family and the mother's role is to give love and attention to the children" if scale_num == "12"
+	replace scale = "Sameroff: Parents can be turned off by a fussy child so that they are unable to be as nice as they would like" if scale_num == "13"
+	replace scale = "Sameroff: A child's success at school depends on how much his mother taught him at home" if scale_num == "14"
+	replace scale = "Sameroff: There is no one right way to raise children" if scale_num == "15"
+	replace scale = "Sameroff: Boy babies are less affectionate than girl babies" if scale_num == "16"
+	replace scale = "Sameroff: Firstborn children are usually treated differently than are later-born children" if scale_num == "17"
+	replace scale = "Sameroff: An easy baby will grow up to be a good child" if scale_num == "18"
+	replace scale = "Sameroff: Parents change in response to their children" if scale_num == "19"
+	replace scale = "Sameroff: Babies have to be taught to behave themselves or they will be bad later on" if scale_num == "20"
+
+	save ihdp-sameroff-pile-`age', replace
+}
 
 foreach age of numlist 1 2 {
 	use abc-pari-pile-`age', clear
@@ -341,3 +452,33 @@ foreach age of numlist 1 2 {
 
 	graph export "abccare_pari_pile_R_`age'.pdf", replace
 }
+
+foreach age of numlist 1 3 {
+	* IHDP Sameroff	
+	cd "$pile_working"
+	use ihdp-sameroff-pile-`age', clear
+	
+	foreach t of global ihdp_type {
+		gen inv_ihdp`t'Rcoeff = ihdp`t'R_`age'coeff * -1
+		gen ihdp`t'Rinsig = .
+		gen ihdp`t'R0_1 = .
+		gen ihdp`t'R0_05 = .
+		replace ihdp`t'Rinsig = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval > 0.1
+		replace ihdp`t'R0_1 = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval <= 0.1 & ihdp`t'R_`age'pval > 0.05
+		replace ihdp`t'R0_05 = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval <= 0.05
+	}
+	
+	cd "$pile_out"
+
+	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05 ///
+			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
+			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05, ///
+	marker(1,msize(medium) msymbol(D) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(D) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(D) mlc(green) mfc(green) mlw(vthin)) ///
+	marker(4,msize(medium) msymbol(T) mlc(green) mfc(green*0) mlw(vthin)) marker(5,msize(medium) msymbol(T) mlc(green) mfc(green*0.5) mlw(vthin)) marker(6,msize(medium) msymbol(T) mlc(green) mfc(green) mlw(vthin)) ///
+	marker(7,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(8,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(9,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
+	legend (order (3 "IHDP-All" 6 "IHDP-High" 9 "IHDP-Low") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	ylabel($item_axis_range) ///
+	graphregion(fcolor(white))
+
+	graph export "ihdp_sameroff_pile_R_`age'.pdf", replace

@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 11 Feb 2018
+* Last Update: 15 Feb 2018
 * ---- *
 
 clear all
@@ -36,12 +36,14 @@ global homo_out				"${main_path}/out/homogenisation"
 global subpop_out			"${main_path}/out/subpopulation"
 global homo_subpop_out		"${main_path}/out/homo_subpop"
 global by_site_out			"${main_path}/out/by_site"
+global mediation_out		"${main_path}/out/mediation"
 
 global pile_working			"${main_path}/working/pile"
 global homo_working			"${main_path}/working/homogenisation"
 global subpop_working		"${main_path}/working/subpopulation"
 global homo_subpop_working	"${main_path}/working/homo_subpop"
 global by_site_working		"${main_path}/working/by_site"
+global mediation_working	"${main_path}/working/mediation"
 
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth

@@ -2,7 +2,7 @@
 * Preliminary data preparation - parent info
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 3 Feb 2018
+* Last Update: 15 Feb 2018
 * ---------------------------------------- *
 
 clear all
@@ -52,14 +52,26 @@ label var kidi_total24		"KIDI: total score, age 2"
 forvalues i = 21/38 {
 	local j = `i'-20
 	rename vb`i'_f22		kidi12_`j'
-	recode kidi12_`j'		(2 8 = 0)
 }
 
-rename vb39_f22				kidi12_19
-rename vb40_f22				kidi12_20
+gen kidi12_19 = vb39_f22
+gen kidi12_20 = vb39_f22
+gen kidi12_21 = vb39_f22
+gen kidi12_22 = vb39_f22
+recode kidi12_19 (2 3 4 8 = 0)
+recode kidi12_20 (1 3 4 8 = 0) (2 = 1)
+recode kidi12_21 (1 2 4 8 = 0) (3 = 1)
+recode kidi12_22 (1 2 3 8 = 0) (4 = 1)
 
-recode kidi12_19			(8 = 0)
-recode kidi12_20			(8 = 0)
+gen kidi12_23 = vb40_f22
+gen kidi12_24 = vb40_f22
+gen kidi12_25 = vb40_f22
+gen kidi12_26 = vb40_f22
+recode kidi12_23 (2 3 4 8 = 0)
+recode kidi12_24 (1 3 4 8 = 0) (2 = 1)
+recode kidi12_25 (1 2 4 8 = 0) (3 = 1)
+recode kidi12_26 (1 2 3 8 = 0) (4 = 1)
+
 
 label var kidi12_1 			"KIDI: babies with colic can cry for 20, 30 minutes, no matter what is done"
 label var kidi12_2 			"KIDI: if baby is fed evaporated milk, baby needs extra vitamins/iron"
@@ -79,24 +91,41 @@ label var kidi12_15 		"KIDI: 5mo know what 'no' means"
 label var kidi12_16 		"KIDI: 1yo children will cooperate and share when they play together"
 label var kidi12_17 		"KIDI: baby is 7mo before he/she can reach for and grab things"
 label var kidi12_18 		"KIDI: babies usually say first word at 6mo."
-label var kidi12_19 		"KIDI: best way to deal with 1yo who keeps playing with breakable things"
-label var kidi12_20 		"KIDI: most appropriate game for 1yo"
+label var kidi12_19 		"KIDI: 1yo playing with breakable things: keep him or her in a playpen"
+label var kidi12_20 		"KIDI: 1yo playing with breakable things: slap the baby's hand"
+label var kidi12_21 		"KIDI: 1yo playing with breakable things: tell the child No! and expect him to obey"
+label var kidi12_22 		"KIDI: 1yo playing with breakable things: put things out of reach until child is older"
+label var kidi12_23 		"KIDI: most appropriate game for 1yo: stringing small beads"
+label var kidi12_24 		"KIDI: most appropriate game for 1yo: cutting out shapes with scissors"
+label var kidi12_25 		"KIDI: most appropriate game for 1yo: rolling a ball back and forth with an adult"
+label var kidi12_26 		"KIDI: most appropriate game for 1yo: sorting things by shape and color"
+
+foreach i of numlist 1/2 4 6/7 9 11 14 {
+	recode kidi12_`i'		(2 8 = 0)
+}
+
+foreach i of numlist 3 5 8 10 12/13 15/18 {
+	recode kidi12_`i'		(1 8 = 0) (2 = 1)
+}
 
 forvalues i = 21/29 {
 	local j = `i'-20
 	rename v`i'_f38			kidi24_`j'
-	recode kidi24_`j'		(2 8 = 0)
 }
 	
 forvalues i = 30/37 {
 	local j = `i'-20
 	rename v`i'_f38			kidi24_`j'
-	recode kidi24_`j'		(8 = 0)
 }
 
-rename v38_f38				kidi24_18
-
-recode kidi24_18			(8 = 0)
+gen kidi24_18 = vb38_f38
+gen kidi24_19 = vb38_f38
+gen kidi24_20 = vb38_f38
+gen kidi24_21 = vb38_f38
+recode kidi24_18 (2 3 4 8 = 0)
+recode kidi24_19 (1 3 4 8 = 0) (2 = 1)
+recode kidi24_20 (1 2 4 8 = 0) (3 = 1)
+recode kidi24_21 (1 2 3 8 = 0) (4 = 1)
 
 label var kidi24_1			"KIDI: way infant is brought up will have little effect on intelligence"
 label var kidi24_2 			"KIDI: baby can leave the parent feeling tired, frustrated, overwhelmed"
@@ -115,9 +144,84 @@ label var kidi24_14 		"KIDI: most infants are ready to be toilet trained by 1yo"
 label var kidi24_15 		"KIDI: 1yo children will cooperate and share when they play together"
 label var kidi24_16 		"KIDI: infants of 12mo can remember toys they have watched being hidden"
 label var kidi24_17 		"KIDI: babies usually say first word at 6mo."
-label var kidi24_18 		"KIDI: which is the best way to avoid future trantrums by 2yo?"
+label var kidi24_18 		"KIDI: best way to avoid future trantrums by 2yo?: give the child a different toy"
+label var kidi24_19 		"KIDI: best way to avoid future trantrums by 2yo?: ignore the temper tantrum"
+label var kidi24_20 		"KIDI: best way to avoid future trantrums by 2yo?: spank the child's bottom"
+label var kidi24_21 		"KIDI: best way to avoid future trantrums by 2yo?: let the child have his own way"
 
-keep id kidi_* kidi12_* kidi24_*
+foreach i of numlist 2/4 6 8 16 {
+	recode kidi24_`i'		(2 8 = 0)
+}
+
+foreach i of numlist 1 5 7 9/15 17 {
+	recode kidi24_`i'		(1 8 = 0) (2 = 1)
+}
+
+* Sameroff
+rename codqc_12_sumscore sameroff_cat12
+rename codqc_36_sumscore sameroff_cat36
+rename codqp_12_sumscore sameroff_prsp12
+rename codqp_36_sumscore sameroff_prsp36
+rename codqt_12_sumscore sameroff_total12
+rename codqt_36_sumscore sameroff_total36
+
+label var sameroff_cat12 "Sameroff Concepts of Development: Categorical Score"
+label var sameroff_cat36 "Sameroff Concepts of Development: Categorical Score"
+label var sameroff_prsp12 "Sameroff Concepts of Development: Perspectivistic Score"
+label var sameroff_prsp36 "Sameroff Concepts of Development: Perspectivistic Score"
+label var sameroff_tot12 "Sameroff Concepts of Development: Total Score"
+label var sameroff_tot36 "Sameroff Concepts of Development: Total Score"
+
+rename vb1_f22_1y sameroff12_1
+rename vb2_f22_1y sameroff12_2
+rename vb3_f22_1y sameroff12_3
+rename vb4_f22_1y sameroff12_4
+rename vb5_f22_1y sameroff12_5
+rename vb6_f22_1y sameroff12_6
+rename vb7_f22_1y sameroff12_7
+rename vb8_f22_1y sameroff12_8
+rename vb9_f22_1y sameroff12_9
+rename vb10_f22_1y sameroff12_10
+rename vb11_f22_1y sameroff12_11
+rename vb12_f22_1y sameroff12_12
+rename vb13_f22_1y sameroff12_13
+rename vb14_f22_1y sameroff12_14
+rename vb15_f22_1y sameroff12_15
+rename vb16_f22_1y sameroff12_16
+rename vb17_f22_1y sameroff12_17
+rename vb18_f22_1y sameroff12_18
+rename vb19_f22_1y sameroff12_19
+rename vb20_f22_1y sameroff12_20
+
+rename v57_f56_3y sameroff36_1
+rename v58_f56_3y sameroff36_2
+rename v59_f56_3y sameroff36_3
+rename v60_f56_3y sameroff36_4
+rename v61_f56_3y sameroff36_5
+rename v62_f56_3y sameroff36_6
+rename v63_f56_3y sameroff36_7
+rename v64_f56_3y sameroff36_8
+rename v65_f56_3y sameroff36_9
+rename v66_f56_3y sameroff36_10
+rename v67_f56_3y sameroff36_11
+rename v68_f56_3y sameroff36_12
+rename v69_f56_3y sameroff36_13
+rename v70_f56_3y sameroff36_14
+rename v71_f56_3y sameroff36_15
+rename v72_f56_3y sameroff36_16
+rename v73_f56_3y sameroff36_17
+rename v74_f56_3y sameroff36_18
+rename v75_f56_3y sameroff36_19
+rename v76_f56_3y sameroff36_20
+
+foreach m in numlist 12 36 {
+	forvalues i = 1/20 {
+		local label: var label sameroff`m'_`i'
+		label var sameroff`m'_`i' "Sameroff: `label'"
+	}
+}
+
+keep id kidi_* kidi12_* kidi24_* sameroff_* sameroff12_* sameroff36_*
 
 cd "$data_parent"
 save ihdp-parent, replace
