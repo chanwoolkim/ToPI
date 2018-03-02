@@ -2,7 +2,7 @@
 * Data table - subpopulation
 * Author: Chanwool Kim
 * Date Created: 15 Nov 2017
-* Last Update: 16 Nov 2017
+* Last Update: 1 Mar 2017
 * ------------------------ *
 
 clear all
@@ -45,4 +45,7 @@ foreach p of global programs {
 
 matrix list count_D
 cd "$subpop_out"
+frmttable using count_D, statmat(count_D) sdec(0) fragment tex replace nocenter
+
+cd "$subpop_git_out"
 frmttable using count_D, statmat(count_D) sdec(0) fragment tex replace nocenter

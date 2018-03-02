@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (table)
 * Author: Chanwool Kim
 * Date Created: 4 Nov 2017
-* Last Update: 27 Jan 2018
+* Last Update: 1 Mar 2018
 * --------------------------------------------------- *
 
 clear all
@@ -355,6 +355,15 @@ foreach p of global programs {
 	}
 	
 	cd "${homo_out}/`t'"
+	frmttable using `p'R_`t', statmat(R`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
+					rtitles(``p'_row') ///
+					annotate(R`t'_stars) asymbol(*,**,***)
+	
+	frmttable using `p'D_`t', statmat(D`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
+					rtitles(``p'_row') ///
+					annotate(D`t'_stars) asymbol(*,**,***)
+
+	cd "${homo_git_out}/`t'"
 	frmttable using `p'R_`t', statmat(R`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
 					rtitles(``p'_row') ///
 					annotate(R`t'_stars) asymbol(*,**,***)

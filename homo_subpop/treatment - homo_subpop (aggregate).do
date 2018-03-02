@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation and subpopulation (aggregate)
 * Author: Chanwool Kim
 * Date Created: 11 Jan 2018
-* Last Update: 27 Jan 2018
+* Last Update: 1 Mar 2018
 * ------------------------------------------------------------------------- *
 
 clear all
@@ -214,8 +214,6 @@ foreach age of numlist 1 3 {
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
 	
-	cd "${homo_subpop_out}/home"
-
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
 			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ///
@@ -237,5 +235,9 @@ foreach age of numlist 1 3 {
 	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
 
+	cd "${homo_subpop_out}/home"
 	graph export "agg_homo_subpop_R_`age'.pdf", replace
+
+	cd "${homo_subpop_git_out}/home"
+	graph export "agg_homo_subpop_R_`age'.png", replace
 }

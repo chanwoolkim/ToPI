@@ -2,23 +2,21 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 15 Feb 2018
+* Last Update: 1 Mar 2018
 * ---- *
 
 clear all
 set more off
 ssc install outreg, replace
 adoupdate outreg
-ssc install hotdeck, replace
-adoupdate hotdeck
 
 global klmshare 			: env klmshare
 
-global master_path			"/Users/ckim/Dropbox (Work)"
+global code_path 			"C:/Users/chanw/Desktop/ToPI"
+global master_path			"C:/Users/chanw/Dropbox (Work)"
 
 global main_path			"${master_path}/TOPI/treatment_effect"
 global raw_path				"${master_path}/Data/std"
-global code 				"/Users/ckim/Desktop/ToPI"
 
 global data_ehs				"$raw_path"
 global data_ehs_h			"${master_path}/Data/Harvard Dataverse Sensitive Original Data/parent_interview"
@@ -37,6 +35,15 @@ global subpop_out			"${main_path}/out/subpopulation"
 global homo_subpop_out		"${main_path}/out/homo_subpop"
 global by_site_out			"${main_path}/out/by_site"
 global mediation_out		"${main_path}/out/mediation"
+
+global data_git_out			"${code_path}/out/data_basic"
+global analysis_git_out		"${code_path}/out/analysis_basic"
+global pile_git_out			"${code_path}/out/pile"
+global homo_git_out			"${code_path}/out/homogenisation"
+global subpop_git_out		"${code_path}/out/subpopulation"
+global homo_subpop_git_out	"${code_path}/out/homo_subpop"
+global by_site_git_out		"${code_path}/out/by_site"
+global mediation_git_out	"${code_path}/out/mediation"
 
 global pile_working			"${main_path}/working/pile"
 global homo_working			"${main_path}/working/homogenisation"
@@ -74,113 +81,113 @@ global by_site_axis_range	-0.1(0.025)0.1
 * -------------- *
 * Data Preperation
 
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - control"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - participation"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - labor"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - home item"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - home aggregate"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - parental info"
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - merge"
 
 * -------- *
 * Diagnostic
 
 /*
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "patch - abccheck" //Check ABC scales
 */
-cd "${code}/data_basic"
+cd "${code_path}/data_basic"
 	include "data - description"
 
 * ----------- *
 * Main Analysis
 
-cd "${code}/analysis_basic"
+cd "${code_path}/analysis_basic"
 	include "treatment - longitudinal"
-cd "${code}/analysis_basic"
+cd "${code_path}/analysis_basic"
 	include "treatment - table"
 	
 * -- *
 * Pile
 
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "data - aggregate pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "data - item pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "data - parent pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - aggregate pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - aggregate pile (substitution)"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - item pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - parent pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - parent item pile"
-cd "${code}/pile"
+cd "${code_path}/pile"
 	include "treatment - pile (comparison)"
 	
 * ------------ *
 * Homogenisation
 
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "data - homo"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "data - homo (merge)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "data - homo (table)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (table)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (aggregate)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (item)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (comparison)"
-cd "${code}/homogenisation"
+cd "${code_path}/homogenisation"
 	include "comparison - aggregate"
 	
 * ----------- *
 * Subpopulation
 
-cd "${code}/subpopulation"
+cd "${code_path}/subpopulation"
 	include "data - subpop"
-cd "${code}/subpopulation"
+cd "${code_path}/subpopulation"
 	include "data - subpop (merge)"
-cd "${code}/subpopulation"
+cd "${code_path}/subpopulation"
 	include "data - subpop (table)"
-cd "${code}/subpopulation"
+cd "${code_path}/subpopulation"
 	include "treatment - subpop (aggregate)"
-cd "${code}/subpopulation"
+cd "${code_path}/subpopulation"
 	include "treatment - subpop (item)"
 
 * ---------------------------- *
 * Homogenisation + Subpopulation
 
-cd "${code}/homo_subpop"
+cd "${code_path}/homo_subpop"
 	include "data - homo_subpop (table)"
-cd "${code}/homo_subpop"
+cd "${code_path}/homo_subpop"
 	include "treatment - homo_subpop (aggregate)"
-cd "${code}/homo_subpop"
+cd "${code_path}/homo_subpop"
 	include "treatment - homo_subpop (item)"
 
 * ------- *
 * Mediation
 
-cd "${code}/mediation"
+cd "${code_path}/mediation"
 	include "treatment - mediation (cognitive home)"
 	
 * ------------ *
 * By-Site (IHDP)
 
-cd "${code}/by_site"
+cd "${code_path}/by_site"
 	include "treatment - by site (ihdp)"

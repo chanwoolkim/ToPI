@@ -2,7 +2,7 @@
 * Tables of treatment effects
 * Author: Chanwool Kim
 * Date Created: 30 Jun 2017
-* Last Update: 15 Nov 2017
+* Last Update: 1 Mar 2017
 * ------------------------- *
 
 clear all
@@ -278,6 +278,15 @@ foreach p of global programs {
 	}
 	
 	cd "${analysis_out}/`t'"
+	frmttable using `p'R_`t', statmat(R`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
+					rtitles(``p'_row') ///
+					annotate(R`t'_stars) asymbol(*,**,***)
+	
+	frmttable using `p'D_`t', statmat(D`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
+					rtitles(``p'_row') ///
+					annotate(D`t'_stars) asymbol(*,**,***)
+					
+	cd "${analysis_git_out}/`t'"
 	frmttable using `p'R_`t', statmat(R`t'_coeff_se) substat(1) sdec(3) fragment tex replace nocenter ///
 					rtitles(``p'_row') ///
 					annotate(R`t'_stars) asymbol(*,**,***)

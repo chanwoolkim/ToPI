@@ -2,7 +2,7 @@
 * By-site analysis (IHDP)
 * Author: Chanwool Kim
 * Date Created: 4 Feb 2018
-* Last Update: 12 Feb 2018
+* Last Update: 1 Mar 2018
 * --------------------- *
 
 clear all
@@ -161,6 +161,10 @@ foreach c of local cogs {
 	}
 	
 	cd "${by_site_out}"
+	frmttable using table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
+
+	cd "${by_site_git_out}"
 	frmttable using table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
 }

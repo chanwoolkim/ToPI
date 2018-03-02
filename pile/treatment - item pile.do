@@ -2,7 +2,7 @@
 * Graphs of treatment effects - item pile
 * Author: Chanwool Kim
 * Date Created: 5 Jun 2017
-* Last Update: 23 Jan 2018
+* Last Update: 1 Mar 2018
 * ------------------------------------- *
 
 clear all
@@ -271,8 +271,6 @@ foreach age of numlist 1 3 {
 		replace `p'R0_01 = `p'R_`age'coeff if `p'R_`age'pval <= 0.01
 	}
 	
-	cd "$pile_out"
-
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ehscenterR0_01 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ehshomeR0_01 ///
 			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ehsmixedR0_01 ///
@@ -302,5 +300,9 @@ foreach age of numlist 1 3 {
 	ylabel($item_axis_range) ///
 	ysize(11) xsize(8.5) graphregion(fcolor(white))
 
+	cd "$pile_out"
 	graph export "item_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "item_pile_R_`age'.png", replace
 }

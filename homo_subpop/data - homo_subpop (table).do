@@ -2,7 +2,7 @@
 * Data table - homogenisation + subpopulation (table)
 * Author: Chanwool Kim
 * Date Created: 11 Jan 2018
-* Last Update: 27 Jan 2018
+* Last Update: 1 Mar 2018
 * ------------------------------------------------- *
 
 clear all
@@ -77,6 +77,9 @@ matrix list distribution
 cd "$homo_subpop_out"
 frmttable using distribution, statmat(distribution) sdec(3) fragment tex replace nocenter
 
+cd "$homo_subpop_git_out"
+frmttable using distribution, statmat(distribution) sdec(3) fragment tex replace nocenter
+
 matrix colnames distribution = $programs
 svmat distribution, names(col)
 keep $programs
@@ -136,6 +139,9 @@ foreach p of global programs {
 
 matrix list distribution_D
 cd "$homo_subpop_out"
+frmttable using distribution_D, statmat(distribution_D) sdec(3) fragment tex replace nocenter
+
+cd "$homo_subpop_git_out"
 frmttable using distribution_D, statmat(distribution_D) sdec(3) fragment tex replace nocenter
 
 matrix colnames distribution_D = $programs

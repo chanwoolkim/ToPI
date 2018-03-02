@@ -58,8 +58,6 @@ foreach age of numlist 1 3 {
 		replace homo_`p'R0_05 = homo_`p'R_`age'coeff if homo_`p'R_`age'pval <= 0.05
 		
 		gen inv_`p'R_`age'coeff = `p'R_`age'coeff * -1
-		
-		cd "${homo_out}/comparison"
 
 		graph dot `p'Rinsig `p'R0_1 `p'R0_05 ///
 				  homo_`p'Rinsig homo_`p'R0_1 homo_`p'R0_05, ///
@@ -69,7 +67,11 @@ foreach age of numlist 1 3 {
 		legend (order (3 "Original" 6 "Homogenisation") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 		ylabel($agg_axis_range) ///
 		graphregion(fcolor(white))
-
+		
+		cd "${homo_out}/comparison"
 		graph export "comparison_`p'_R_`age'.pdf", replace
+
+		cd "${homo_git_out}/comparison"
+		graph export "comparison_`p'_R_`age'.png", replace
 	}
 }

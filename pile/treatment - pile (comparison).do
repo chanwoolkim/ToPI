@@ -2,7 +2,7 @@
 * Treatment effects - pile (comparison)
 * Author: Chanwool Kim
 * Date Created: 27 Sep 2017
-* Last Update: 15 Nov 2017
+* Last Update: 1 Mar 2017
 * ----------------------------------- *
 
 clear all
@@ -60,6 +60,9 @@ foreach age of numlist 1 3 {
 	}
 
 	cd "$pile_out"
+	frmttable using by_program_`age', statmat(by_program_`age') sdec(0) fragment tex replace nocenter
+
+	cd "$pile_git_out"
 	frmttable using by_program_`age', statmat(by_program_`age') sdec(0) fragment tex replace nocenter
 }
 
@@ -241,6 +244,9 @@ qui matrix rownames by_scale_merge_1 = `p_row_names'
 cd "$pile_out"
 frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
 
+cd "$pile_git_out"
+frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
+
 cd "$pile_working"
 
 use agg-pile-3, clear
@@ -420,4 +426,7 @@ matrix by_scale_merge_3 = by_scale_3 ///
 qui matrix rownames by_scale_merge_3 = `p_row_names'
 
 cd "$pile_out"
+frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter
+
+cd "$pile_git_out"
 frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter

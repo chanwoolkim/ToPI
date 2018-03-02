@@ -2,7 +2,7 @@
 * Graphs of treatment effects - aggregate pile
 * Author: Chanwool Kim
 * Date Created: 13 Sep 2017
-* Last Update: 26 Jan 2018
+* Last Update: 1 Mar 2018
 * ------------------------------------------ *
 
 clear all
@@ -283,8 +283,6 @@ foreach age of numlist 1 3 {
 		replace `p'R0_1 = `p'R_`age'coeff if `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
-	
-	cd "$pile_out"
 
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
@@ -306,8 +304,12 @@ foreach age of numlist 1 3 {
 	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
-
+	
+	cd "$pile_out"
 	graph export "agg_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "agg_pile_R_`age'.png", replace
 	
 	* Participation
 	
@@ -324,8 +326,6 @@ foreach age of numlist 1 3 {
 		replace `p'D0_05 = `p'D_`age'coeff if `p'D_`age'pval <= 0.05
 	}
 	
-	cd "$pile_out"
-
 	graph dot ehscenterDinsig ehscenterD0_1 ehscenterD0_05 ///
 			  ehshomeDinsig ehshomeD0_1 ehshomeD0_05 ///
 			  ehsmixedDinsig ehsmixedD0_1 ehsmixedD0_05 ///
@@ -347,5 +347,9 @@ foreach age of numlist 1 3 {
 	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
 
+	cd "$pile_out"
 	graph export "agg_pile_D_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "agg_pile_D_`age'.png", replace
 }

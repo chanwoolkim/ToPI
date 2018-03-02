@@ -2,7 +2,7 @@
 * Mediation analysis (IQ - HOME)
 * Author: Chanwool Kim
 * Date Created: 20 Apr 2017
-* Last Update: 27 Jan 2018
+* Last Update: 1 Mar 2018
 * ---------------------------- *
 
 clear all
@@ -60,11 +60,11 @@ foreach p of global programs_merge {
 		use "`p'`t'-home-agg-merge.dta", clear
 		
 		if "`p'" == "abc" | "`p'" == "care" {
-			rename norm_home_*42 norm_home_*36 /// to make it age 3y
+			rename norm_home_*42 norm_home_*36
 		}
 		
 		foreach s of local matrix_type {
-			qui matrix `p'`t'_`c'`s'_3 = J(9, 4, .) // for randomisation variable
+			qui matrix `p'`t'_`c'`s'_3 = J(9, 4, .)
 			qui matrix colnames `p'`t'_`c'`s'_3 = `p'`t'_`c'`s'_3num `p'`t'_`c'`s'_3coeff `p'`t'_`c'`s'_3se `p'`t'_`c'`s'_3pval
 		}
 		
@@ -112,7 +112,7 @@ foreach p of global programs_merge {
 			rename `p'`t'_`c'`s'_3num row_3
 			keep row_3 `p'`t'_`c'`s'_3coeff `p'`t'_`c'`s'_3se `p'`t'_`c'`s'_3pval
 			keep if row_3 != .
-			save "`p'`t'-`c'`s'-pile-agg-sub-3", replace
+			save "`p'`t'-`c'`s'-agg-mediation-3", replace
 		}
 		}
 	}
@@ -121,18 +121,17 @@ foreach p of global programs_merge {
 * --------*
 * Questions
 
-cd "$mediation_working"
-
 * Randomisation
 
 foreach p of global programs_merge {
-	foreach c of local cogs {
+	cd "$mediation_working"
+	foreach c of local `p'_cogs {
 
-		use `p'-`c'random-pile-agg-sub-3, clear
+		use `p'-`c'random-agg-mediation-3, clear
 
 		foreach t of global `p'_type {
 			foreach s of local matrix_type {
-				merge 1:1 row_3 using `p'`t'-`c'`s'-pile-agg-sub-3, nogen nolabel
+				merge 1:1 row_3 using `p'`t'-`c'`s'-agg-mediation-3, nogen nolabel
 			}
 		}
 
@@ -150,7 +149,7 @@ foreach p of global programs_merge {
 		replace scale = "Outings/Activities" if scale_num == "8"
 		replace scale = "Parental Lack of Hostility" if scale_num == "9"
 
-		save `p'-`c'-agg-pile-sub-3, replace
+		save `p'-`c'-agg-mediation-3, replace
 	}
 }
 
@@ -160,7 +159,7 @@ foreach p of global programs_merge {
 foreach c of local ehs_cogs {
 	cd "$mediation_working"
 	
-	use ehs-`c'-agg-pile-sub-3, clear
+	use ehs-`c'-agg-mediation-3, clear
 	
 	foreach p in ehs ehscenter ehshome ehsmixed {
 		gen `p'_`c'random_3dup = 1
@@ -170,20 +169,20 @@ foreach c of local ehs_cogs {
 	
 	mkmat ehs_`c'random_3coeff ehs_`c'random_3se ehs_`c'parenting_3coeff ehs_`c'parenting_3se ehs_`c'interaction_3coeff ehs_`c'interaction_3se ///
 		  ehscenter_`c'random_3coeff ehscenter_`c'random_3se ehscenter_`c'parenting_3coeff ehscenter_`c'parenting_3se ehscenter_`c'interaction_3coeff ehscenter_`c'interaction_3se ///
-		  ehshome_`c'random_3coeff ehshome_`c'random_3se ehshome_`c'parenting_3coeff ehshome_`c'parenting_3se ehshome_`c'interaction_3coeff ehshome_`c'interaction_3se, ///
+		  ehshome_`c'random_3coeff ehshome_`c'random_3se ehshome_`c'parenting_3coeff ehshome_`c'parenting_3se ehshome_`c'interaction_3coeff ehshome_`c'interaction_3se ///
 		  ehsmixed_`c'random_3coeff ehsmixed_`c'random_3se ehsmixed_`c'parenting_3coeff ehsmixed_`c'parenting_3se ehsmixed_`c'interaction_3coeff ehsmixed_`c'interaction_3se, ///
 		  matrix(main_`c') rownames(scale_num)
 		  
 	mkmat ehs_`c'random_3pval ehs_`c'random_3dup ehs_`c'parenting_3pval ehs_`c'parenting_3dup ehs_`c'interaction_3pval ehs_`c'interaction_3dup ///
 		  ehscenter_`c'random_3pval ehscenter_`c'random_3dup ehscenter_`c'parenting_3pval ehscenter_`c'parenting_3dup ehscenter_`c'interaction_3pval ehscenter_`c'interaction_3dup ///
-		  ehshome_`c'random_3pval ehshome_`c'random_3dup ehshome_`c'parenting_3pval ehshome_`c'parenting_3dup ehshome_`c'interaction_3pval ehshome_`c'interaction_3dup, ///
+		  ehshome_`c'random_3pval ehshome_`c'random_3dup ehshome_`c'parenting_3pval ehshome_`c'parenting_3dup ehshome_`c'interaction_3pval ehshome_`c'interaction_3dup ///
 		  ehsmixed_`c'random_3pval ehsmixed_`c'random_3dup ehsmixed_`c'parenting_3pval ehsmixed_`c'parenting_3dup ehsmixed_`c'interaction_3pval ehsmixed_`c'interaction_3dup, ///
 		  matrix(pval_`c') rownames(scale_num)
 		  
 	local nrow_`c' = rowsof(pval_`c')
 	local ncol_`c' = colsof(pval_`c')
 	
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0) // for randomisation (stars)
+	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
 
 	forvalues k = 1/`nrow_`c'' {
 		forvalues l = 1/`ncol_`c'' {
@@ -196,12 +195,16 @@ foreach c of local ehs_cogs {
 	cd "${mediation_out}"
 	frmttable using ehs-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
+
+	cd "${mediation_git_out}"
+	frmttable using ehs-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
 }
 
 foreach c of local ihdp_cogs {
 	cd "$mediation_working"
 	
-	use ihdp-`c'-agg-pile-sub-3, clear
+	use ihdp-`c'-agg-mediation-3, clear
 	
 	foreach p in ihdp ihdphigh ihdplow {
 		gen `p'_`c'random_3dup = 1
@@ -222,7 +225,7 @@ foreach c of local ihdp_cogs {
 	local nrow_`c' = rowsof(pval_`c')
 	local ncol_`c' = colsof(pval_`c')
 	
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0) // for randomisation (stars)
+	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
 
 	forvalues k = 1/`nrow_`c'' {
 		forvalues l = 1/`ncol_`c'' {
@@ -235,28 +238,32 @@ foreach c of local ihdp_cogs {
 	cd "${mediation_out}"
 	frmttable using ihdp-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
+
+	cd "${mediation_git_out}"
+	frmttable using ihdp-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
 }
 
 foreach c of local abc_cogs {
 	cd "$mediation_working"
 	
-	use abc-`c'-agg-pile-sub-3, clear
+	use abc-`c'-agg-mediation-3, clear
 
 	gen abc_`c'random_3dup = 1
 	gen abc_`c'parenting_3dup = 1
 	gen abc_`c'interaction_3dup = 1
 
 	
-	mkmat abc_`c'random_3coeff abc_`c'random_3se abc_`c'parenting_3coeff abc_`c'parenting_3se abc_`c'interaction_3coeff abc_`c'interaction_3se ///
+	mkmat abc_`c'random_3coeff abc_`c'random_3se abc_`c'parenting_3coeff abc_`c'parenting_3se abc_`c'interaction_3coeff abc_`c'interaction_3se, ///
 		  matrix(main_`c') rownames(scale_num)
 		  
-	mkmat abc_`c'random_3pval abc_`c'random_3dup abc_`c'parenting_3pval abc_`c'parenting_3dup abc_`c'interaction_3pval abc_`c'interaction_3dup ///
+	mkmat abc_`c'random_3pval abc_`c'random_3dup abc_`c'parenting_3pval abc_`c'parenting_3dup abc_`c'interaction_3pval abc_`c'interaction_3dup, ///
 		  matrix(pval_`c') rownames(scale_num)
 		  
 	local nrow_`c' = rowsof(pval_`c')
 	local ncol_`c' = colsof(pval_`c')
 	
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0) // for randomisation (stars)
+	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
 
 	forvalues k = 1/`nrow_`c'' {
 		forvalues l = 1/`ncol_`c'' {
@@ -269,12 +276,16 @@ foreach c of local abc_cogs {
 	cd "${mediation_out}"
 	frmttable using abc-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
+
+	cd "${mediation_git_out}"
+	frmttable using abc-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
 }
 
 foreach c of local care_cogs {
 	cd "$mediation_working"
 	
-	use care-`c'-agg-pile-sub-3, clear
+	use care-`c'-agg-mediation-3, clear
 	
 	foreach p in care careboth carehv {
 		gen `p'_`c'random_3dup = 1
@@ -295,7 +306,7 @@ foreach c of local care_cogs {
 	local nrow_`c' = rowsof(pval_`c')
 	local ncol_`c' = colsof(pval_`c')
 	
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0) // for randomisation (stars)
+	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
 
 	forvalues k = 1/`nrow_`c'' {
 		forvalues l = 1/`ncol_`c'' {
@@ -306,6 +317,10 @@ foreach c of local care_cogs {
 	}
 	
 	cd "${mediation_out}"
+	frmttable using care-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
+					annotate(stars_`c') asymbol(*,**,***)
+					
+	cd "${mediation_git_out}"
 	frmttable using care-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
 }

@@ -2,7 +2,7 @@
 * Graphs of treatment effects - parent item pile
 * Author: Chanwool Kim
 * Date Created: 3 Feb 2018
-* Last Update: 15 Feb 2018
+* Last Update: 1 Mar 2018
 * -------------------------------------------- *
 
 clear all
@@ -147,14 +147,14 @@ foreach t of global ihdp_type {
 rename row_1 row
 save ihdp-sameroff-pile-1, replace
 
-use ihdp-pile-sameroff-2, clear
+use ihdp-pile-sameroff-3, clear
 
 foreach t of global ihdp_type {
-	merge 1:1 row_2 using ihdp`t'-pile-sameroff-2, nogen nolabel
+	merge 1:1 row_3 using ihdp`t'-pile-sameroff-3, nogen nolabel
 }
 
-rename row_2 row
-save ihdp-sameroff-pile-2, replace
+rename row_3 row
+save ihdp-sameroff-pile-3, replace
 
 * ABC/CARE - PARI
 local 1_row = 55
@@ -406,8 +406,6 @@ foreach age of numlist 1 2 {
 		replace ihdp`t'R0_05 = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval <= 0.05
 	}
 	
-	cd "$pile_out"
-
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05 ///
 			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
 			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05, ///
@@ -419,7 +417,11 @@ foreach age of numlist 1 2 {
 	ylabel($item_axis_range) ///
 	graphregion(fcolor(white))
 
+	cd "$pile_out"
 	graph export "ihdp_kidi_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "ihdp_kidi_pile_R_`age'.png", replace
 
 	* ABC/CARE PARI
 	cd "$pile_working"
@@ -434,8 +436,6 @@ foreach age of numlist 1 2 {
 		replace `p'R0_1 = `p'R_`age'coeff if `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
-	
-	cd "$pile_out"
 
 	graph dot abcRinsig abcR0_1 abcR0_05 ///
 			  careRinsig careR0_1 careR0_05 ///
@@ -449,8 +449,12 @@ foreach age of numlist 1 2 {
 	legend (order (3 "ABC" 6 "CARE-All" 9 "CARE-Both" 12 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
 	ylabel($item_axis_range) ///
 	graphregion(fcolor(white))
-
+	
+	cd "$pile_out"
 	graph export "abccare_pari_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "abccare_pari_pile_R_`age'.png", replace
 }
 
 foreach age of numlist 1 3 {
@@ -467,8 +471,6 @@ foreach age of numlist 1 3 {
 		replace ihdp`t'R0_1 = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval <= 0.1 & ihdp`t'R_`age'pval > 0.05
 		replace ihdp`t'R0_05 = ihdp`t'R_`age'coeff if ihdp`t'R_`age'pval <= 0.05
 	}
-	
-	cd "$pile_out"
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05 ///
 			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
@@ -480,5 +482,10 @@ foreach age of numlist 1 3 {
 	legend (order (3 "IHDP-All" 6 "IHDP-High" 9 "IHDP-Low") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($item_axis_range) ///
 	graphregion(fcolor(white))
-
+	
+	cd "$pile_out"
 	graph export "ihdp_sameroff_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out"
+	graph export "ihdp_sameroff_pile_R_`age'.png", replace
+}

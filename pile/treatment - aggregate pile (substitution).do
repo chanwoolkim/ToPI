@@ -2,7 +2,7 @@
 * Graphs of treatment effects - aggregate pile (substitution effect)
 * Author: Chanwool Kim
 * Date Created: 22 Jan 2018
-* Last Update: 26 Jan 2018
+* Last Update: 1 Mar 2018
 * ---------------------------------------------------------------- *
 
 clear all
@@ -254,8 +254,6 @@ foreach age of numlist 1 3 {
 	cd "$pile_working"
 	use ehs-agg-pile-sub-`age', clear
 
-	cd "$pile_out/substitution"
-
 	graph dot ehsRinsig ehsR0_1 ehsR0_05 ///
 			  ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
@@ -269,15 +267,17 @@ foreach age of numlist 1 3 {
 		  ylabel($sub_axis_range) ///
 		  graphregion(fcolor(white))
 
-		  graph export "ehs_sub_agg_pile_R_`age'.pdf", replace
+	cd "$pile_out/substitution"
+	graph export "ehs_sub_agg_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out/substitution"
+	graph export "ehs_sub_agg_pile_R_`age'.png", replace
 }
 
 * IHDP
 foreach age of numlist 1 3 {
 	cd "$pile_working"
 	use ihdp-agg-pile-sub-`age', clear
-
-	cd "$pile_out/substitution"
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05 ///
 			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
@@ -290,15 +290,17 @@ foreach age of numlist 1 3 {
 		  ylabel($sub_axis_range) ///
 		  graphregion(fcolor(white))
 
-		  graph export "ihdp_sub_agg_pile_R_`age'.pdf", replace
+	cd "$pile_out/substitution"
+	graph export "ihdp_sub_agg_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out/substitution"
+	graph export "ihdp_sub_agg_pile_R_`age'.png", replace
 }
 
 * ABC
 foreach age in 6m 1 3 {
 	cd "$pile_working"
 	use abc-agg-pile-sub-`age', clear
-
-	cd "$pile_out/substitution"
 
 	graph dot abcRinsig abcR0_1 abcR0_05, ///
 		  marker(1,msize(large) msymbol(D) mlc(blue) mfc(blue*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(blue) mfc(blue) mlw(thin)) ///
@@ -307,15 +309,17 @@ foreach age in 6m 1 3 {
 		  ylabel($sub_axis_range) ///
 		  graphregion(fcolor(white))
 
-		  graph export "abc_sub_agg_pile_R_`age'.pdf", replace
+	cd "$pile_out/substitution"
+	graph export "abc_sub_agg_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out/substitution"
+	graph export "abc_sub_agg_pile_R_`age'.png", replace
 }
 
 * CARE
 foreach age of numlist 1 3 {
 	cd "$pile_working"
 	use care-agg-pile-sub-`age', clear
-
-	cd "$pile_out/substitution"
 
 	graph dot careRinsig careR0_1 careR0_05 ///
 			  carebothRinsig carebothR0_1 carebothR0_05 ///
@@ -328,5 +332,9 @@ foreach age of numlist 1 3 {
 		  ylabel($sub_axis_range) ///
 		  graphregion(fcolor(white))
 
-		  graph export "care_sub_agg_pile_R_`age'.pdf", replace
+	cd "$pile_out/substitution"
+	graph export "care_sub_agg_pile_R_`age'.pdf", replace
+	
+	cd "$pile_git_out/substitution"
+	graph export "care_sub_agg_pile_R_`age'.png", replace
 }

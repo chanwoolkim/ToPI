@@ -2,7 +2,7 @@
 * Preliminary data preparation - parent info
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 15 Feb 2018
+* Last Update: 1 Mar 2018
 * ---------------------------------------- *
 
 clear all
@@ -118,10 +118,10 @@ forvalues i = 30/37 {
 	rename v`i'_f38			kidi24_`j'
 }
 
-gen kidi24_18 = vb38_f38
-gen kidi24_19 = vb38_f38
-gen kidi24_20 = vb38_f38
-gen kidi24_21 = vb38_f38
+gen kidi24_18 = v38_f38
+gen kidi24_19 = v38_f38
+gen kidi24_20 = v38_f38
+gen kidi24_21 = v38_f38
 recode kidi24_18 (2 3 4 8 = 0)
 recode kidi24_19 (1 3 4 8 = 0) (2 = 1)
 recode kidi24_20 (1 2 4 8 = 0) (3 = 1)
@@ -169,52 +169,52 @@ label var sameroff_cat12 "Sameroff Concepts of Development: Categorical Score"
 label var sameroff_cat36 "Sameroff Concepts of Development: Categorical Score"
 label var sameroff_prsp12 "Sameroff Concepts of Development: Perspectivistic Score"
 label var sameroff_prsp36 "Sameroff Concepts of Development: Perspectivistic Score"
-label var sameroff_tot12 "Sameroff Concepts of Development: Total Score"
-label var sameroff_tot36 "Sameroff Concepts of Development: Total Score"
+label var sameroff_total12 "Sameroff Concepts of Development: Total Score"
+label var sameroff_total36 "Sameroff Concepts of Development: Total Score"
 
-rename vb1_f22_1y sameroff12_1
-rename vb2_f22_1y sameroff12_2
-rename vb3_f22_1y sameroff12_3
-rename vb4_f22_1y sameroff12_4
-rename vb5_f22_1y sameroff12_5
-rename vb6_f22_1y sameroff12_6
-rename vb7_f22_1y sameroff12_7
-rename vb8_f22_1y sameroff12_8
-rename vb9_f22_1y sameroff12_9
-rename vb10_f22_1y sameroff12_10
-rename vb11_f22_1y sameroff12_11
-rename vb12_f22_1y sameroff12_12
-rename vb13_f22_1y sameroff12_13
-rename vb14_f22_1y sameroff12_14
-rename vb15_f22_1y sameroff12_15
-rename vb16_f22_1y sameroff12_16
-rename vb17_f22_1y sameroff12_17
-rename vb18_f22_1y sameroff12_18
-rename vb19_f22_1y sameroff12_19
-rename vb20_f22_1y sameroff12_20
+rename vb1_f22 sameroff12_1
+rename vb2_f22 sameroff12_2
+rename vb3_f22 sameroff12_3
+rename vb4_f22 sameroff12_4
+rename vb5_f22 sameroff12_5
+rename vb6_f22 sameroff12_6
+rename vb7_f22 sameroff12_7
+rename vb8_f22 sameroff12_8
+rename vb9_f22 sameroff12_9
+rename vb10_f22 sameroff12_10
+rename vb11_f22 sameroff12_11
+rename vb12_f22 sameroff12_12
+rename vb13_f22 sameroff12_13
+rename vb14_f22 sameroff12_14
+rename vb15_f22 sameroff12_15
+rename vb16_f22 sameroff12_16
+rename vb17_f22 sameroff12_17
+rename vb18_f22 sameroff12_18
+rename vb19_f22 sameroff12_19
+rename vb20_f22 sameroff12_20
 
-rename v57_f56_3y sameroff36_1
-rename v58_f56_3y sameroff36_2
-rename v59_f56_3y sameroff36_3
-rename v60_f56_3y sameroff36_4
-rename v61_f56_3y sameroff36_5
-rename v62_f56_3y sameroff36_6
-rename v63_f56_3y sameroff36_7
-rename v64_f56_3y sameroff36_8
-rename v65_f56_3y sameroff36_9
-rename v66_f56_3y sameroff36_10
-rename v67_f56_3y sameroff36_11
-rename v68_f56_3y sameroff36_12
-rename v69_f56_3y sameroff36_13
-rename v70_f56_3y sameroff36_14
-rename v71_f56_3y sameroff36_15
-rename v72_f56_3y sameroff36_16
-rename v73_f56_3y sameroff36_17
-rename v74_f56_3y sameroff36_18
-rename v75_f56_3y sameroff36_19
-rename v76_f56_3y sameroff36_20
+rename v57_f56 sameroff36_1
+rename v58_f56 sameroff36_2
+rename v59_f56 sameroff36_3
+rename v60_f56 sameroff36_4
+rename v61_f56 sameroff36_5
+rename v62_f56 sameroff36_6
+rename v63_f56 sameroff36_7
+rename v64_f56 sameroff36_8
+rename v65_f56 sameroff36_9
+rename v66_f56 sameroff36_10
+rename v67_f56 sameroff36_11
+rename v68_f56 sameroff36_12
+rename v69_f56 sameroff36_13
+rename v70_f56 sameroff36_14
+rename v71_f56 sameroff36_15
+rename v72_f56 sameroff36_16
+rename v73_f56 sameroff36_17
+rename v74_f56 sameroff36_18
+rename v75_f56 sameroff36_19
+rename v76_f56 sameroff36_20
 
-foreach m in numlist 12 36 {
+foreach m of numlist 12 36 {
 	forvalues i = 1/20 {
 		local label: var label sameroff`m'_`i'
 		label var sameroff`m'_`i' "Sameroff: `label'"

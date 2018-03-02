@@ -109,6 +109,9 @@ matrix list distribution
 cd "$homo_out"
 frmttable using distribution, statmat(distribution) sdec(3) fragment tex replace nocenter
 
+cd "$homo_git_out"
+frmttable using distribution, statmat(distribution) sdec(3) fragment tex replace nocenter
+
 matrix colnames distribution = $programs
 svmat distribution, names(col)
 keep $programs
@@ -192,6 +195,9 @@ foreach p of global programs {
 
 matrix list distribution_D
 cd "$homo_out"
+frmttable using distribution_D, statmat(distribution_D) sdec(3) fragment tex replace nocenter
+
+cd "$homo_git_out"
 frmttable using distribution_D, statmat(distribution_D) sdec(3) fragment tex replace nocenter
 
 matrix colnames distribution_D = $programs

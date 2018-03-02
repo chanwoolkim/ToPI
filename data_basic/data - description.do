@@ -2,7 +2,7 @@
 * Data description
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 15 Nov 2017
+* Last Update: 1 Mar 2017
 * -------------- *
 
 set more off
@@ -89,6 +89,35 @@ global vlab8 "Mother's IQ"
 global vlab9 "Father/Boyfriend at home"
 
 cd "$data_out"
+cap file close texfile
+file open texfile using "`p'_datadesc.tex", write replace
+file write texfile "\begin{tabular}{lcccccc}" _newline
+file write texfile "\toprule" _newline
+file write texfile "& \multicolumn{2}{c}{Control} & \multicolumn{2}{c}{Treatment} & \multicolumn{2}{c}{Treatment - Control} \\" _newline
+file write texfile "\midrule" _newline
+forval g = 1/3{
+	file write texfile "\textbf{`label`g''} & & & & & & \\" _newline
+	preserve
+	keep if group == `g'
+	local obs = _N
+	forval i = 1/`obs'{
+		local varnum = ind[`i']
+		local varname "${vlab`varnum'}"
+		local row \quad\quad `varname'
+		foreach var of varlist Mean1 SD1 Mean2 SD2 MeanDifference Pval{
+			local writer = `var'[`i']
+			local writer = trim("`: display %10.3f `writer''")
+			local row `row' & `writer'
+				}
+		file write texfile "`row' \\" _newline
+		}
+	restore
+	}
+file write texfile "\bottomrule" _newline
+file write texfile "\end{tabular}" _newline
+file close texfile
+
+cd "$data_git_out"
 cap file close texfile
 file open texfile using "`p'_datadesc.tex", write replace
 file write texfile "\begin{tabular}{lcccccc}" _newline

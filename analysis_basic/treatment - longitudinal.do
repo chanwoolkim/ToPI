@@ -2,7 +2,7 @@
 * Graphs of treatment effects - longitudinal
 * Author: Chanwool Kim
 * Date Created: 1 Mar 2017
-* Last Update: 15 Nov 2017
+* Last Update: 1 Mar 2017
 * ---------------------------------------- *
 
 clear all
@@ -180,6 +180,9 @@ foreach p of global programs {
 		
 			cd "${analysis_out}/`t'"
 			graph export "`p'_`t'_`s'.pdf", replace
+			
+			cd "${analysis_git_out}/`t'"
+			graph export "`p'_`t'_`s'.png", replace
 		}
 	}
 }

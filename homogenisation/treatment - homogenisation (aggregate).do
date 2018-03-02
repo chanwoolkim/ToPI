@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (aggregate)
 * Author: Chanwool Kim
 * Date Created: 14 Sep 2017
-* Last Update: 27 Jan 2018
+* Last Update: 1 Mar 2018
 * ------------------------------------------------------- *
 
 clear all
@@ -229,8 +229,6 @@ foreach age of numlist 1 3 {
 		replace `p'R0_1 = `p'R_`age'coeff if `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
-	
-	cd "${homo_out}/home"
 
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
@@ -252,6 +250,10 @@ foreach age of numlist 1 3 {
 	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
-
+	
+	cd "${homo_out}/home"
 	graph export "agg_homo_R_`age'.pdf", replace
+
+	cd "${homo_git_out}/home"
+	graph export "agg_homo_R_`age'.png", replace
 }

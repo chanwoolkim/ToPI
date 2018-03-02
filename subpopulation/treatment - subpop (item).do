@@ -2,7 +2,7 @@
 * Treatment effects - subpopulation (item)
 * Author: Chanwool Kim
 * Date Created: 15 Nov 2017
-* Last Update: 23 Jan 2018
+* Last Update: 1 Mar 2018
 * -------------------------------------- *
 
 clear all
@@ -304,8 +304,6 @@ foreach age of numlist 1 3 {
 			replace `p'R`t'0_05 = `p'R`t'_`age'coeff if `p'R`t'_`age'pval <= 0.05
 		}
 		
-		cd "${subpop_out}/home"
-
 		graph dot ehscenterR`t'insig ehscenterR`t'0_1 ehscenterR`t'0_05 ///
 				  ehshomeR`t'insig ehshomeR`t'0_1 ehshomeR`t'0_05 ///
 				  ehsmixedR`t'insig ehsmixedR`t'0_1 ehsmixedR`t'0_05 ///
@@ -327,6 +325,10 @@ foreach age of numlist 1 3 {
 		ylabel($item_axis_range) ///
 		ysize(11) xsize(8.5) graphregion(fcolor(white))
 
+		cd "${subpop_out}/home"
 		graph export "item_subpop_R_`t'_`age'.pdf", replace
+		
+		cd "${subpop_git_out}/home"
+		graph export "item_subpop_R_`t'_`age'.png", replace
 	}
 }
