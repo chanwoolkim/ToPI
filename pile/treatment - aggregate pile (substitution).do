@@ -2,7 +2,7 @@
 * Graphs of treatment effects - aggregate pile (substitution effect)
 * Author: Chanwool Kim
 * Date Created: 22 Jan 2018
-* Last Update: 1 Mar 2018
+* Last Update: 3 Mar 2018
 * ---------------------------------------------------------------- *
 
 clear all
@@ -18,7 +18,7 @@ foreach p of global programs_merge {
 
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 		qui matrix `p'`t'R_1 = J(7, 5, .) // for randomisation variable
-		qui matrix `p'`t'R_3 = J(9, 5, .) // for randomisation variable
+		qui matrix `p'`t'R_3 = J(8, 5, .) // for randomisation variable
 		
 		qui matrix colnames `p'`t'R_1 = `p'`t'R_1num `p'`t'R_1coeff `p'`t'R_1lower `p'`t'R_1upper `p'`t'R_1pval
 		qui matrix colnames `p'`t'R_3 = `p'`t'R_3num `p'`t'R_3coeff `p'`t'R_3lower `p'`t'R_3upper `p'`t'R_3pval
@@ -171,12 +171,12 @@ foreach p of global programs_merge {
 		tostring row, gen(scale_num)
 
 		replace scale = "Total Score" if scale_num == "1"
-		replace scale = "Parental Warmth" if scale_num == "2"
-		replace scale = "Parental Verbal Skills" if scale_num == "3"
-		replace scale = "Parental Lack of Hostility" if scale_num == "4"
-		replace scale = "Learning/Literacy" if scale_num == "5"
-		replace scale = "Activities/Outings" if scale_num == "6"
-		replace scale = "Developmental Advance" if scale_num == "7"
+		replace scale = "Development Materials" if scale_num == "2"
+		replace scale = "Family Culture" if scale_num == "3"
+		replace scale = "Lack of Hostility" if scale_num == "4"
+		replace scale = "Learning Stimulation" if scale_num == "5"
+		replace scale = "Opportunities for Variety" if scale_num == "6"
+		replace scale = "Warmth" if scale_num == "7"
 
 		save `p'-agg-pile-sub-6m, replace
 	}
@@ -186,12 +186,12 @@ foreach p of global programs_merge {
 	tostring row, gen(scale_num)
 
 	replace scale = "Total Score" if scale_num == "1"
-	replace scale = "Parental Warmth" if scale_num == "2"
-	replace scale = "Parental Verbal Skills" if scale_num == "3"
-	replace scale = "Parental Lack of Hostility" if scale_num == "4"
-	replace scale = "Learning/Literacy" if scale_num == "5"
-	replace scale = "Activities/Outings" if scale_num == "6"
-	replace scale = "Developmental Advance" if scale_num == "7"
+	replace scale = "Development Materials" if scale_num == "2"
+	replace scale = "Family Culture" if scale_num == "3"
+	replace scale = "Lack of Hostility" if scale_num == "4"
+	replace scale = "Learning Stimulation" if scale_num == "5"
+	replace scale = "Opportunities for Variety" if scale_num == "6"
+	replace scale = "Warmth" if scale_num == "7"
 
 	save `p'-agg-pile-sub-1, replace
 
@@ -200,14 +200,13 @@ foreach p of global programs_merge {
 	tostring row, gen(scale_num)
 
 	replace scale = "Total Score" if scale_num == "1"
-	replace scale = "Learning Stimulation" if scale_num == "2"
-	replace scale = "Access to Reading" if scale_num == "3"
-	replace scale = "Parental Verbal Skills" if scale_num == "4"
-	replace scale = "Parental Warmth" if scale_num == "5"
-	replace scale = "Home Exterior" if scale_num == "6"
-	replace scale = "Home Interior" if scale_num == "7"
-	replace scale = "Outings/Activities" if scale_num == "8"
-	replace scale = "Parental Lack of Hostility" if scale_num == "9"
+	replace scale = "Development Materials" if scale_num == "2"
+	replace scale = "Family Culture" if scale_num == "3"
+	replace scale = "Housing" if scale_num == "4"
+	replace scale = "Lack of Hostility" if scale_num == "5"
+	replace scale = "Learning Stimulation" if scale_num == "6"
+	replace scale = "Opportunities for Variety" if scale_num == "7"
+	replace scale = "Warmth" if scale_num == "8"
 
 	save `p'-agg-pile-sub-3, replace
 }
@@ -314,27 +313,4 @@ foreach age in 6m 1 3 {
 	
 	cd "$pile_git_out/substitution"
 	graph export "abc_sub_agg_pile_R_`age'.png", replace
-}
-
-* CARE
-foreach age of numlist 1 3 {
-	cd "$pile_working"
-	use care-agg-pile-sub-`age', clear
-
-	graph dot careRinsig careR0_1 careR0_05 ///
-			  carebothRinsig carebothR0_1 carebothR0_05 ///
-			  carehvRinsig carehvR0_1 carehvR0_05, ///
-		  marker(1,msize(large) msymbol(D) mlc(purple) mfc(purple*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(purple) mfc(purple) mlw(thin)) ///
-		  marker(4,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thin)) marker(5,msize(large) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(6,msize(large) msymbol(O) mlc(purple) mfc(purple) mlw(thin)) ///
-		  marker(7,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thin)) marker(8,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(9,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thin)) ///
-		  over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-		  legend (order (3 "CARE-All" 6 "CARE-Both" 9 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
-		  ylabel($sub_axis_range) ///
-		  graphregion(fcolor(white))
-
-	cd "$pile_out/substitution"
-	graph export "care_sub_agg_pile_R_`age'.pdf", replace
-	
-	cd "$pile_git_out/substitution"
-	graph export "care_sub_agg_pile_R_`age'.png", replace
 }

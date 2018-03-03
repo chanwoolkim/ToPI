@@ -2,7 +2,7 @@
 * Graphs of treatment effects - parent item pile
 * Author: Chanwool Kim
 * Date Created: 3 Feb 2018
-* Last Update: 1 Mar 2018
+* Last Update: 3 Mar 2018
 * -------------------------------------------- *
 
 clear all
@@ -160,7 +160,7 @@ save ihdp-sameroff-pile-3, replace
 local 1_row = 55
 local 2_row = 55
 
-foreach p in abc care careboth carehv {
+foreach p in abc {
 	foreach age of numlist 1 2 {
 
 	cd "$pile_working"
@@ -213,18 +213,10 @@ cd "$pile_working"
 
 use abc-pile-pari-1, clear
 
-foreach t of global care_type {
-	merge 1:1 row_1 using care`t'-pile-pari-1, nogen nolabel
-}
-
 rename row_1 row
 save abc-pari-pile-1, replace
 
 use abc-pile-pari-2, clear
-
-foreach t of global care_type {
-	merge 1:1 row_2 using care`t'-pile-pari-2, nogen nolabel
-}
 
 rename row_2 row
 save abc-pari-pile-2, replace
@@ -311,7 +303,7 @@ foreach age of numlist 1 3 {
 	replace scale = "Sameroff: Difficult babies will grow out of it" if scale_num == "9"
 	replace scale = "Sameroff: There's not much anyone can do to help emotionally disturbed children" if scale_num == "10"
 	replace scale = "Sameroff: Children's problems seldom have a single cause" if scale_num == "11"
-	replace scale = "Sameroff: The father's role is to provide the discipline in the family and the mother's role is to give love and attention to the children" if scale_num == "12"
+	replace scale = "Sameroff: Father's role is to provide discipline mother's role is to give love and attention to the children" if scale_num == "12"
 	replace scale = "Sameroff: Parents can be turned off by a fussy child so that they are unable to be as nice as they would like" if scale_num == "13"
 	replace scale = "Sameroff: A child's success at school depends on how much his mother taught him at home" if scale_num == "14"
 	replace scale = "Sameroff: There is no one right way to raise children" if scale_num == "15"
@@ -427,7 +419,7 @@ foreach age of numlist 1 2 {
 	cd "$pile_working"
 	use abc-pari-pile-`age', clear
 	
-	foreach p in abc care careboth carehv {
+	foreach p in abc {
 		gen inv_`p'Rcoeff = `p'R_`age'coeff * -1
 		gen `p'Rinsig = .
 		gen `p'R0_1 = .
@@ -437,16 +429,10 @@ foreach age of numlist 1 2 {
 		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 	}
 
-	graph dot abcRinsig abcR0_1 abcR0_05 ///
-			  careRinsig careR0_1 careR0_05 ///
-			  carebothRinsig carebothR0_1 carebothR0_05 ///
-			  carehvRinsig carehvR0_1 carehvR0_05, ///
+	graph dot abcRinsig abcR0_1 abcR0_05, ///
 	marker(1,msize(small) msymbol(D) mlc(blue) mfc(blue*0) mlw(vthin)) marker(2,msize(small) msymbol(D) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(3,msize(small) msymbol(D) mlc(blue) mfc(blue) mlw(vthin)) ///
-	marker(4,msize(small) msymbol(D) mlc(purple) mfc(purple*0) mlw(vthin)) marker(5,msize(small) msymbol(D) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(6,msize(small) msymbol(D) mlc(purple) mfc(purple) mlw(vthin)) ///
-	marker(7,msize(small) msymbol(O) mlc(purple) mfc(purple*0) mlw(vthin)) marker(8,msize(small) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(9,msize(small) msymbol(O) mlc(purple) mfc(purple) mlw(vthin)) ///
-	marker(10,msize(small) msymbol(T) mlc(purple) mfc(purple*0) mlw(vthin)) marker(11,msize(small) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(12,msize(small) msymbol(T) mlc(purple) mfc(purple) mlw(vthin)) ///1
 	over(scale, label(labsize(tiny)) sort(scale_num)) ///
-	legend (order (3 "ABC" 6 "CARE-All" 9 "CARE-Both" 12 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
+	legend (order (3 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
 	ylabel($item_axis_range) ///
 	graphregion(fcolor(white))
 	
@@ -478,7 +464,7 @@ foreach age of numlist 1 3 {
 	marker(1,msize(medium) msymbol(D) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(D) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(D) mlc(green) mfc(green) mlw(vthin)) ///
 	marker(4,msize(medium) msymbol(T) mlc(green) mfc(green*0) mlw(vthin)) marker(5,msize(medium) msymbol(T) mlc(green) mfc(green*0.5) mlw(vthin)) marker(6,msize(medium) msymbol(T) mlc(green) mfc(green) mlw(vthin)) ///
 	marker(7,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(8,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(9,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
-	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
+	over(scale, label(labsize(tiny)) sort(scale_num)) ///
 	legend (order (3 "IHDP-All" 6 "IHDP-High" 9 "IHDP-Low") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($item_axis_range) ///
 	graphregion(fcolor(white))

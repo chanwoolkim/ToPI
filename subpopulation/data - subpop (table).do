@@ -15,7 +15,7 @@ local choice	""White" "Black" "Over Poverty" "Under Poverty" "Total""
 * ---------------------- *
 * Execution - Nonmissing D
 
-matrix count_D = J(5, 8, .)
+matrix count_D = J(5, 5, .)
 matrix rownames count_D = `choice'
 matrix colnames count_D = $program_name
 local col = 1

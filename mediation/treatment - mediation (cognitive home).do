@@ -47,7 +47,6 @@ rename norm_home_* home_*
 local ehs_cogs		ppvt
 local ihdp_cogs		ppvt sb
 local abc_cogs		sb
-local care_cogs		sb
 local matrix_type	random parenting interaction
 
 * ------- *
@@ -59,7 +58,7 @@ foreach p of global programs_merge {
 		cd "$data_home"
 		use "`p'`t'-home-agg-merge.dta", clear
 		
-		if "`p'" == "abc" | "`p'" == "care" {
+		if "`p'" == "abc" {
 			rename norm_home_*42 norm_home_*36
 		}
 		
@@ -140,14 +139,13 @@ foreach p of global programs_merge {
 		tostring row, gen(scale_num)
 
 		replace scale = "Total Score" if scale_num == "1"
-		replace scale = "Learning Stimulation" if scale_num == "2"
-		replace scale = "Access to Reading" if scale_num == "3"
-		replace scale = "Parental Verbal Skills" if scale_num == "4"
-		replace scale = "Parental Warmth" if scale_num == "5"
-		replace scale = "Home Exterior" if scale_num == "6"
-		replace scale = "Home Interior" if scale_num == "7"
-		replace scale = "Outings/Activities" if scale_num == "8"
-		replace scale = "Parental Lack of Hostility" if scale_num == "9"
+		replace scale = "Development Materials" if scale_num == "2"
+		replace scale = "Family Culture" if scale_num == "3"
+		replace scale = "Housing" if scale_num == "4"
+		replace scale = "Lack of Hostility" if scale_num == "5"
+		replace scale = "Learning Stimulation" if scale_num == "6"
+		replace scale = "Opportunities for Variety" if scale_num == "7"
+		replace scale = "Warmth" if scale_num == "8"
 
 		save `p'-`c'-agg-mediation-3, replace
 	}
@@ -279,48 +277,5 @@ foreach c of local abc_cogs {
 
 	cd "${mediation_git_out}"
 	frmttable using abc-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-					annotate(stars_`c') asymbol(*,**,***)
-}
-
-foreach c of local care_cogs {
-	cd "$mediation_working"
-	
-	use care-`c'-agg-mediation-3, clear
-	
-	foreach p in care careboth carehv {
-		gen `p'_`c'random_3dup = 1
-		gen `p'_`c'parenting_3dup = 1
-		gen `p'_`c'interaction_3dup = 1
-	}
-	
-	mkmat care_`c'random_3coeff care_`c'random_3se care_`c'parenting_3coeff care_`c'parenting_3se care_`c'interaction_3coeff care_`c'interaction_3se ///
-		  careboth_`c'random_3coeff careboth_`c'random_3se careboth_`c'parenting_3coeff careboth_`c'parenting_3se careboth_`c'interaction_3coeff careboth_`c'interaction_3se ///
-		  carehv_`c'random_3coeff carehv_`c'random_3se carehv_`c'parenting_3coeff carehv_`c'parenting_3se carehv_`c'interaction_3coeff carehv_`c'interaction_3se, ///
-		  matrix(main_`c') rownames(scale_num)
-		  
-	mkmat care_`c'random_3pval care_`c'random_3dup care_`c'parenting_3pval care_`c'parenting_3dup care_`c'interaction_3pval care_`c'interaction_3dup ///
-		  careboth_`c'random_3pval careboth_`c'random_3dup careboth_`c'parenting_3pval careboth_`c'parenting_3dup careboth_`c'interaction_3pval careboth_`c'interaction_3dup ///
-		  carehv_`c'random_3pval carehv_`c'random_3dup carehv_`c'parenting_3pval carehv_`c'parenting_3dup carehv_`c'interaction_3pval carehv_`c'interaction_3dup, ///
-		  matrix(pval_`c') rownames(scale_num)
-		  
-	local nrow_`c' = rowsof(pval_`c')
-	local ncol_`c' = colsof(pval_`c')
-	
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
-
-	forvalues k = 1/`nrow_`c'' {
-		forvalues l = 1/`ncol_`c'' {
-			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
-											+ (pval_`c'[`k',`l'] < 0.05) ///
-											+ (pval_`c'[`k',`l'] < 0.01)
-		}
-	}
-	
-	cd "${mediation_out}"
-	frmttable using care-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-					annotate(stars_`c') asymbol(*,**,***)
-					
-	cd "${mediation_git_out}"
-	frmttable using care-table_`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
 					annotate(stars_`c') asymbol(*,**,***)
 }

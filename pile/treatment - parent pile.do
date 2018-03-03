@@ -189,21 +189,15 @@ foreach age of numlist 1 2 {
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
 			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ///
-			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
-			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05 ///
-			  abcRinsig abcR0_1 abcR0_05 ///
-			  carebothRinsig carebothR0_1 carebothR0_05 ///
-			  carehvRinsig carehvR0_1 carehvR0_05, ///
-	marker(1,msize(large) msymbol(O) mlc(red) mfc(red*0) mlw(thin)) marker(2,msize(large) msymbol(O) mlc(red) mfc(red*0.5) mlw(thin)) marker(3,msize(large) msymbol(O) mlc(red) mfc(red) mlw(thin)) ///
+			  ihdpRinsig ihdpR0_1 ihdpR0_05 ///
+			  abcRinsig abcR0_1 abcR0_05, ///
+	marker(1,msize(large) msymbol(D) mlc(red) mfc(red*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(red) mfc(red*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(red) mfc(red) mlw(thin)) ///
 	marker(4,msize(large) msymbol(T) mlc(red) mfc(red*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(red) mfc(red*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(red) mfc(red) mlw(thin)) ///
 	marker(7,msize(large) msymbol(S) mlc(red) mfc(red*0) mlw(thin)) marker(8,msize(large) msymbol(S) mlc(red) mfc(red*0.5) mlw(thin)) marker(9,msize(large) msymbol(S) mlc(red) mfc(red) mlw(thin)) ///
-	marker(10,msize(large) msymbol(T) mlc(green) mfc(green*0) mlw(thin)) marker(11,msize(large) msymbol(T) mlc(green) mfc(green*0.5) mlw(thin)) marker(12,msize(large) msymbol(T) mlc(green) mfc(green) mlw(thin)) ///
-	marker(13,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(14,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(15,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
-	marker(16,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(17,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(18,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
-	marker(19,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thin)) marker(20,msize(large) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(21,msize(large) msymbol(O) mlc(purple) mfc(purple) mlw(thin)) ///
-	marker(22,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thin)) marker(23,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(24,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thin)) ///
+	marker(10,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(11,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(12,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
+	marker(13,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(14,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(15,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
 	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($parent_axis_range) ///
 	graphregion(fcolor(white))
 	

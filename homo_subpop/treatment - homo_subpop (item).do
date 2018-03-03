@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation and subpopulation (item)
 * Author: Chanwool Kim
 * Date Created: 11 Jan 2018
-* Last Update: 1 Mar 2018
+* Last Update: 3 Mar 2018
 * -------------------------------------------------------------------- *
 
 clear all
@@ -156,21 +156,21 @@ use item-homo_subpop-1, clear
 tostring row, gen(question)
 gen scale = question
 
-replace scale = "Activities/Outings" if question == "21" | question == "22" |  question == "23"
-replace scale = "Developmental Advance" if question == "37" | question == "38" |  question == "39" |  question == "40"
-replace scale = "Learning/Literacy" if question == "18" | question == "26" |  question == "27" |  question == "29" |  question == "30" |  question == "31" |  question == "33" |  question == "34" |  question == "42" |  question == "45"
-replace scale = "Parental Lack of Hostility" if question == "12" | question == "13" |  question == "14" |  question == "16" |  question == "17"
-replace scale = "Parental Verbal Skills" if question == "4" | question == "5" |  question == "6"
-replace scale = "Parental Warmth" if question == "1" | question == "2" |  question == "3" |  question == "8" |  question == "9" |  question == "10" |  question == "11"
-replace scale = "N/S" if question == "7" | question == "15" |  question == "19" |  question == "20" |  question == "24" |  question == "25" |  question == "28" | question == "32" |  question == "35" |  question == "36" |  question == "41" |  question == "43" |  question == "44"
+replace scale = "Development Materials" if question == "18" | question == "19" | question == "24" | question == "25" | question == "26" | question == "27" | question == "28" | question == "30" | question == "31" | question == "32" | question == "33" | question == "34" | question == "45"
+replace scale = "Family Culture" if question == "4" | question == "5" | question == "6"
+replace scale = "Lack of Hostility" if question == "12" | question == "13" | question == "14" | question == "15" | question == "16" | question == "17"
+replace scale = "Learning Stimulation" if question == "1" | question == "2" | question == "3" | question == "7" | question == "29" | question == "35" | question == "36" | question == "37" | question == "38" | question == "39" | question == "42"
+replace scale = "Opportunities for Variety" if question == "21" | question == "22" | question == "23" | question == "41" | question == "43" | question == "44"
+replace scale = "Parental Warmth" if question == "8" | question == "9" | question == "10" | question == "11"
+replace scale = "N/S" if question == "20" | question == "40"
 
 gen scale_row = .
-replace scale_row = 2 if scale == "Parental Warmth"
-replace scale_row = 3 if scale == "Parental Verbal Skills"
-replace scale_row = 4 if scale == "Parental Lack of Hostility"
-replace scale_row = 5 if scale == "Learning/Literacy"
-replace scale_row = 6 if scale == "Activities/Outings"
-replace scale_row = 7 if scale == "Developmental Advance"
+replace scale_row = 2 if scale == "Development Materials"
+replace scale_row = 3 if scale == "Family Culture"
+replace scale_row = 4 if scale == "Lack of Hostility"
+replace scale_row = 5 if scale == "Learning Stimulation"
+replace scale_row = 6 if scale == "Opportunities for Variety"
+replace scale_row = 7 if scale == "Parental Warmth"
 replace scale_row = 8 if scale == "N/S"
 
 replace question = "Parent spontaneously vocalized to child twice" if question == "1"
@@ -225,26 +225,22 @@ use item-homo_subpop-3, clear
 tostring row, gen(question)
 gen scale = question
 
-replace scale = "Access to Reading" if question == "7" | question == "8" |  question == "9" |  question == "10" |  question == "13"
-replace scale = "Home Exterior" if question == "19" | question == "20" |  question == "22"
-replace scale = "Home Interior" if question == "21" |  question == "23" |  question == "24" |  question == "25"
-replace scale = "Learning Stimulation" if question == "1" | question == "2" |  question == "3" |  question == "4" |  question == "5" |  question == "6" |  question == "11" | question == "12" |  question == "33" |  question == "34" |  question == "35" |  question == "36" |  question == "37"|  question == "43"
-replace scale = "Outings/Activities" if question == "44" | question == "45" |  question == "46"
-replace scale = "Parental Lack of Hostility" if question == "52" | question == "53" |  question == "54"
-replace scale = "Parental Verbal Skills" if question == "15" | question == "48"
-replace scale = "Parental Warmth" if question == "16" | question == "17" |  question == "26" |  question == "27" |  question == "28" |  question == "29" |  question == "30" | question == "31" |  question == "32"
-replace scale = "N/S" if question == "14" | question == "18" |  question == "38" |  question == "39" |  question == "40" |  question == "41" |  question == "42" | question == "47" |  question == "49" |  question == "50" |  question == "51" |  question == "55"
+replace scale = "Development Materials" if question == "1" | question == "2" | question == "3" | question == "4" | question == "5" | question == "6" | question == "7" | question == "8" | question == "12" | question == "43"
+replace scale = "Family Culture" if question == "9" | question == "10" | question == "15" | question == "48"
+replace scale = "Housing" if question == "19" | question == "20" | question == "21" | question == "22" | question == "23" | question == "24" | question == "25"
+replace scale = "Lack of Hostility" if question == "41" | question == "42" | question == "52" | question == "53" | question == "54" | question == "55"
+replace scale = "Learning Stimulation" if question == "11" | question == "13" | question == "14" | question == "16" | question == "27" | question == "28" | question == "29" | question == "33" | question == "34" | question == "35" | question == "36" | question == "37" | question == "38" | question == "39" | question == "40" | question == "47" | question == "49"
+replace scale = "Opportunities for Variety" if question == "18" | question == "44" | question == "45" | question == "46" | question == "50" | question == "51"
+replace scale = "Parental Warmth" if question == "17" | question == "26" | question == "30" | question == "31" | question == "32"
 
 gen scale_row = .
-replace scale_row = 2 if scale == "Learning Stimulation"
-replace scale_row = 3 if scale == "Access to Reading"
-replace scale_row = 4 if scale == "Parental Verbal Skills"
-replace scale_row = 5 if scale == "Parental Warmth"
-replace scale_row = 6 if scale == "Home Exterior"
-replace scale_row = 7 if scale == "Home Interior"
-replace scale_row = 8 if scale == "Outings/Activities"
-replace scale_row = 9 if scale == "Parental Lack of Hostility"
-replace scale_row = 10 if scale == "N/S"
+replace scale_row = 2 if scale == "Development Materials"
+replace scale_row = 3 if scale == "Family Culture"
+replace scale_row = 4 if scale == "Housing"
+replace scale_row = 5 if scale == "Lack of Hostility"
+replace scale_row = 6 if scale == "Learning Stimulation"
+replace scale_row = 7 if scale == "Opportunities for Variety"
+replace scale_row = 8 if scale == "Parental Warmth"
 
 replace question = "Toys that teach color, size, shape" if question == "1"
 replace question = "Three or more puzzles" if question == "2"
@@ -324,21 +320,15 @@ foreach age of numlist 1 3 {
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
 			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ///
-			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
-			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05 ///
-			  abcRinsig abcR0_1 abcR0_05 ///
-			  carebothRinsig carebothR0_1 carebothR0_05 ///
-			  carehvRinsig carehvR0_1 carehvR0_05, ///
-	marker(1,msize(small) msymbol(O) mlc(red) mfc(red*0) mlw(vthin)) marker(2,msize(small) msymbol(O) mlc(red) mfc(red*0.5) mlw(vthin)) marker(3,msize(small) msymbol(O) mlc(red) mfc(red) mlw(vthin)) ///
+			  ihdpRinsig ihdpR0_1 ihdpR0_05 ///
+			  abcRinsig abcR0_1 abcR0_05, ///
+	marker(1,msize(small) msymbol(D) mlc(red) mfc(red*0) mlw(vthin)) marker(2,msize(small) msymbol(D) mlc(red) mfc(red*0.5) mlw(vthin)) marker(3,msize(small) msymbol(D) mlc(red) mfc(red) mlw(vthin)) ///
 	marker(4,msize(small) msymbol(T) mlc(red) mfc(red*0) mlw(vthin)) marker(5,msize(small) msymbol(T) mlc(red) mfc(red*0.5) mlw(vthin)) marker(6,msize(small) msymbol(T) mlc(red) mfc(red) mlw(vthin)) ///
 	marker(7,msize(small) msymbol(S) mlc(red) mfc(red*0) mlw(vthin)) marker(8,msize(small) msymbol(S) mlc(red) mfc(red*0.5) mlw(vthin)) marker(9,msize(small) msymbol(S) mlc(red) mfc(red) mlw(vthin)) ///
-	marker(10,msize(small) msymbol(T) mlc(green) mfc(green*0) mlw(vthin)) marker(11,msize(small) msymbol(T) mlc(green) mfc(green*0.5) mlw(vthin)) marker(12,msize(small) msymbol(T) mlc(green) mfc(green) mlw(vthin)) ///
-	marker(13,msize(small) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(14,msize(small) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(15,msize(small) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
-	marker(16,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(17,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(18,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
-	marker(19,msize(small) msymbol(O) mlc(purple) mfc(purple*0) mlw(vthin)) marker(20,msize(small) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(21,msize(small) msymbol(O) mlc(purple) mfc(purple) mlw(vthin)) ///
-	marker(22,msize(small) msymbol(T) mlc(purple) mfc(purple*0) mlw(vthin)) marker(23,msize(small) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(24,msize(small) msymbol(T) mlc(purple) mfc(purple) mlw(vthin)) ///
+	marker(10,msize(small) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(11,msize(small) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(12,msize(small) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+	marker(13,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(14,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(15,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
 	over(question, label(labsize(tiny)) sort(scale_row)) ///
-	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($item_axis_range) ///
 	ysize(11) xsize(8.5) graphregion(fcolor(white))
 	

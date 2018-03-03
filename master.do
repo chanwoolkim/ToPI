@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 1 Mar 2018
+* Last Update: 3 Mar 2018
 * ---- *
 
 clear all
@@ -53,26 +53,25 @@ global by_site_working		"${main_path}/working/by_site"
 global mediation_working	"${main_path}/working/mediation"
 
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
-global programs				ehscenter ehshome ehsmixed ihdplow ihdphigh abc carehv careboth
-global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP-Low" "IHDP-High" "ABC" "CARE-Home" "CARE-Both""
-global programs_merge		ehs ihdp abc care
-global programs_all			ehscenter ehshome ehsmixed ehs ihdphigh ihdplow ihdp abc careboth carehv care
-global program_name_all		""EHS-Center" "EHS-Home" "EHS-Mixed" "EHS-All" "IHDP-High" "IHDP-Low" "IHDP-All" "ABC" "CARE-Both" "CARE-Home" "CARE-All"
+global programs				ehscenter ehshome ehsmixed ihdp abc
+global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP" "ABC"
+global programs_merge		ehs ihdp abc
+global programs_all			ehscenter ehshome ehsmixed ehs ihdphigh ihdplow ihdp abc
+global program_name_all		""EHS-Center" "EHS-Home" "EHS-Mixed" "EHS-All" "IHDP-High" "IHDP-Low" "IHDP-All" "ABC""
 global measure				home labor parent
 
 global ehs_type				""center" "home" "mixed" """
 global ihdp_type			""high" "low" """
 global abc_type				""""
-global care_type			""both" "hv" """
 
-global early_home_types		total warmth verbal hostility learning activity develop
-global later_home_types		total learning reading verbal warmth exterior interior activity hostility
+global early_home_types		total develop family hostility learning variety warmth
+global later_home_types		total develop family housing hostility learning variety warmth
 global parent_types			kidi pari pase
 global kidi_types			total accuracy attempted right
 global pari_types			dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo
 global pase_types			auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ
 
-global agg_axis_range		-1.5(0.5)1.5
+global agg_axis_range		-1(0.25)1
 global item_axis_range		-1(0.25)1
 global sub_axis_range		-0.002(0.0005)0.002
 global parent_axis_range	-1.5(0.5)1.5
@@ -102,18 +101,17 @@ cd "${code_path}/data_basic"
 /*
 cd "${code_path}/data_basic"
 	include "patch - abccheck" //Check ABC scales
-*/
 cd "${code_path}/data_basic"
 	include "data - description"
-
+*/
 * ----------- *
 * Main Analysis
-
+/*
 cd "${code_path}/analysis_basic"
 	include "treatment - longitudinal"
 cd "${code_path}/analysis_basic"
 	include "treatment - table"
-	
+*/
 * -- *
 * Pile
 
@@ -133,8 +131,8 @@ cd "${code_path}/pile"
 	include "treatment - parent pile"
 cd "${code_path}/pile"
 	include "treatment - parent item pile"
-cd "${code_path}/pile"
-	include "treatment - pile (comparison)"
+*cd "${code_path}/pile"
+*	include "treatment - pile (comparison)"
 	
 * ------------ *
 * Homogenisation
@@ -145,14 +143,14 @@ cd "${code_path}/homogenisation"
 	include "data - homo (merge)"
 cd "${code_path}/homogenisation"
 	include "data - homo (table)"
-cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (table)"
+*cd "${code_path}/homogenisation"
+*	include "treatment - homogenisation (table)"
 cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (aggregate)"
 cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (item)"
-cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (comparison)"
+*cd "${code_path}/homogenisation"
+*	include "treatment - homogenisation (comparison)"
 cd "${code_path}/homogenisation"
 	include "comparison - aggregate"
 	

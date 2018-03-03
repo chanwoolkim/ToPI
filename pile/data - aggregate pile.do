@@ -16,8 +16,6 @@ foreach t of global ehs_type {
 	rename norm_home_*14 norm_home_*1y
 	rename norm_home_*36 norm_home_*3y
 	
-	drop norm_home_develop*
-	
 	cd "$pile_working"
 	save ehs`t'-home-agg-pile, replace
 }
@@ -46,16 +44,3 @@ rename norm_home_*42 norm_home_*3y
 
 cd "$pile_working"
 save abc-home-agg-pile, replace
-
-* CARE (by home visit & both)
-
-foreach t of global care_type {
-	cd "$data_home"
-	use "care`t'-home-agg-merge.dta", clear
-
-	rename norm_home_*18 norm_home_*1y
-	rename norm_home_*42 norm_home_*3y
-	
-	cd "$pile_working"
-	save care`t'-home-agg-pile, replace
-}

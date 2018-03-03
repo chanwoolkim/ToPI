@@ -111,14 +111,13 @@ foreach c of local cogs {
 	tostring row, gen(scale_num)
 
 	replace scale = "Total Score" if scale_num == "1"
-	replace scale = "Learning Stimulation" if scale_num == "2"
-	replace scale = "Access to Reading" if scale_num == "3"
-	replace scale = "Parental Verbal Skills" if scale_num == "4"
-	replace scale = "Parental Warmth" if scale_num == "5"
-	replace scale = "Home Exterior" if scale_num == "6"
-	replace scale = "Home Interior" if scale_num == "7"
-	replace scale = "Outings/Activities" if scale_num == "8"
-	replace scale = "Parental Lack of Hostility" if scale_num == "9"
+	replace scale = "Development Materials" if scale_num == "2"
+	replace scale = "Family Culture" if scale_num == "3"
+	replace scale = "Housing" if scale_num == "4"
+	replace scale = "Lack of Hostility" if scale_num == "5"
+	replace scale = "Learning Stimulation" if scale_num == "6"
+	replace scale = "Opportunities for Variety" if scale_num == "7"
+	replace scale = "Warmth" if scale_num == "8"
 
 	save ihdp-`c'-agg-pile-sub-3, replace
 }

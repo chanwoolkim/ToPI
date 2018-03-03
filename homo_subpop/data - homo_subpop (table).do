@@ -26,7 +26,7 @@ local combination	""Teen.BelowHS.UnderPoverty"
 * ---------------------- *
 * Execution - Unrestricted
 
-matrix distribution = J(9, 8, .)
+matrix distribution = J(9, 5, .)
 matrix rownames distribution = `combination'
 matrix colnames distribution = $program_name
 local col = 1
@@ -90,7 +90,7 @@ save distribution, replace
 * ---------------------- *
 * Execution - Nonmissing D
 
-matrix distribution_D = J(9, 8, .)
+matrix distribution_D = J(9, 5, .)
 matrix rownames distribution_D = `combination'
 matrix colnames distribution_D = $program_name
 local col = 1

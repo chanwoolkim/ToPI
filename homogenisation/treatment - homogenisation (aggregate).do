@@ -2,7 +2,7 @@
 * Treatment effects - population homogenisation (aggregate)
 * Author: Chanwool Kim
 * Date Created: 14 Sep 2017
-* Last Update: 1 Mar 2018
+* Last Update: 3 Mar 2018
 * ------------------------------------------------------- *
 
 clear all
@@ -69,7 +69,7 @@ use "`p'-home-homo-merge.dta", clear
 
 * Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 qui matrix `p'R_1 = J(7, 3, .) // for randomisation variable
-qui matrix `p'R_3 = J(9, 3, .) // for randomisation variable
+qui matrix `p'R_3 = J(8, 3, .) // for randomisation variable
 
 qui matrix colnames `p'R_1 = `p'R_1num `p'R_1coeff `p'R_1pval
 qui matrix colnames `p'R_3 = `p'R_3num `p'R_3coeff `p'R_3pval
@@ -188,12 +188,12 @@ use agg-homo-1, clear
 tostring row, gen(scale_num)
 
 replace scale = "Total Score" if scale_num == "1"
-replace scale = "Parental Warmth" if scale_num == "2"
-replace scale = "Parental Verbal Skills" if scale_num == "3"
-replace scale = "Parental Lack of Hostility" if scale_num == "4"
-replace scale = "Learning/Literacy" if scale_num == "5"
-replace scale = "Activities/Outings" if scale_num == "6"
-replace scale = "Developmental Advance" if scale_num == "7"
+replace scale = "Development Materials" if scale_num == "2"
+replace scale = "Family Culture" if scale_num == "3"
+replace scale = "Lack of Hostility" if scale_num == "4"
+replace scale = "Learning Stimulation" if scale_num == "5"
+replace scale = "Opportunities for Variety" if scale_num == "6"
+replace scale = "Warmth" if scale_num == "7"
 
 save agg-homo-1, replace
 
@@ -202,14 +202,13 @@ use agg-homo-3, clear
 tostring row, gen(scale_num)
 
 replace scale = "Total Score" if scale_num == "1"
-replace scale = "Learning Stimulation" if scale_num == "2"
-replace scale = "Access to Reading" if scale_num == "3"
-replace scale = "Parental Verbal Skills" if scale_num == "4"
-replace scale = "Parental Warmth" if scale_num == "5"
-replace scale = "Home Exterior" if scale_num == "6"
-replace scale = "Home Interior" if scale_num == "7"
-replace scale = "Outings/Activities" if scale_num == "8"
-replace scale = "Parental Lack of Hostility" if scale_num == "9"
+replace scale = "Development Materials" if scale_num == "2"
+replace scale = "Family Culture" if scale_num == "3"
+replace scale = "Housing" if scale_num == "4"
+replace scale = "Lack of Hostility" if scale_num == "5"
+replace scale = "Learning Stimulation" if scale_num == "6"
+replace scale = "Opportunities for Variety" if scale_num == "7"
+replace scale = "Warmth" if scale_num == "8"
 
 save agg-homo-3, replace
 
@@ -233,21 +232,15 @@ foreach age of numlist 1 3 {
 	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
 			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ///
-			  ihdphighRinsig ihdphighR0_1 ihdphighR0_05 ///
-			  ihdplowRinsig ihdplowR0_1 ihdplowR0_05 ///
-			  abcRinsig abcR0_1 abcR0_05 ///
-			  carebothRinsig carebothR0_1 carebothR0_05 ///
-			  carehvRinsig carehvR0_1 carehvR0_05, ///
-	marker(1,msize(large) msymbol(O) mlc(red) mfc(red*0) mlw(thin)) marker(2,msize(large) msymbol(O) mlc(red) mfc(red*0.5) mlw(thin)) marker(3,msize(large) msymbol(O) mlc(red) mfc(red) mlw(thin)) ///
+			  ihdpRinsig ihdpR0_1 ihdpR0_05 ///
+			  abcRinsig abcR0_1 abcR0_05, ///
+	marker(1,msize(large) msymbol(D) mlc(red) mfc(red*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(red) mfc(red*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(red) mfc(red) mlw(thin)) ///
 	marker(4,msize(large) msymbol(T) mlc(red) mfc(red*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(red) mfc(red*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(red) mfc(red) mlw(thin)) ///
 	marker(7,msize(large) msymbol(S) mlc(red) mfc(red*0) mlw(thin)) marker(8,msize(large) msymbol(S) mlc(red) mfc(red*0.5) mlw(thin)) marker(9,msize(large) msymbol(S) mlc(red) mfc(red) mlw(thin)) ///
-	marker(10,msize(large) msymbol(T) mlc(green) mfc(green*0) mlw(thin)) marker(11,msize(large) msymbol(T) mlc(green) mfc(green*0.5) mlw(thin)) marker(12,msize(large) msymbol(T) mlc(green) mfc(green) mlw(thin)) ///
-	marker(13,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(14,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(15,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
-	marker(16,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(17,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(18,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
-	marker(19,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thin)) marker(20,msize(large) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(21,msize(large) msymbol(O) mlc(purple) mfc(purple) mlw(thin)) ///
-	marker(22,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thin)) marker(23,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thin)) marker(24,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thin)) ///
+	marker(10,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(11,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(12,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
+	marker(13,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(14,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(15,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
 	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP-High" 15 "IHDP-Low" 18 "ABC" 21 "CARE-Both" 24 "CARE-Home") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 	ylabel($agg_axis_range) ///
 	graphregion(fcolor(white))
 	
