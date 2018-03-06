@@ -2,7 +2,7 @@
 * Treatment effects - pile (comparison)
 * Author: Chanwool Kim
 * Date Created: 27 Sep 2017
-* Last Update: 1 Mar 2017
+* Last Update: 4 Mar 2017
 * ----------------------------------- *
 
 clear all
@@ -11,6 +11,12 @@ clear all
 * Define macros for abstraction
 
 local p_row_names	""Insig" "Moderate" "Statistical" "Total""
+local 1_name 		early
+local 3_name		later
+local nrow : list sizeof local(p_row_names)
+local ncol_program : list sizeof global(programs)
+local ncol_1_scale : list sizeof global(early_home_types)
+local ncol_3_scale : list sizeof global(later_home_types)
 
 * ---------------------------- *
 * Execution - Summary of Results
@@ -20,7 +26,7 @@ foreach age of numlist 1 3 {
 	cd "$pile_working"
 	use agg-pile-`age', clear
 	
-	qui matrix by_program_`age' = J(4, 16, .)
+	qui matrix by_program_`age' = J(`nrow', 2*`ncol_program', .)
 	qui matrix rownames by_program_`age' = `p_row_names'
 
 	local col = 1
@@ -73,12 +79,11 @@ use agg-pile-1, clear
 keep *coeff
 xpose, clear
 rename v1 total_coeff
-rename v2 warmth_coeff
-rename v3 verbal_coeff
-rename v4 hostility_coeff
-rename v5 learning_coeff
-rename v6 activity_coeff
-rename v7 develop_coeff
+rename v2 develop_coeff
+rename v3 hostility_coeff
+rename v4 learning_coeff
+rename v5 variety_coeff
+rename v6 warmth_coeff
 gen row = _n
 tempfile coeff_1
 save "`coeff_1'", replace
@@ -87,180 +92,25 @@ use agg-pile-1, clear
 keep *pval
 xpose, clear
 rename v1 total_pval
-rename v2 warmth_pval
-rename v3 verbal_pval
-rename v4 hostility_pval
-rename v5 learning_pval
-rename v6 activity_pval
-rename v7 develop_pval
+rename v2 develop_pval
+rename v3 hostility_pval
+rename v4 learning_pval
+rename v5 variety_pval
+rename v6 warmth_pval
 gen row = _n
 merge 1:1 row using "`coeff_1'", nogen nolabel
-	
-qui matrix by_scale_1 = J(4, 28, .)
 
-local col = 1
-	
-foreach t of global early_home_types {
-	qui count if `t'_coeff >= 0 & `t'_pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_1[1,`col'] = `num_count_insig'
-		
-	qui count if `t'_coeff >= 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_1[2,`col'] = `num_count_0_1'
-
-	qui count if `t'_coeff >= 0 & `t'_pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_1[3,`col'] = `num_count_0_05'
-	
-	qui matrix by_scale_1[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	
-	local col = `col' + 1
-	
-	qui matrix by_scale_1[1,`col'] = 0
-	qui matrix by_scale_1[2,`col'] = 0
-	qui matrix by_scale_1[3,`col'] = 0
-	qui matrix by_scale_1[4,`col'] = 0
-	
-	local col = `col' + 1
-	
-	qui count if `t'_coeff < 0 & `t'_pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_1[1,`col'] = `num_count_insig'
-	
-	qui count if `t'_coeff < 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_1[2,`col'] = `num_count_0_1'
-	
-	qui count if `t'_coeff < 0 & `t'_pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_1[3,`col'] = `num_count_0_05'
-	
-	qui matrix by_scale_1[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	
-	local col = `col' + 1
-	
-	qui matrix by_scale_1[1,`col'] = 0
-	qui matrix by_scale_1[2,`col'] = 0
-	qui matrix by_scale_1[3,`col'] = 0
-	qui matrix by_scale_1[4,`col'] = 0
-	
-	local col = `col' + 1
-}
-
-cd "$pile_working"
-use item-pile-1, clear
-
-foreach p of global programs {
-	qui matrix by_scale_`p'_1 = J(4, 28, .)
-	
-	qui matrix by_scale_`p'_1[1,1] = 0
-	qui matrix by_scale_`p'_1[2,1] = 0
-	qui matrix by_scale_`p'_1[3,1] = 0
-	qui matrix by_scale_`p'_1[4,1] = 0
-	
-	qui count if `p'R_1coeff >= 0 & `p'R_1pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_`p'_1[1,2] = `num_count_insig'
-		
-	qui count if `p'R_1coeff >= 0 & `p'R_1pval <= 0.1 & `p'R_1pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_`p'_1[2,2] = `num_count_0_1'
-
-	qui count if `p'R_1coeff >= 0 & `p'R_1pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_`p'_1[3,2] = `num_count_0_05'
-				
-	qui matrix by_scale_`p'_1[4,2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-
-	qui matrix by_scale_`p'_1[1,3] = 0
-	qui matrix by_scale_`p'_1[2,3] = 0
-	qui matrix by_scale_`p'_1[3,3] = 0
-	qui matrix by_scale_`p'_1[4,3] = 0
-	
-	qui count if `p'R_1coeff < 0 & `p'R_1pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_`p'_1[1,4] = `num_count_insig'
-			
-	qui count if `p'R_1coeff < 0 & `p'R_1pval <= 0.1 & `p'R_1pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_`p'_1[2,4] = `num_count_0_1'
-
-	qui count if `p'R_1coeff < 0 & `p'R_1pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_`p'_1[3,4] = `num_count_0_05'
-			
-	qui matrix by_scale_`p'_1[4,4] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-
-	forvalues col = 2/7 {
-		qui matrix by_scale_`p'_1[1,4*`col'-3] = 0
-		qui matrix by_scale_`p'_1[2,4*`col'-3] = 0
-		qui matrix by_scale_`p'_1[3,4*`col'-3] = 0
-		qui matrix by_scale_`p'_1[4,4*`col'-3] = 0
-	
-		qui count if `p'R_1coeff >= 0 & `p'R_1pval > 0.1 & scale_row == `col'
-		local num_count_insig = r(N)
-		qui matrix by_scale_`p'_1[1,4*`col'-2] = `num_count_insig'
-			
-		qui count if `p'R_1coeff >= 0 & `p'R_1pval <= 0.1 & `p'R_1pval > 0.05 & scale_row == `col'
-		local num_count_0_1 = r(N)
-		qui matrix by_scale_`p'_1[2,4*`col'-2] = `num_count_0_1'
-
-		qui count if `p'R_1coeff >= 0 & `p'R_1pval <= 0.05 & scale_row == `col'
-		local num_count_0_05 = r(N)
-		qui matrix by_scale_`p'_1[3,4*`col'-2] = `num_count_0_05'
-				
-		qui matrix by_scale_`p'_1[4,4*`col'-2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-
-		qui matrix by_scale_`p'_1[1,4*`col'-1] = 0
-		qui matrix by_scale_`p'_1[2,4*`col'-1] = 0
-		qui matrix by_scale_`p'_1[3,4*`col'-1] = 0
-		qui matrix by_scale_`p'_1[4,4*`col'-1] = 0
-		
-		qui count if `p'R_1coeff < 0 & `p'R_1pval > 0.1 & scale_row == `col'
-		local num_count_insig = r(N)
-		qui matrix by_scale_`p'_1[1,4*`col'] = `num_count_insig'
-				
-		qui count if `p'R_1coeff < 0 & `p'R_1pval <= 0.1 & `p'R_1pval > 0.05 & scale_row == `col'
-		local num_count_0_1 = r(N)
-		qui matrix by_scale_`p'_1[2,4*`col'] = `num_count_0_1'
-
-		qui count if `p'R_1coeff < 0 & `p'R_1pval <= 0.05 & scale_row == `col'
-		local num_count_0_05 = r(N)
-		qui matrix by_scale_`p'_1[3,4*`col'] = `num_count_0_05'
-			
-		qui matrix by_scale_`p'_1[4,4*`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	}
-}
-
-matrix by_scale_merge_1 = by_scale_1 ///
-						+ by_scale_ehscenter_1 + by_scale_ehshome_1 + by_scale_ehsmixed_1 ///
-						+ by_scale_ihdplow_1 + by_scale_ihdphigh_1 ///
-						+ by_scale_abc_1 ///
-						+ by_scale_carehv_1 + by_scale_careboth_1
-						
-qui matrix rownames by_scale_merge_1 = `p_row_names'
-
-cd "$pile_out"
-frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
-
-cd "$pile_git_out"
-frmttable using by_scale_1, statmat(by_scale_merge_1) substat(1) sdec(0) fragment tex replace nocenter
-
-cd "$pile_working"
+save count-agg-pile-1, replace
 
 use agg-pile-3, clear
 keep *coeff
 xpose, clear
 rename v1 total_coeff
-rename v2 learning_coeff
-rename v3 reading_coeff
-rename v4 verbal_coeff
-rename v5 warmth_coeff
-rename v6 exterior_coeff
-rename v7 interior_coeff
-rename v8 activity_coeff
-rename v9 hostility_coeff
+rename v2 develop_coeff
+rename v3 hostility_coeff
+rename v4 learning_coeff
+rename v5 variety_coeff
+rename v6 warmth_coeff
 gen row = _n
 tempfile coeff_3
 save "`coeff_3'", replace
@@ -269,164 +119,167 @@ use agg-pile-3, clear
 keep *pval
 xpose, clear
 rename v1 total_pval
-rename v2 learning_pval
-rename v3 reading_pval
-rename v4 verbal_pval
-rename v5 warmth_pval
-rename v6 exterior_pval
-rename v7 interior_pval
-rename v8 activity_pval
-rename v9 hostility_pval
+rename v2 develop_pval
+rename v3 hostility_pval
+rename v4 learning_pval
+rename v5 variety_pval
+rename v6 warmth_pval
 gen row = _n
 merge 1:1 row using "`coeff_3'", nogen nolabel
 
-qui matrix by_scale_3 = J(4, 36, .)
+save count-agg-pile-3, replace
 
-local col = 1
+foreach age of numlist 1 3 {
+	cd "$pile_working"
+	use count-agg-pile-`age', clear
 	
-foreach t of global later_home_types {
-	qui count if `t'_coeff >= 0 & `t'_pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_3[1,`col'] = `num_count_insig'
+	qui matrix by_scale_`age' = J(`nrow', 4*`ncol_`age'_scale', .)
+
+	local col = 1
 		
-	qui count if `t'_coeff >= 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_3[2,`col'] = `num_count_0_1'
-
-	qui count if `t'_coeff >= 0 & `t'_pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_3[3,`col'] = `num_count_0_05'
-	
-	qui matrix by_scale_3[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	
-	local col = `col' + 1
-	
-	qui matrix by_scale_3[1,`col'] = 0
-	qui matrix by_scale_3[2,`col'] = 0
-	qui matrix by_scale_3[3,`col'] = 0
-	qui matrix by_scale_3[4,`col'] = 0
-	
-	local col = `col' + 1
-	
-	qui count if `t'_coeff < 0 & `t'_pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_3[1,`col'] = `num_count_insig'
-	
-	qui count if `t'_coeff < 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_3[2,`col'] = `num_count_0_1'
-	
-	qui count if `t'_coeff < 0 & `t'_pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_3[3,`col'] = `num_count_0_05'
-	
-	qui matrix by_scale_3[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	
-	local col = `col' + 1
-	
-	qui matrix by_scale_3[1,`col'] = 0
-	qui matrix by_scale_3[2,`col'] = 0
-	qui matrix by_scale_3[3,`col'] = 0
-	qui matrix by_scale_3[4,`col'] = 0
-	
-	local col = `col' + 1
-}
-
-cd "$pile_working"
-use item-pile-3, clear
-
-foreach p of global programs {
-	qui matrix by_scale_`p'_3 = J(4, 36, .)
-	
-	qui matrix by_scale_`p'_3[1,1] = 0
-	qui matrix by_scale_`p'_3[2,1] = 0
-	qui matrix by_scale_`p'_3[3,1] = 0
-	qui matrix by_scale_`p'_3[4,1] = 0
-
-	qui count if `p'R_3coeff >= 0 & `p'R_3pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_`p'_3[1,2] = `num_count_insig'
-		
-	qui count if `p'R_3coeff >= 0 & `p'R_3pval <= 0.1 & `p'R_3pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_`p'_3[2,2] = `num_count_0_1'
-
-	qui count if `p'R_3coeff >= 0 & `p'R_3pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_`p'_3[3,2] = `num_count_0_05'
-				
-	qui matrix by_scale_`p'_3[4,2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-	
-	qui matrix by_scale_`p'_3[1,3] = 0
-	qui matrix by_scale_`p'_3[2,3] = 0
-	qui matrix by_scale_`p'_3[3,3] = 0
-	qui matrix by_scale_`p'_3[4,3] = 0
-	
-	qui count if `p'R_3coeff < 0 & `p'R_3pval > 0.1
-	local num_count_insig = r(N)
-	qui matrix by_scale_`p'_3[1,4] = `num_count_insig'
-			
-	qui count if `p'R_3coeff < 0 & `p'R_3pval <= 0.1 & `p'R_3pval > 0.05
-	local num_count_0_1 = r(N)
-	qui matrix by_scale_`p'_3[2,4] = `num_count_0_1'
-
-	qui count if `p'R_3coeff < 0 & `p'R_3pval <= 0.05
-	local num_count_0_05 = r(N)
-	qui matrix by_scale_`p'_3[3,4] = `num_count_0_05'
-			
-	qui matrix by_scale_`p'_3[4,4] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
-			
-	forvalues col = 2/9 {
-		qui matrix by_scale_`p'_3[1,4*`col'-3] = 0
-		qui matrix by_scale_`p'_3[2,4*`col'-3] = 0
-		qui matrix by_scale_`p'_3[3,4*`col'-3] = 0
-		qui matrix by_scale_`p'_3[4,4*`col'-3] = 0
-		
-		qui count if `p'R_3coeff >= 0 & `p'R_3pval > 0.1 & scale_row == `col'
+	foreach t of global ``age'_name'_home_types {
+		qui count if `t'_coeff >= 0 & `t'_pval > 0.1
 		local num_count_insig = r(N)
-		qui matrix by_scale_`p'_3[1,4*`col'-2] = `num_count_insig'
+		qui matrix by_scale_`age'[1,`col'] = `num_count_insig'
 			
-		qui count if `p'R_3coeff >= 0 & `p'R_3pval <= 0.1 & `p'R_3pval > 0.05 & scale_row == `col'
+		qui count if `t'_coeff >= 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
 		local num_count_0_1 = r(N)
-		qui matrix by_scale_`p'_3[2,4*`col'-2] = `num_count_0_1'
+		qui matrix by_scale_`age'[2,`col'] = `num_count_0_1'
 
-		qui count if `p'R_3coeff >= 0 & `p'R_3pval <= 0.05 & scale_row == `col'
+		qui count if `t'_coeff >= 0 & `t'_pval <= 0.05
 		local num_count_0_05 = r(N)
-		qui matrix by_scale_`p'_3[3,4*`col'-2] = `num_count_0_05'
-				
-		qui matrix by_scale_`p'_3[4,4*`col'-2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		qui matrix by_scale_`age'[3,`col'] = `num_count_0_05'
 		
-		qui matrix by_scale_`p'_3[1,4*`col'-1] = 0
-		qui matrix by_scale_`p'_3[2,4*`col'-1] = 0
-		qui matrix by_scale_`p'_3[3,4*`col'-1] = 0
-		qui matrix by_scale_`p'_3[4,4*`col'-1] = 0
+		qui matrix by_scale_`age'[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
 		
-		qui count if `p'R_3coeff < 0 & `p'R_3pval > 0.1 & scale_row == `col'
+		local col = `col' + 1
+		
+		qui matrix by_scale_`age'[1,`col'] = 0
+		qui matrix by_scale_`age'[2,`col'] = 0
+		qui matrix by_scale_`age'[3,`col'] = 0
+		qui matrix by_scale_`age'[4,`col'] = 0
+		
+		local col = `col' + 1
+		
+		qui count if `t'_coeff < 0 & `t'_pval > 0.1
 		local num_count_insig = r(N)
-		qui matrix by_scale_`p'_3[1,4*`col'] = `num_count_insig'
-				
-		qui count if `p'R_3coeff < 0 & `p'R_3pval <= 0.1 & `p'R_3pval > 0.05 & scale_row == `col'
+		qui matrix by_scale_`age'[1,`col'] = `num_count_insig'
+		
+		qui count if `t'_coeff < 0 & `t'_pval <= 0.1 & `t'_pval > 0.05
 		local num_count_0_1 = r(N)
-		qui matrix by_scale_`p'_3[2,4*`col'] = `num_count_0_1'
-
-		qui count if `p'R_3coeff < 0 & `p'R_3pval <= 0.05 & scale_row == `col'
+		qui matrix by_scale_`age'[2,`col'] = `num_count_0_1'
+		
+		qui count if `t'_coeff < 0 & `t'_pval <= 0.05
 		local num_count_0_05 = r(N)
-		qui matrix by_scale_`p'_3[3,4*`col'] = `num_count_0_05'
-			
-		qui matrix by_scale_`p'_3[4,4*`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		qui matrix by_scale_`age'[3,`col'] = `num_count_0_05'
+		
+		qui matrix by_scale_`age'[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		
+		local col = `col' + 1
+		
+		qui matrix by_scale_`age'[1,`col'] = 0
+		qui matrix by_scale_`age'[2,`col'] = 0
+		qui matrix by_scale_`age'[3,`col'] = 0
+		qui matrix by_scale_`age'[4,`col'] = 0
+		
+		local col = `col' + 1
 	}
+
+	cd "$pile_working"
+	use item-pile-`age', clear
+
+	foreach p of global programs {
+		qui matrix by_scale_`p'_`age' = J(`nrow', 4*`ncol_`age'_scale', .)
+		
+		qui matrix by_scale_`p'_`age'[1,1] = 0
+		qui matrix by_scale_`p'_`age'[2,1] = 0
+		qui matrix by_scale_`p'_`age'[3,1] = 0
+		qui matrix by_scale_`p'_`age'[4,1] = 0
+		
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval > 0.1
+		local num_count_insig = r(N)
+		qui matrix by_scale_`p'_`age'[1,2] = `num_count_insig'
+			
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
+		local num_count_0_1 = r(N)
+		qui matrix by_scale_`p'_`age'[2,2] = `num_count_0_1'
+
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.05
+		local num_count_0_05 = r(N)
+		qui matrix by_scale_`p'_`age'[3,2] = `num_count_0_05'
+					
+		qui matrix by_scale_`p'_`age'[4,2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+
+		qui matrix by_scale_`p'_`age'[1,3] = 0
+		qui matrix by_scale_`p'_`age'[2,3] = 0
+		qui matrix by_scale_`p'_`age'[3,3] = 0
+		qui matrix by_scale_`p'_`age'[4,3] = 0
+		
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval > 0.1
+		local num_count_insig = r(N)
+		qui matrix by_scale_`p'_`age'[1,4] = `num_count_insig'
+				
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
+		local num_count_0_1 = r(N)
+		qui matrix by_scale_`p'_`age'[2,4] = `num_count_0_1'
+
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.05
+		local num_count_0_05 = r(N)
+		qui matrix by_scale_`p'_`age'[3,4] = `num_count_0_05'
+				
+		qui matrix by_scale_`p'_`age'[4,4] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+
+		forvalues col = 2/`ncol_`age'_scale' {
+			qui matrix by_scale_`p'_`age'[1,4*`col'-3] = 0
+			qui matrix by_scale_`p'_`age'[2,4*`col'-3] = 0
+			qui matrix by_scale_`p'_`age'[3,4*`col'-3] = 0
+			qui matrix by_scale_`p'_`age'[4,4*`col'-3] = 0
+		
+			qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval > 0.1 & scale_row == `col'
+			local num_count_insig = r(N)
+			qui matrix by_scale_`p'_`age'[1,4*`col'-2] = `num_count_insig'
+				
+			qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05 & scale_row == `col'
+			local num_count_0_1 = r(N)
+			qui matrix by_scale_`p'_`age'[2,4*`col'-2] = `num_count_0_1'
+
+			qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.05 & scale_row == `col'
+			local num_count_0_05 = r(N)
+			qui matrix by_scale_`p'_`age'[3,4*`col'-2] = `num_count_0_05'
+					
+			qui matrix by_scale_`p'_`age'[4,4*`col'-2] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+
+			qui matrix by_scale_`p'_`age'[1,4*`col'-1] = 0
+			qui matrix by_scale_`p'_`age'[2,4*`col'-1] = 0
+			qui matrix by_scale_`p'_`age'[3,4*`col'-1] = 0
+			qui matrix by_scale_`p'_`age'[4,4*`col'-1] = 0
+			
+			qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval > 0.1 & scale_row == `col'
+			local num_count_insig = r(N)
+			qui matrix by_scale_`p'_`age'[1,4*`col'] = `num_count_insig'
+					
+			qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05 & scale_row == `col'
+			local num_count_0_1 = r(N)
+			qui matrix by_scale_`p'_`age'[2,4*`col'] = `num_count_0_1'
+
+			qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.05 & scale_row == `col'
+			local num_count_0_05 = r(N)
+			qui matrix by_scale_`p'_`age'[3,4*`col'] = `num_count_0_05'
+				
+			qui matrix by_scale_`p'_`age'[4,4*`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		}
+	}
+
+	matrix by_scale_merge_`age' = by_scale_`age' ///
+								+ by_scale_ehscenter_`age' + by_scale_ehshome_`age' + by_scale_ehsmixed_`age' ///
+								+ by_scale_ihdp_`age' ///
+								+ by_scale_abc_`age'
+							
+	qui matrix rownames by_scale_merge_`age' = `p_row_names'
+
+	cd "$pile_out"
+	frmttable using by_scale_`age', statmat(by_scale_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
+
+	cd "$pile_git_out"
+	frmttable using by_scale_`age', statmat(by_scale_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
 }
-
-matrix by_scale_merge_3 = by_scale_3 ///
-						+ by_scale_ehscenter_3 + by_scale_ehshome_3 + by_scale_ehsmixed_3 ///
-						+ by_scale_ihdplow_3 + by_scale_ihdphigh_3 ///
-						+ by_scale_abc_3 ///
-						+ by_scale_carehv_3 + by_scale_careboth_3
-						
-qui matrix rownames by_scale_merge_3 = `p_row_names'
-
-cd "$pile_out"
-frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter
-
-cd "$pile_git_out"
-frmttable using by_scale_3, statmat(by_scale_merge_3) substat(1) sdec(0) fragment tex replace nocenter

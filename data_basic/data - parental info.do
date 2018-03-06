@@ -2,7 +2,7 @@
 * Preliminary data preparation - parent info
 * Author: Chanwool Kim
 * Date Created: 26 Jan 2018
-* Last Update: 1 Mar 2018
+* Last Update: 4 Mar 2018
 * ---------------------------------------- *
 
 clear all
@@ -54,24 +54,8 @@ forvalues i = 21/38 {
 	rename vb`i'_f22		kidi12_`j'
 }
 
-gen kidi12_19 = vb39_f22
-gen kidi12_20 = vb39_f22
-gen kidi12_21 = vb39_f22
-gen kidi12_22 = vb39_f22
-recode kidi12_19 (2 3 4 8 = 0)
-recode kidi12_20 (1 3 4 8 = 0) (2 = 1)
-recode kidi12_21 (1 2 4 8 = 0) (3 = 1)
-recode kidi12_22 (1 2 3 8 = 0) (4 = 1)
-
-gen kidi12_23 = vb40_f22
-gen kidi12_24 = vb40_f22
-gen kidi12_25 = vb40_f22
-gen kidi12_26 = vb40_f22
-recode kidi12_23 (2 3 4 8 = 0)
-recode kidi12_24 (1 3 4 8 = 0) (2 = 1)
-recode kidi12_25 (1 2 4 8 = 0) (3 = 1)
-recode kidi12_26 (1 2 3 8 = 0) (4 = 1)
-
+gen kidi12_19 = vb40_f22
+recode kidi12_19 (1 2 4 8 = 0) (3 = 1)
 
 label var kidi12_1 			"KIDI: babies with colic can cry for 20, 30 minutes, no matter what is done"
 label var kidi12_2 			"KIDI: if baby is fed evaporated milk, baby needs extra vitamins/iron"
@@ -91,14 +75,7 @@ label var kidi12_15 		"KIDI: 5mo know what 'no' means"
 label var kidi12_16 		"KIDI: 1yo children will cooperate and share when they play together"
 label var kidi12_17 		"KIDI: baby is 7mo before he/she can reach for and grab things"
 label var kidi12_18 		"KIDI: babies usually say first word at 6mo."
-label var kidi12_19 		"KIDI: 1yo playing with breakable things: keep him or her in a playpen"
-label var kidi12_20 		"KIDI: 1yo playing with breakable things: slap the baby's hand"
-label var kidi12_21 		"KIDI: 1yo playing with breakable things: tell the child No! and expect him to obey"
-label var kidi12_22 		"KIDI: 1yo playing with breakable things: put things out of reach until child is older"
-label var kidi12_23 		"KIDI: most appropriate game for 1yo: stringing small beads"
-label var kidi12_24 		"KIDI: most appropriate game for 1yo: cutting out shapes with scissors"
-label var kidi12_25 		"KIDI: most appropriate game for 1yo: rolling a ball back and forth with an adult"
-label var kidi12_26 		"KIDI: most appropriate game for 1yo: sorting things by shape and color"
+label var kidi12_19 		"KIDI: most appropriate game for 1yo: rolling a ball back and forth with an adult"
 
 foreach i of numlist 1/2 4 6/7 9 11 14 {
 	recode kidi12_`i'		(2 8 = 0)
@@ -118,15 +95,6 @@ forvalues i = 30/37 {
 	rename v`i'_f38			kidi24_`j'
 }
 
-gen kidi24_18 = v38_f38
-gen kidi24_19 = v38_f38
-gen kidi24_20 = v38_f38
-gen kidi24_21 = v38_f38
-recode kidi24_18 (2 3 4 8 = 0)
-recode kidi24_19 (1 3 4 8 = 0) (2 = 1)
-recode kidi24_20 (1 2 4 8 = 0) (3 = 1)
-recode kidi24_21 (1 2 3 8 = 0) (4 = 1)
-
 label var kidi24_1			"KIDI: way infant is brought up will have little effect on intelligence"
 label var kidi24_2 			"KIDI: baby can leave the parent feeling tired, frustrated, overwhelmed"
 label var kidi24_3			"KIDI: younger sibling may start wetting bed/sucking thumb when new baby arrives"
@@ -144,10 +112,6 @@ label var kidi24_14 		"KIDI: most infants are ready to be toilet trained by 1yo"
 label var kidi24_15 		"KIDI: 1yo children will cooperate and share when they play together"
 label var kidi24_16 		"KIDI: infants of 12mo can remember toys they have watched being hidden"
 label var kidi24_17 		"KIDI: babies usually say first word at 6mo."
-label var kidi24_18 		"KIDI: best way to avoid future trantrums by 2yo?: give the child a different toy"
-label var kidi24_19 		"KIDI: best way to avoid future trantrums by 2yo?: ignore the temper tantrum"
-label var kidi24_20 		"KIDI: best way to avoid future trantrums by 2yo?: spank the child's bottom"
-label var kidi24_21 		"KIDI: best way to avoid future trantrums by 2yo?: let the child have his own way"
 
 foreach i of numlist 2/4 6 8 16 {
 	recode kidi24_`i'		(2 8 = 0)

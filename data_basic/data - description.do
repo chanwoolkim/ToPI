@@ -2,7 +2,7 @@
 * Data description
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 1 Mar 2017
+* Last Update: 4 Mar 2017
 * -------------- *
 
 set more off
@@ -11,6 +11,7 @@ set more off
 * Define macros for abstraction
 
 local covariates_table	sex bw gestage black hispanic m_edu m_age m_iq mf
+local num : list sizeof local(covariates_table)
 
 * ------- *
 * Execution
@@ -18,21 +19,21 @@ local covariates_table	sex bw gestage black hispanic m_edu m_age m_iq mf
 foreach p of global programs {
 cd "$data_home"
 
-	if "`p'" == "ehscenter" | "`p'" == "ehshome" | "`p'" == "ehsmixed" {
+	if "`p'" == "ehs" | "`p'" == "ehscenter" | "`p'" == "ehshome" | "`p'" == "ehsmixed" {
 		use "ehs-home-control.dta", clear
 	}
 	
-	if "`p'" == "ihdplow" | "`p'" == "ihdphigh" {
+	if "`p'" == "ihdp" {
 		use "ihdp-home-control.dta", clear
 	}
 	
-	if "`p'" == "abc" | "`p'" == "careboth" | "`p'" == "carehv" {
+	if "`p'" == "abc" | "`p'" == "care" | "`p'" == "careboth" | "`p'" == "carehome" {
 		use "abc-home-control.dta", clear
 	}
 	
 	gen blank = 1
 
-	forval i=1/9{
+	forval i=1/`num' {
 		local var : word `i' of `covariates_table'
 		global vlab`i' : variable label `var'
 	}

@@ -2,7 +2,7 @@
 * Preliminary data preparation - participation
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 5 Nov 2017
+* Last Update: 4 Mar 2017
 * ------------------------------------------ *
 
 clear all
@@ -171,18 +171,18 @@ keep if program == "care"
 drop R
 keep if random == 0 | random == 3
 gen R = random == 3
-gen Dhv = D == 0 & homevisit > 0
-tab Dhv
+gen Dhome = D == 0 & homevisit > 0
+tab Dhome
 drop D
-rename Dhv D
+rename Dhome D
 
 keep id R D program
 
 cd "$data_home"
-save carehv-home-participation, replace
+save carehome-home-participation, replace
 
 cd "$data_labor"
-save carehv-labor-participation, replace
+save carehome-labor-participation, replace
 
 cd "$data_parent"
-save carehv-parent-participation, replace
+save carehome-parent-participation, replace

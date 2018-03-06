@@ -2,7 +2,7 @@
 * Data table - homogenisation
 * Author: Chanwool Kim
 * Date Created: 4 Jul 2017
-* Last Update: 15 Nov 2017
+* Last Update: 4 Mar 2017
 * ------------------------- *
 
 clear all
@@ -34,7 +34,7 @@ local combination	""Teen.BelowHS.UnderPoverty.Non-White"
 * ---------------------- *
 * Execution - Unrestricted
 
-matrix distribution = J(17, 5, .)
+matrix distribution = J(17, 6, .)
 matrix rownames distribution = `combination'
 matrix colnames distribution = $program_name
 local col = 1

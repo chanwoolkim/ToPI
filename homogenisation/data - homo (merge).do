@@ -2,7 +2,7 @@
 * Data - homogenisation (merge all)
 * Author: Chanwool Kim
 * Date Created: 14 Sep 2017
-* Last Update: 15 Nov 2017
+* Last Update: 4 Mar 2017
 * ------------------------------- *
 
 clear all
@@ -107,30 +107,28 @@ foreach t of global ehs_type {
 * ----------------------------------- *
 * Infant Health and Development Program
 
-foreach t of global ihdp_type {
-	cd "$homo_working"
-	use "ihdp-control-homo.dta", clear
+cd "$homo_working"
+use "ihdp-control-homo.dta", clear
 	
-	cd "$data_home"
-	merge 1:1 id using ihdp`t'-home-agg-participation, nogen nolabel keep(match)
-	rename norm_home_*12 norm_home_*1y
-	rename norm_home_*36 norm_home_*3y
+cd "$data_home"
+merge 1:1 id using ihdp-home-agg-participation, nogen nolabel keep(match)
+rename norm_home_*12 norm_home_*1y
+rename norm_home_*36 norm_home_*3y
 
-	merge 1:1 id using ihdp-home-item, nogen nolabel keep(match)
-	rename home12_* home1_*
-	rename home36_* home3_*
+merge 1:1 id using ihdp-home-item, nogen nolabel keep(match)
+rename home12_* home1_*
+rename home36_* home3_*
+
+cd "$homo_working"
+save ihdp-home-homo-merge, replace
 	
-	cd "$homo_working"
-	save ihdp`t'-home-homo-merge, replace
+use "ihdp-control-homo.dta", clear
 	
-	use "ihdp-control-homo.dta", clear
-	
-	cd "$data_labor"	
-	merge 1:1 id using ihdp`t'-labor-item-participation, nogen nolabel keep(match)
-	
-	cd "$homo_working"
-	save ihdp`t'-labor-homo-merge, replace
-}
+cd "$data_labor"	
+merge 1:1 id using ihdp-labor-item-participation, nogen nolabel keep(match)
+
+cd "$homo_working"
+save ihdp-labor-homo-merge, replace
 
 * --------- *
 * Abecedarian

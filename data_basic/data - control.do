@@ -2,7 +2,7 @@
 * Preliminary data preparation - controls
 * Author: Chanwool Kim
 * Date Created: 22 Mar 2017
-* Last Update: 14 Jan 2018
+* Last Update: 4 Mar 2018
 * ------------------------------------- *
 
 clear all
@@ -12,11 +12,6 @@ clear all
 
 cd "$data_ehs"
 use "std-ehs.dta", clear
-
-* PPVT
-rename ppvt3 ppvt36
-rename ppvt5 ppvt48
-rename ppvt10 ppvt120
 
 * Control
 rename m_age0 m_age
@@ -46,9 +41,6 @@ label var sibling "Number of siblings (total of kids 0-5 and 6-17)"
 #delimit ;
 keep id
 treat
-ppvt36
-ppvt48
-ppvt120
 m_age
 m_edu
 sibling
@@ -79,25 +71,16 @@ drop if missing(pag)
 rename admin_treat	treat
 rename ihdp			id
 
+* Control
 gen bwg = .
 replace bwg = 1 if bwg_sumscore == "H"
 replace bwg = 0 if bwg_sumscore == "L"
-
-* PPVT
-rename ppvt3y ppvt36
-rename ppvt5y ppvt60
-rename ppvt8y ppvt96
-rename ppvt18y ppvt216
-
-* SB
-rename sb3y sb36
 
 rename m_age_base m_age
 rename birth_mdeg m_edu
 rename hh_sibs0y sibling
 rename m_iq0y m_iq
 
-* Control
 gen male = .
 replace male = 1 if sex == "M"
 replace male = 0 if sex == "F"
@@ -122,11 +105,6 @@ label var mf "Mother lives with father of infant or a boyfriend"
 keep id
 treat
 bwg
-ppvt36
-ppvt60
-ppvt96
-ppvt216
-sb36
 m_age
 m_edu
 sibling
@@ -153,13 +131,7 @@ foreach t of global measure {
 cd "$data_abc"
 use "append-abccare.dta", clear
 
-* SB
-rename sb2y sb24
-rename sb3y sb36
-rename sb4y sb48
-rename sb5y sb60
-rename sb7y sb84
-
+* Control
 rename m_age0y m_age
 rename m_deg0y m_edu
 rename m_iq0y m_iq
@@ -178,11 +150,6 @@ gen bw = birthweight * 453.592
 keep id
 treat
 program
-sb24
-sb36
-sb48
-sb60
-sb84
 m_age
 m_edu
 sibling

@@ -39,6 +39,7 @@ foreach n of numlist 1/4 {
 	
 	rename b`n'p904		home`n'_4
 	label var home`n'_4	"In the past week have you or anyone in the household spanked FC for misbehaving"
+	recode home`n'_4 (1 = 0) (0 = 1)
 }
 
 foreach n of numlist 1 2 4 5 {

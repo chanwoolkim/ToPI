@@ -2,7 +2,7 @@
 * Data for item pile treatment effects
 * Author: Chanwool Kim
 * Date Created: 27 Jun 2017
-* Last Update: 15 Nov 2017
+* Last Update: 4 Mar 2017
 * ---------------------------------- *
 
 clear all
@@ -89,20 +89,18 @@ foreach t of global ehs_type {
 	save ehs`t'-home-item-pile, replace
 }
 
-* IHDP (by birth weight group)
+* IHDP
 
-foreach t of global ihdp_type {
-	cd "$data_home"
-	use "ihdp`t'-home-item-merge.dta", clear
+cd "$data_home"
+use "ihdp-home-item-merge.dta", clear
 	
-	rename home12_* home1_*
-	rename home36_* home3_*
+rename home12_* home1_*
+rename home36_* home3_*
 	
-	cd "$pile_working"
-	save ihdp`t'-home-item-pile, replace
-}
+cd "$pile_working"
+save ihdp-home-item-pile, replace
 
-* ABC/CARE
+* ABC
 
 cd "$data_home"
 use "abc-home-item-merge.dta", clear

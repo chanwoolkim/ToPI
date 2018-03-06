@@ -2,7 +2,7 @@
 * Master
 * Author: Chanwool Kim
 * Date Created: 2 Nov 2017
-* Last Update: 3 Mar 2018
+* Last Update: 4 Mar 2018
 * ---- *
 
 clear all
@@ -23,6 +23,7 @@ global data_ehs_h			"${master_path}/Data/Harvard Dataverse Sensitive Original Da
 global data_ihdp 			"$raw_path"
 global data_abc				"$raw_path"
 
+global data_outcome			"${main_path}/data/outcome"
 global data_home			"${main_path}/data/home"
 global data_labor			"${main_path}/data/labor"
 global data_parent			"${main_path}/data/parental"
@@ -53,26 +54,27 @@ global by_site_working		"${main_path}/working/by_site"
 global mediation_working	"${main_path}/working/mediation"
 
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
-global programs				ehscenter ehshome ehsmixed ihdp abc
-global program_name			""EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP" "ABC"
-global programs_merge		ehs ihdp abc
-global programs_all			ehscenter ehshome ehsmixed ehs ihdphigh ihdplow ihdp abc
-global program_name_all		""EHS-Center" "EHS-Home" "EHS-Mixed" "EHS-All" "IHDP-High" "IHDP-Low" "IHDP-All" "ABC""
-global measure				home labor parent
+global programs				ehs ehscenter ehshome ehsmixed ihdp abc care careboth carehome
+global program_name			""EHS" "EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP" "ABC" "CARE" "CARE-Both" "CARE-Home""
+global programs_merge		ehs ihdp abc care
+global measure				outcome home labor parent
 
 global ehs_type				""center" "home" "mixed" """
 global ihdp_type			""high" "low" """
 global abc_type				""""
+global care_type			""both" "home" """
 
-global early_home_types		total develop family hostility learning variety warmth
-global later_home_types		total develop family housing hostility learning variety warmth
+global outcome_types		ppvt sb
+global early_home_types		total develop hostility learning variety warmth
+global later_home_types		total develop hostility learning variety warmth
 global parent_types			kidi pari pase
 global kidi_types			total accuracy attempted right
 global pari_types			dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo
 global pase_types			auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ
 
-global agg_axis_range		-1(0.25)1
-global item_axis_range		-1(0.25)1
+global outcome_axis_range	-15(5)15
+global agg_axis_range		-0.5(0.25)0.5
+global item_axis_range		-0.5(0.25)0.5
 global sub_axis_range		-0.002(0.0005)0.002
 global parent_axis_range	-1.5(0.5)1.5
 global by_site_axis_range	-0.1(0.025)0.1
@@ -84,6 +86,8 @@ cd "${code_path}/data_basic"
 	include "data - control"
 cd "${code_path}/data_basic"
 	include "data - participation"
+cd "${code_path}/data_basic"
+	include "data - outcome"
 cd "${code_path}/data_basic"
 	include "data - labor"
 cd "${code_path}/data_basic"
@@ -98,12 +102,9 @@ cd "${code_path}/data_basic"
 * -------- *
 * Diagnostic
 
-/*
-cd "${code_path}/data_basic"
-	include "patch - abccheck" //Check ABC scales
 cd "${code_path}/data_basic"
 	include "data - description"
-*/
+
 * ----------- *
 * Main Analysis
 /*
@@ -122,17 +123,17 @@ cd "${code_path}/pile"
 cd "${code_path}/pile"
 	include "data - parent pile"
 cd "${code_path}/pile"
-	include "treatment - aggregate pile"
+	include "treatment - outcome pile"
 cd "${code_path}/pile"
-	include "treatment - aggregate pile (substitution)"
+	include "treatment - aggregate pile"
+*cd "${code_path}/pile"
+*	include "treatment - aggregate pile (substitution)"
 cd "${code_path}/pile"
 	include "treatment - item pile"
 cd "${code_path}/pile"
-	include "treatment - parent pile"
-cd "${code_path}/pile"
 	include "treatment - parent item pile"
-*cd "${code_path}/pile"
-*	include "treatment - pile (comparison)"
+cd "${code_path}/pile"
+	include "treatment - pile (comparison)"
 	
 * ------------ *
 * Homogenisation

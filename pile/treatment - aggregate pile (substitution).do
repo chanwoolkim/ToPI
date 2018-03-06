@@ -2,7 +2,7 @@
 * Graphs of treatment effects - aggregate pile (substitution effect)
 * Author: Chanwool Kim
 * Date Created: 22 Jan 2018
-* Last Update: 3 Mar 2018
+* Last Update: 4 Mar 2018
 * ---------------------------------------------------------------- *
 
 clear all
@@ -10,32 +10,35 @@ clear all
 * ------------ *
 * Prepare matrix
 
-foreach p of global programs_merge {
-	foreach t of global `p'_type {
+local 1_name		early
+local 3_name		later
+local 1_nrow : list sizeof global(early_home_types)
+local 3_nrow : list sizeof global(later_home_types)
 
+foreach p of global programs {
 	cd "$pile_working"
-	use "`p'`t'-home-agg-pile.dta", clear
+	use "`p'-home-agg-pile.dta", clear
 
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-		qui matrix `p'`t'R_1 = J(7, 5, .) // for randomisation variable
-		qui matrix `p'`t'R_3 = J(8, 5, .) // for randomisation variable
+		qui matrix `p'R_1 = J(7, 5, .) // for randomisation variable
+		qui matrix `p'R_3 = J(8, 5, .) // for randomisation variable
 		
-		qui matrix colnames `p'`t'R_1 = `p'`t'R_1num `p'`t'R_1coeff `p'`t'R_1lower `p'`t'R_1upper `p'`t'R_1pval
-		qui matrix colnames `p'`t'R_3 = `p'`t'R_3num `p'`t'R_3coeff `p'`t'R_3lower `p'`t'R_3upper `p'`t'R_3pval
+		qui matrix colnames `p'R_1 = `p'R_1num `p'R_1coeff `p'R_1lower `p'R_1upper `p'R_1pval
+		qui matrix colnames `p'R_3 = `p'R_3num `p'R_3coeff `p'R_3lower `p'R_3upper `p'R_3pval
 		
 		local row_1 = 1
 		local row_3 = 1
 		
 		if "`p'" == "abc" {
-			qui matrix `p'`t'R_6m = J(7, 5, .) // for randomisation variable
-			qui matrix colnames `p'`t'R_6m = `p'`t'R_6mnum `p'`t'R_6mcoeff `p'`t'R_6mlower `p'`t'R_6mupper `p'`t'R_6mpval
+			qui matrix `p'R_6m = J(7, 5, .) // for randomisation variable
+			qui matrix colnames `p'R_6m = `p'R_6mnum `p'R_6mcoeff `p'R_6mlower `p'R_6mupper `p'R_6mpval
 			
 			local row_6m = 1
 		}
 
 		* Loop over rows to fill in values into the empty matrix.
 		foreach r of global early_home_types {
-			qui matrix `p'`t'R_1[`row_1',1] = `row_1'
+			qui matrix `p'R_1[`row_1',1] = `row_1'
 			
 			capture confirm variable norm_home_`r'1y
 				if !_rc {
@@ -45,10 +48,10 @@ foreach p of global programs_merge {
 				qui matrix list r(table)
 				qui matrix r = r(table)
 
-				qui matrix `p'`t'R_1[`row_1',2] = r[1,3]
-				qui matrix `p'`t'R_1[`row_1',3] = r[5,3]
-				qui matrix `p'`t'R_1[`row_1',4] = r[6,3]
-				qui matrix `p'`t'R_1[`row_1',5] = r[4,3]
+				qui matrix `p'R_1[`row_1',2] = r[1,3]
+				qui matrix `p'R_1[`row_1',3] = r[5,3]
+				qui matrix `p'R_1[`row_1',4] = r[6,3]
+				qui matrix `p'R_1[`row_1',5] = r[4,3]
 				
 				local row_1 = `row_1' + 1
 				}
@@ -58,7 +61,7 @@ foreach p of global programs_merge {
 				}
 			
 			if "`p'" == "abc" {
-				qui matrix `p'`t'R_6m[`row_6m',1] = `row_6m'
+				qui matrix `p'R_6m[`row_6m',1] = `row_6m'
 				
 				capture confirm variable norm_home_`r'6m
 					if !_rc {
@@ -68,10 +71,10 @@ foreach p of global programs_merge {
 					qui matrix list r(table)
 					qui matrix r = r(table)
 
-					qui matrix `p'`t'R_6m[`row_6m',2] = r[1,3]
-					qui matrix `p'`t'R_6m[`row_6m',3] = r[5,3]
-					qui matrix `p'`t'R_6m[`row_6m',4] = r[6,3]
-					qui matrix `p'`t'R_6m[`row_6m',5] = r[4,3]
+					qui matrix `p'R_6m[`row_6m',2] = r[1,3]
+					qui matrix `p'R_6m[`row_6m',3] = r[5,3]
+					qui matrix `p'R_6m[`row_6m',4] = r[6,3]
+					qui matrix `p'R_6m[`row_6m',5] = r[4,3]
 					
 					local row_6m = `row_6m' + 1
 					}
@@ -84,7 +87,7 @@ foreach p of global programs_merge {
 
 		* Loop over rows to fill in values into the empty matrix.
 		foreach r of global later_home_types {
-			qui matrix `p'`t'R_3[`row_3',1] = `row_3'
+			qui matrix `p'R_3[`row_3',1] = `row_3'
 				
 			capture confirm variable norm_home_`r'3y
 				if !_rc {
@@ -94,10 +97,10 @@ foreach p of global programs_merge {
 				qui matrix list r(table)
 				qui matrix r = r(table)
 
-				qui matrix `p'`t'R_3[`row_3',2] = r[1,3]
-				qui matrix `p'`t'R_3[`row_3',3] = r[5,3]
-				qui matrix `p'`t'R_3[`row_3',4] = r[6,3]
-				qui matrix `p'`t'R_3[`row_3',5] = r[4,3]
+				qui matrix `p'R_3[`row_3',2] = r[1,3]
+				qui matrix `p'R_3[`row_3',3] = r[5,3]
+				qui matrix `p'R_3[`row_3',4] = r[6,3]
+				qui matrix `p'R_3[`row_3',5] = r[4,3]
 
 				local row_3 = `row_3' + 1
 				}
@@ -110,25 +113,24 @@ foreach p of global programs_merge {
 		cd "$pile_working"
 		
 		if "`p'" == "abc" {
-			svmat `p'`t'R_6m, names(col)
-			rename `p'`t'R_6mnum row_6m
-			keep row_6m `p'`t'R_6mcoeff `p'`t'R_6mlower `p'`t'R_6mupper `p'`t'R_6mpval
+			svmat `p'R_6m, names(col)
+			rename `p'R_6mnum row_6m
+			keep row_6m `p'R_6mcoeff `p'R_6mlower `p'R_6mupper `p'R_6mpval
 			keep if row_6m != .
-			save "`p'`t'-pile-agg-sub-6m", replace
+			save "`p'-pile-agg-sub-6m", replace
 		}
 
-		svmat `p'`t'R_1, names(col)
-		rename `p'`t'R_1num row_1
-		keep row_1 `p'`t'R_1coeff `p'`t'R_1lower `p'`t'R_1upper `p'`t'R_1pval
+		svmat `p'R_1, names(col)
+		rename `p'R_1num row_1
+		keep row_1 `p'R_1coeff `p'R_1lower `p'R_1upper `p'R_1pval
 		keep if row_1 != .
-		save "`p'`t'-pile-agg-sub-1", replace
+		save "`p'-pile-agg-sub-1", replace
 
-		svmat `p'`t'R_3, names(col)
-		rename `p'`t'R_3num row_3
-		keep row_3 `p'`t'R_3coeff `p'`t'R_3lower `p'`t'R_3upper `p'`t'R_3pval
+		svmat `p'R_3, names(col)
+		rename `p'R_3num row_3
+		keep row_3 `p'R_3coeff `p'R_3lower `p'R_3upper `p'R_3pval
 		keep if row_3 != .
-		save "`p'`t'-pile-agg-sub-3", replace
-	}
+		save "`p'-pile-agg-sub-3", replace
 }
 
 cd "$pile_working"
@@ -143,7 +145,7 @@ foreach p of global programs_merge {
 	use `p'-pile-agg-sub-1, clear
 
 	foreach t of global `p'_type {
-		merge 1:1 row_1 using `p'`t'-pile-agg-sub-1, nogen nolabel
+		merge 1:1 row_1 using `p'-pile-agg-sub-1, nogen nolabel
 	}
 
 	rename row_1 row
@@ -152,7 +154,7 @@ foreach p of global programs_merge {
 	use `p'-pile-agg-sub-3, clear
 
 	foreach t of global `p'_type {
-		merge 1:1 row_3 using `p'`t'-pile-agg-sub-3, nogen nolabel
+		merge 1:1 row_3 using `p'-pile-agg-sub-3, nogen nolabel
 	}
 
 	rename row_3 row
@@ -222,13 +224,13 @@ foreach p of global programs_merge {
 		use `p'-agg-pile-sub-`age', clear
 		
 		foreach t of global `p'_type {
-			gen inv_`p'`t'Rcoeff = `p'`t'R_`age'coeff * -1
-			gen `p'`t'Rinsig = .
-			gen `p'`t'R0_1 = .
-			gen `p'`t'R0_05 = .
-			replace `p'`t'Rinsig = `p'`t'R_`age'coeff if `p'`t'R_`age'pval > 0.1
-			replace `p'`t'R0_1 = `p'`t'R_`age'coeff if `p'`t'R_`age'pval <= 0.1 & `p'`t'R_`age'pval > 0.05
-			replace `p'`t'R0_05 = `p'`t'R_`age'coeff if `p'`t'R_`age'pval <= 0.05
+			gen inv_`p'Rcoeff = `p'R_`age'coeff * -1
+			gen `p'Rinsig = .
+			gen `p'R0_1 = .
+			gen `p'R0_05 = .
+			replace `p'Rinsig = `p'R_`age'coeff if `p'R_`age'pval > 0.1
+			replace `p'R0_1 = `p'R_`age'coeff if `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
+			replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 		}
 		
 		save `p'-agg-pile-sub-`age', replace

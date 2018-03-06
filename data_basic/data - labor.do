@@ -2,7 +2,7 @@
 * Preliminary data preparation - labor measures
 * Author: Chanwool Kim
 * Date Created: 29 Jun 2017
-* Last Update: 5 Nov 2017
+* Last Update: 4 Mar 2017
 * ------------------------------------------- *
 
 clear all
@@ -33,17 +33,6 @@ labor_hh_inc*
 labor_m_work*
 ;
 #delimit cr
-
-local ehs_labor_types	hh_inc m_work m_workhour
-
-/*
-* Normalise to have in-group sample mean 0 and variance 1
-foreach t of local ehs_labor_types {
-	foreach m of numlist 0 60 120 {
-	capture egen norm_labor_`t'`m' = std(labor_`t'`m')
-	}
-}
-*/
 
 cd "$data_labor"
 save ehs-labor-item, replace
@@ -141,17 +130,6 @@ rename *5y		*60
 rename *6y6m	*78
 rename *8y		*96
 
-local ihdp_labor_types	hh_inc hh_wage m_work m_workhour f_work
-
-/*
-* Normalise to have in-group sample mean 0 and variance 1
-foreach t of local ihdp_labor_types {
-	foreach m of numlist 0 4 12 18 24 30 36 48 60 78 96 {
-	capture egen norm_labor_`t'`m' = std(labor_`t'`m')
-	}
-}
-*/
-
 cd "$data_labor"
 save ihdp-labor-item, replace
 
@@ -202,17 +180,6 @@ rename *12y		*144
 rename *15y		*180
 rename *5y		*60
 rename *21y		*252
-
-local abc_labor_types	hh_inc hh_wage m_work f_work
-
-/*
-* Normalise to have in-group sample mean 0 and variance 1
-foreach t of local abc_labor_types {
-	foreach m of numlist 0 18 30 42 54 60 96 144 180 252 {
-	capture egen norm_labor_`t'`m' = std(labor_`t'`m')
-	}
-}
-*/
 
 cd "$data_labor"
 save abc-labor-item, replace
