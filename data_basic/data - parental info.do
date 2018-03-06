@@ -113,13 +113,19 @@ label var kidi24_15 		"KIDI: 1yo children will cooperate and share when they pla
 label var kidi24_16 		"KIDI: infants of 12mo can remember toys they have watched being hidden"
 label var kidi24_17 		"KIDI: babies usually say first word at 6mo."
 
-foreach i of numlist 2/4 6 8 16 {
+foreach i of numlist 2/4 6 8 {
 	recode kidi24_`i'		(2 8 = 0)
 }
 
-foreach i of numlist 1 5 7 9/15 17 {
+foreach i of numlist 1 5 7 9 {
 	recode kidi24_`i'		(1 8 = 0) (2 = 1)
 }
+
+foreach i of numlist 10/15 17 {
+	recode kidi24_`i'		(1 2 8 = 0) (3 = 1)
+}
+
+recode kidi24_16			(2 3 8 = 0)
 
 * Sameroff
 rename codqc_12_sumscore sameroff_cat12
