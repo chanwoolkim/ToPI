@@ -10,6 +10,7 @@ replace scale = "Parental Warmth" if question == "8" | question == "9" | questio
 replace scale = "N/S" if question == "20" | question == "40"
 
 gen scale_row = .
+replace scale_row = 1 if scale == "Total Score"
 replace scale_row = 2 if scale == "Learning Stimulation"
 replace scale_row = 3 if scale == "Development Materials"
 replace scale_row = 4 if scale == "Opportunities for Variety"

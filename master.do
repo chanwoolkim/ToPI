@@ -1,8 +1,6 @@
 * ---- *
 * Master
 * Author: Chanwool Kim
-* Date Created: 2 Nov 2017
-* Last Update: 4 Mar 2018
 * ---- *
 
 clear all
@@ -12,21 +10,15 @@ adoupdate outreg
 
 global klmshare 			: env klmshare
 
-global code_path 			"/Users/ckim/Desktop/ToPI"
-global master_path			"/Users/ckim/Dropbox (Work)"
+global code_path 			"C:/Users/chanw/Desktop/ToPI"
+global master_path			"C:/Users/chanw/Dropbox (Work)"
 
 global main_path			"${master_path}/TOPI/treatment_effect"
-global raw_path				"${master_path}/Data/std"
 
-global data_ehs				"$raw_path"
-global data_ehs_h			"${master_path}/Data/Harvard Dataverse Sensitive Original Data/parent_interview"
-global data_ihdp 			"$raw_path"
-global data_abc				"$raw_path"
-
-global data_outcome			"${main_path}/data/outcome"
-global data_home			"${main_path}/data/home"
-global data_labor			"${main_path}/data/labor"
-global data_parent			"${main_path}/data/parental"
+global data_raw				"${master_path}/Data/std"
+global data_ehs_harvard		"${master_path}/Data/Harvard Dataverse Sensitive Original Data/parent_interview"
+global data_working			"${main_path}/working"
+global data_analysis		"${main_path}/working/analysis"
 
 global data_out				"${main_path}/out/data_basic"
 global analysis_out			"${main_path}/out/analysis_basic"
@@ -46,13 +38,6 @@ global homo_subpop_git_out	"${code_path}/out/homo_subpop"
 global by_site_git_out		"${code_path}/out/by_site"
 global mediation_git_out	"${code_path}/out/mediation"
 
-global pile_working			"${main_path}/working/pile"
-global homo_working			"${main_path}/working/homogenisation"
-global subpop_working		"${main_path}/working/subpopulation"
-global homo_subpop_working	"${main_path}/working/homo_subpop"
-global by_site_working		"${main_path}/working/by_site"
-global mediation_working	"${main_path}/working/mediation"
-
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehs ehscenter ehshome ehsmixed ihdp abc care careboth carehome
 global program_name			""EHS" "EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP" "ABC" "CARE" "CARE-Both" "CARE-Home""
@@ -65,8 +50,7 @@ global abc_type				""""
 global care_type			""both" "home" """
 
 global outcome_types		ppvt sb
-global early_home_types		total develop hostility learning variety warmth
-global later_home_types		total develop hostility learning variety warmth
+global home_types			total learning develop variety hostility warmth
 global parent_types			kidi pari pase
 global kidi_types			total accuracy attempted right
 global pari_types			dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo
@@ -78,6 +62,8 @@ global item_axis_range		-0.5(0.25)0.5
 global sub_axis_range		-0.002(0.0005)0.002
 global parent_axis_range	-1.5(0.5)1.5
 global by_site_axis_range	-0.1(0.025)0.1
+
+set seed 2018
 
 * -------------- *
 * Data Preperation
@@ -107,12 +93,12 @@ cd "${code_path}/data_basic"
 
 * ----------- *
 * Main Analysis
-/*
+
 cd "${code_path}/analysis_basic"
 	include "treatment - longitudinal"
 cd "${code_path}/analysis_basic"
 	include "treatment - table"
-*/
+
 * -- *
 * Pile
 

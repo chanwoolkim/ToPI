@@ -1,8 +1,6 @@
 * --------------------------------------- *
 * Preliminary data preparation - HOME items
 * Author: Chanwool Kim
-* Date Created: 1 Mar 2017
-* Last Update: 3 Mar 2017
 * --------------------------------------- *
 
 clear all
@@ -10,7 +8,7 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs_h"
+cd "$data_ehs_harvard"
 
 * Merge all ages
 
@@ -541,13 +539,13 @@ foreach v of varlist home*_* {
 	replace `v' = . if `v' < 0 | `v' > 1
 }
 
-cd "$data_home"
+cd "$data_working"
 save ehs-home-item, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "merge-ihdp.dta", clear
 
 rename ihdp	id
@@ -568,13 +566,13 @@ home36_*
 ;
 #delimit cr
 
-cd "$data_home"
+cd "$data_working"
 save ihdp-home-item, replace
 
 * --------- *
 * Abecedarian
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 * Recode 2 to 0
@@ -612,5 +610,5 @@ home96_*
 ;
 #delimit cr
 
-cd "$data_home"
+cd "$data_working"
 save abc-home-item, replace

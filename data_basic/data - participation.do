@@ -1,8 +1,6 @@
 * ------------------------------------------ *
 * Preliminary data preparation - participation
 * Author: Chanwool Kim
-* Date Created: 22 Mar 2017
-* Last Update: 4 Mar 2017
 * ------------------------------------------ *
 
 clear all
@@ -10,7 +8,7 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
+cd "$data_raw"
 use "std-ehs.dta", clear
 
 rename treat R
@@ -26,32 +24,26 @@ keep id program_type R D
 
 // refer to the ehs participation folder for additional code
 
-cd "$data_home"
-save ehs-home-participation, replace
+cd "$data_working"
+save ehs-participation, replace
 
-foreach t of global measure {
-	cd "$data_home"
-	use ehs-home-participation, clear
-	
-	cd "${data_`t'}"
-	save ehs-`t'-participation, replace
+use ehs-participation, clear
 
-	keep if program_type == 1
-	save ehscenter-`t'-participation, replace
+keep if program_type == 1
+save ehscenter-participation, replace
 
-	use ehs-`t'-participation, clear
-	keep if program_type == 2
-	save ehshome-`t'-participation, replace
+use ehs-participation, clear
+keep if program_type == 2
+save ehshome-participation, replace
 
-	use ehs-`t'-participation, clear
-	keep if program_type == 3
-	save ehsmixed-`t'-participation, replace
-}
+use ehs-participation, clear
+keep if program_type == 3
+save ehsmixed-participation, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "base-ihdp.dta", clear
 
 rename admin_treat treat
@@ -76,47 +68,25 @@ replace bwg = 0 if bwg_sumscore == "L"
 
 keep id bwg R D
 
-cd "$data_home"
-save ihdp-home-participation, replace
-
-foreach t of global measure {
-	cd "$data_home"
-	use ihdp-home-participation, clear
-	
-	cd "${data_`t'}"
-	
-	save ihdp-`t'-participation, replace
-	
-	keep if bwg == 1
-	save ihdphigh-`t'-participation, replace
-
-	use ihdp-`t'-participation, clear
-	keep if bwg == 0
-	save ihdplow-`t'-participation, replace
-}
+cd "$data_working"
+save ihdp-participation, replace
 
 * --------- *
 * Abecedarian
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "abc"
 keep id program R D P
 
-cd "$data_home"
-save abc-home-participation, replace
-
-cd "$data_labor"
-save abc-labor-participation, replace
-
-cd "$data_parent"
-save abc-parent-participation, replace
+cd "$data_working"
+save abc-participation, replace
 
 * -- *
 * CARE
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "care"
@@ -130,16 +100,10 @@ rename Dany D
 
 keep id program R D
 
-cd "$data_home"
-save care-home-participation, replace
+cd "$data_working"
+save care-participation, replace
 
-cd "$data_labor"
-save care-labor-participation, replace
-
-cd "$data_parent"
-save care-parent-participation, replace
-
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "care"
@@ -154,16 +118,10 @@ rename Dboth D
 
 keep id program R D
 
-cd "$data_home"
-save careboth-home-participation, replace
+cd "$data_working"
+save careboth-participation, replace
 
-cd "$data_labor"
-save careboth-labor-participation, replace
-
-cd "$data_parent"
-save careboth-parent-participation, replace
-
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "care"
@@ -178,11 +136,5 @@ rename Dhome D
 
 keep id R D program
 
-cd "$data_home"
-save carehome-home-participation, replace
-
-cd "$data_labor"
-save carehome-labor-participation, replace
-
-cd "$data_parent"
-save carehome-parent-participation, replace
+cd "$data_working"
+save carehome-participation, replace

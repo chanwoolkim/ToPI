@@ -26,16 +26,16 @@ foreach age of numlist 1 3 {
 	cd "$pile_working"
 	use agg-pile-`age', clear
 	
-	qui matrix by_program_`age' = J(`nrow', 2*`ncol_program', .)
-	qui matrix rownames by_program_`age' = `p_row_names'
+	qui matrix by_program_`age' = J(`nrow', 4*`ncol_program', .)
 
 	local col = 1
-	
+	local col_item = 1
+		
 	foreach p of global programs {
 		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval > 0.1
 		local num_count_insig = r(N)
 		qui matrix by_program_`age'[1,`col'] = `num_count_insig'
-		
+			
 		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
 		local num_count_0_1 = r(N)
 		qui matrix by_program_`age'[2,`col'] = `num_count_0_1'
@@ -48,6 +48,13 @@ foreach age of numlist 1 3 {
 		
 		local col = `col' + 1
 		
+		qui matrix by_program_`age'[1,`col'] = 0
+		qui matrix by_program_`age'[2,`col'] = 0
+		qui matrix by_program_`age'[3,`col'] = 0
+		qui matrix by_program_`age'[4,`col'] = 0
+		
+		local col = `col' + 1
+		
 		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval > 0.1
 		local num_count_insig = r(N)
 		qui matrix by_program_`age'[1,`col'] = `num_count_insig'
@@ -55,7 +62,7 @@ foreach age of numlist 1 3 {
 		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
 		local num_count_0_1 = r(N)
 		qui matrix by_program_`age'[2,`col'] = `num_count_0_1'
-
+		
 		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.05
 		local num_count_0_05 = r(N)
 		qui matrix by_program_`age'[3,`col'] = `num_count_0_05'
@@ -63,39 +70,106 @@ foreach age of numlist 1 3 {
 		qui matrix by_program_`age'[4,`col'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
 		
 		local col = `col' + 1
+		
+		qui matrix by_program_`age'[1,`col'] = 0
+		qui matrix by_program_`age'[2,`col'] = 0
+		qui matrix by_program_`age'[3,`col'] = 0
+		qui matrix by_program_`age'[4,`col'] = 0
+		
+		local col = `col' + 1
 	}
 
+	cd "$pile_working"
+	use item-pile-`age', clear
+	
+	qui matrix by_program_item_`age' = J(`nrow', 4*`ncol_program', .)
+
+	foreach p of global programs {
+		
+		qui matrix by_program_item_`age'[1,`col_item'] = 0
+		qui matrix by_program_item_`age'[2,`col_item'] = 0
+		qui matrix by_program_item_`age'[3,`col_item'] = 0
+		qui matrix by_program_item_`age'[4,`col_item'] = 0
+		
+		local col_item = `col_item' + 1
+		
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval > 0.1
+		local num_count_insig = r(N)
+		qui matrix by_program_item_`age'[1,`col_item'] = `num_count_insig'
+			
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
+		local num_count_0_1 = r(N)
+		qui matrix by_program_item_`age'[2,`col_item'] = `num_count_0_1'
+
+		qui count if `p'R_`age'coeff >= 0 & `p'R_`age'pval <= 0.05
+		local num_count_0_05 = r(N)
+		qui matrix by_program_item_`age'[3,`col_item'] = `num_count_0_05'
+		
+		qui matrix by_program_item_`age'[4,`col_item'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		
+		local col_item = `col_item' + 1
+		
+		qui matrix by_program_item_`age'[1,`col_item'] = 0
+		qui matrix by_program_item_`age'[2,`col_item'] = 0
+		qui matrix by_program_item_`age'[3,`col_item'] = 0
+		qui matrix by_program_item_`age'[4,`col_item'] = 0
+		
+		local col_item = `col_item' + 1
+		
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval > 0.1
+		local num_count_insig = r(N)
+		qui matrix by_program_item_`age'[1,`col_item'] = `num_count_insig'
+		
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
+		local num_count_0_1 = r(N)
+		qui matrix by_program_item_`age'[2,`col_item'] = `num_count_0_1'
+		
+		qui count if `p'R_`age'coeff < 0 & `p'R_`age'pval <= 0.05
+		local num_count_0_05 = r(N)
+		qui matrix by_program_item_`age'[3,`col_item'] = `num_count_0_05'
+		
+		qui matrix by_program_item_`age'[4,`col_item'] = `num_count_insig' + `num_count_0_1' + `num_count_0_05'
+		
+		local col_item = `col_item' + 1
+	}
+
+	matrix by_program_merge_`age' = by_program_`age' + by_program_item_`age'
+							
+	qui matrix rownames by_program_merge_`age' = `p_row_names'
+
 	cd "$pile_out"
-	frmttable using by_program_`age', statmat(by_program_`age') sdec(0) fragment tex replace nocenter
+	frmttable using by_program_`age', statmat(by_program_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
 
 	cd "$pile_git_out"
-	frmttable using by_program_`age', statmat(by_program_`age') sdec(0) fragment tex replace nocenter
+	frmttable using by_program_`age', statmat(by_program_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
 }
 
 * By scale
 cd "$pile_working"
 
 use agg-pile-1, clear
+sort scale_row
 keep *coeff
 xpose, clear
 rename v1 total_coeff
-rename v2 develop_coeff
-rename v3 hostility_coeff
-rename v4 learning_coeff
-rename v5 variety_coeff
+rename v2 learning_coeff
+rename v3 develop_coeff
+rename v4 variety_coeff
+rename v5 hostility_coeff
 rename v6 warmth_coeff
 gen row = _n
 tempfile coeff_1
 save "`coeff_1'", replace
 
 use agg-pile-1, clear
+sort scale_row
 keep *pval
 xpose, clear
 rename v1 total_pval
-rename v2 develop_pval
-rename v3 hostility_pval
-rename v4 learning_pval
-rename v5 variety_pval
+rename v2 learning_pval
+rename v3 develop_pval
+rename v4 variety_pval
+rename v5 hostility_pval
 rename v6 warmth_pval
 gen row = _n
 merge 1:1 row using "`coeff_1'", nogen nolabel
@@ -103,26 +177,28 @@ merge 1:1 row using "`coeff_1'", nogen nolabel
 save count-agg-pile-1, replace
 
 use agg-pile-3, clear
+sort scale_row
 keep *coeff
 xpose, clear
 rename v1 total_coeff
-rename v2 develop_coeff
-rename v3 hostility_coeff
-rename v4 learning_coeff
-rename v5 variety_coeff
+rename v2 learning_coeff
+rename v3 develop_coeff
+rename v4 variety_coeff
+rename v5 hostility_coeff
 rename v6 warmth_coeff
 gen row = _n
 tempfile coeff_3
 save "`coeff_3'", replace
 
 use agg-pile-3, clear
+sort scale_row
 keep *pval
 xpose, clear
 rename v1 total_pval
-rename v2 develop_pval
-rename v3 hostility_pval
-rename v4 learning_pval
-rename v5 variety_pval
+rename v2 learning_pval
+rename v3 develop_pval
+rename v4 variety_pval
+rename v5 hostility_pval
 rename v6 warmth_pval
 gen row = _n
 merge 1:1 row using "`coeff_3'", nogen nolabel

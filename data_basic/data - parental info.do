@@ -1,8 +1,6 @@
 * ---------------------------------------- *
 * Preliminary data preparation - parent info
 * Author: Chanwool Kim
-* Date Created: 26 Jan 2018
-* Last Update: 4 Mar 2018
 * ---------------------------------------- *
 
 clear all
@@ -10,7 +8,7 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
+cd "$data_raw"
 use "std-ehs.dta", clear
 
 * KIDI
@@ -19,13 +17,13 @@ rename B2P_KDC2		kidi_total24
 
 keep id treat kidi_*
 
-cd "$data_parent"
+cd "$data_working"
 save ehs-parent, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "merge-ihdp.dta", clear
 
 rename ihdp					id
@@ -193,13 +191,13 @@ foreach m of numlist 12 36 {
 
 keep id kidi_* kidi12_* kidi24_* sameroff_* sameroff12_* sameroff36_*
 
-cd "$data_parent"
+cd "$data_working"
 save ihdp-parent, replace
 
 * ------ *
 * ABC/CARE
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 * PARI
@@ -226,5 +224,5 @@ rename pase_educ5y6m		pase_educ66
 
 keep id treat program pari_* pari6_* pari18_* pase_*
 
-cd "$data_parent"
+cd "$data_working"
 save abc-parent, replace

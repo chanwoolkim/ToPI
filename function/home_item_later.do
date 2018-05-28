@@ -10,6 +10,7 @@ replace scale = "Opportunities for Variety" if question == "18" | question == "4
 replace scale = "Parental Warmth" if question == "17" | question == "26" | question == "30" | question == "31" | question == "32"
 
 gen scale_row = .
+replace scale_row = 1 if scale == "Total Score"
 replace scale_row = 2 if scale == "Learning Stimulation"
 replace scale_row = 3 if scale == "Development Materials"
 replace scale_row = 4 if scale == "Opportunities for Variety"

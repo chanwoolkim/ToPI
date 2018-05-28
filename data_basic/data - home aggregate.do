@@ -1,8 +1,6 @@
 * -------------------------------------------- *
 * Preliminary data preparation - HOME aggregates
 * Author: Chanwool Kim
-* Date Created: 11 Sep 2017
-* Last Update: 4 Mar 2017
 * -------------------------------------------- *
 
 * This aggregates items according to buying and doing (refer to treatment_effect/data/variable_match.xlsx.
@@ -12,11 +10,11 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
-use "std-ehs.dta", clear
-
 /*
 * HOME total score (deprecated)
+cd "$data_raw"
+use "std-ehs.dta", clear
+
 rename home_total14	home_total14
 rename home_total2	home_total24
 rename home_total3	home_total36
@@ -28,7 +26,7 @@ tempfile tmpehs
 save "`tmpehs'", replace
 */
 
-cd "$data_home"
+cd "$data_working"
 use "ehs-home-item", clear
 
 egen home_develop14 = rowmean(home14_7 home14_15 home14_16 home14_18 home14_19 home14_20 home14_21 home14_22 home14_23 home14_24 home14_43 home14_60 home14_727374)
@@ -44,7 +42,6 @@ egen home_total14 = rowmean(home14_7 home14_15 home14_16 home14_18 home14_19 hom
 							home14_64 home14_65 ///
 							home14_45 home14_52 home14_53 home14_54)
 							
-
 egen home_develop24 = rowmean(home24_7 home24_15 home24_16 home24_18 home24_19 home24_20 home24_21 home24_22 home24_23 home24_24 home24_43 home24_60)
 egen home_family24 = rowmean(home24_49 home24_51)
 gen home_housing24 = .
@@ -84,20 +81,19 @@ home_warmth*
 ;
 #delimit cr
 
-cd "$data_home"
 save ehs-home-agg, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+/*
+* HOME total score (deprecated)
+cd "$data_raw"
 use "base-ihdp.dta", clear
 
 rename admin_treat	treat
 rename ihdp			id
 
-/*
-* HOME total score (deprecated)
 rename homto_12_sumscore	home_total12
 rename homto_36_sumscore	home_total36
 
@@ -106,7 +102,7 @@ tempfile tmpihdp
 save "`tmpihdp'", replace
 */
 
-cd "$data_home"
+cd "$data_working"
 use "ihdp-home-item", clear
 
 egen home_develop12 = rowmean(home12_18 home12_19 home12_24 home12_25 home12_26 home12_27 home12_28 home12_30 home12_31 home12_32 home12_33 home12_34 home12_45)
@@ -148,17 +144,16 @@ home_warmth*
 ;
 #delimit cr
 
-cd "$data_home"
 save ihdp-home-agg, replace
 
 * ------ *
 * ABC/CARE
 
-cd "$data_abc"
-use "append-abccare.dta", clear
-
 /*
 * HOME total score (deprecated)
+cd "$data_raw"
+use "append-abccare.dta", clear
+
 rename home0y6m	home_total6
 rename home1y6m	home_total18
 rename home2y6m	home_total30
@@ -171,7 +166,7 @@ tempfile tmpabc
 save "`tmpabc'", replace
 */
 
-cd "$data_home"
+cd "$data_working"
 use "abc-home-item", clear
 
 egen home_develop6 = rowmean(home6_18 home6_19 home6_24 home6_25 home6_26 home6_27 home6_28 home6_30 home6_31 home6_32 home6_33 home6_34 home6_45)
@@ -252,5 +247,4 @@ home_warmth*
 ;
 #delimit cr
 
-cd "$data_home"
 save abc-home-agg, replace

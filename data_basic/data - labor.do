@@ -1,8 +1,6 @@
 * ------------------------------------------- *
 * Preliminary data preparation - labor measures
 * Author: Chanwool Kim
-* Date Created: 29 Jun 2017
-* Last Update: 4 Mar 2017
 * ------------------------------------------- *
 
 clear all
@@ -10,7 +8,7 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
+cd "$data_raw"
 use "std-ehs.dta", clear
 
 * Household total income
@@ -34,13 +32,13 @@ labor_m_work*
 ;
 #delimit cr
 
-cd "$data_labor"
-save ehs-labor-item, replace
+cd "$data_working"
+save ehs-labor, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "base-ihdp.dta", clear
 
 rename admin_treat	treat
@@ -130,13 +128,13 @@ rename *5y		*60
 rename *6y6m	*78
 rename *8y		*96
 
-cd "$data_labor"
-save ihdp-labor-item, replace
+cd "$data_working"
+save ihdp-labor, replace
 
 * --------- *
 * Abecedarian
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 * Household total income
@@ -181,5 +179,5 @@ rename *15y		*180
 rename *5y		*60
 rename *21y		*252
 
-cd "$data_labor"
-save abc-labor-item, replace
+cd "$data_working"
+save abc-labor, replace

@@ -1,8 +1,6 @@
 * ------------------------------------- *
 * Preliminary data preparation - outcomes
 * Author: Chanwool Kim
-* Date Created: 4 Mar 2018
-* Last Update: 4 Mar 2018
 * ------------------------------------- *
 
 clear all
@@ -10,7 +8,7 @@ clear all
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
+cd "$data_raw"
 use "std-ehs.dta", clear
 
 * PPVT
@@ -27,13 +25,13 @@ ppvt120
 ;
 #delimit cr
 
-cd "${data_outcome}"
+cd "$data_working"
 save ehs-outcome, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "base-ihdp.dta", clear
 
 drop if missing(pag)
@@ -61,13 +59,13 @@ sb36
 ;
 #delimit cr
 
-cd "${data_outcome}"
+cd "$data_working"
 save ihdp-outcome, replace
 
 * - *
 * ABC
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 * SB
@@ -88,5 +86,5 @@ sb84
 ;
 #delimit cr
 
-cd "${data_outcome}"
+cd "$data_working"
 save abc-outcome, replace
