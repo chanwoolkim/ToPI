@@ -7,6 +7,6 @@ marker(4,msize(small) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(5,ms
 marker(7,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(8,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(9,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
 marker(10,msize(small) msymbol(O) mlc(purple) mfc(purple*0) mlw(vthin)) marker(11,msize(small) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(vthin)) marker(12,msize(small) msymbol(O) mlc(purple) mfc(purple) mlw(vthin)) ///
 over(question, label(labsize(tiny)) sort(scale_row)) ///
-legend (order (3 "EHS" 6 "IHDP" 9 "ABC" 12 "CARE") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+legend (order (3 "EHS" 6 "IHDP" 9 "ABC" 12 "CARE") size(vsmall)) yline(0) ylabel(#4, labsize(vsmall)) ///
 ylabel($item_axis_range) ///
 ysize(11) xsize(8.5) graphregion(fcolor(white))

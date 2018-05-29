@@ -112,15 +112,15 @@ cd "${code_path}/pile"
 	include "treatment - outcome pile"
 cd "${code_path}/pile"
 	include "treatment - aggregate pile"
-*cd "${code_path}/pile"
-*	include "treatment - aggregate pile (substitution)"
+cd "${code_path}/pile"
+	include "treatment - aggregate pile (substitution)"
 cd "${code_path}/pile"
 	include "treatment - item pile"
 cd "${code_path}/pile"
 	include "treatment - parent item pile"
 cd "${code_path}/pile"
 	include "treatment - pile (comparison)"
-	
+
 * ------------ *
 * Homogenisation
 

@@ -1,8 +1,6 @@
 * -------------------------------------------- *
 * Graphs of treatment effects - parent item pile
 * Author: Chanwool Kim
-* Date Created: 3 Feb 2018
-* Last Update: 4 Mar 2018
 * -------------------------------------------- *
 
 clear all
@@ -16,23 +14,23 @@ local 2_row = 17
 
 foreach age of numlist 1 2 {
 
-cd "$pile_working"
-use "ihdp-parent-pile.dta", clear
+	cd "$data_analysis"
+	use "ihdp-parent-pile.dta", clear
 
-* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-qui matrix ihdpR_`age' = J(``age'_row', 5, .) // for randomisation variable
+	* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
+	qui matrix ihdpR_`age' = J(``age'_row', 5, .) // for randomisation variable
 
-qui matrix colnames ihdpR_`age' = ihdpR_`age'num ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
+	qui matrix colnames ihdpR_`age' = ihdpR_`age'num ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
 
-local row_`age' = 1
+	local row_`age' = 1
 
 	* Loop over rows to fill in values into the empty matrix.
 
 	forvalues r = 1/``age'_row' {
 		qui matrix ihdpR_`age'[`row_`age'',1] = `row_`age''
-				
+
 		capture confirm variable kidi`age'y_`r'
-			if !_rc {
+		if !_rc {
 			* Randomisation variable
 			qui regress kidi`age'y_`r' R $covariates if !missing(D)
 			* r(table) stores values from regression (ex. coeff, var, CI).
@@ -43,23 +41,23 @@ local row_`age' = 1
 			qui matrix ihdpR_`age'[`row_`age'',3] = r[5,1]
 			qui matrix ihdpR_`age'[`row_`age'',4] = r[6,1]
 			qui matrix ihdpR_`age'[`row_`age'',5] = r[4,1]
-						
+
 			local row_`age' = `row_`age'' + 1
-			}
-					
-			else {
+		}
+
+		else {
 			local row_`age' = `row_`age'' + 1
-			}
+		}
 	}
 
-svmat ihdpR_`age', names(col)
-rename ihdpR_`age'num row_`age'
-keep row_`age' ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
-keep if row_`age' != .
-save "ihdp-pile-kidi-`age'", replace
+	svmat ihdpR_`age', names(col)
+	rename ihdpR_`age'num row_`age'
+	keep row_`age' ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
+	keep if row_`age' != .
+	save "ihdp-pile-kidi-`age'", replace
 }
 
-cd "$pile_working"
+cd "$data_analysis"
 
 use ihdp-pile-kidi-1, clear
 rename row_1 row
@@ -75,23 +73,23 @@ local 3_row = 20
 
 foreach age of numlist 1 3 {
 
-cd "$pile_working"
-use "ihdp-parent-pile.dta", clear
+	cd "$data_analysis"
+	use "ihdp-parent-pile.dta", clear
 
-* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-qui matrix ihdpR_`age' = J(``age'_row', 5, .) // for randomisation variable
+	* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
+	qui matrix ihdpR_`age' = J(``age'_row', 5, .) // for randomisation variable
 
-qui matrix colnames ihdpR_`age' = ihdpR_`age'num ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
+	qui matrix colnames ihdpR_`age' = ihdpR_`age'num ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
 
-local row_`age' = 1
+	local row_`age' = 1
 
 	* Loop over rows to fill in values into the empty matrix.
 
 	forvalues r = 1/``age'_row' {
 		qui matrix ihdpR_`age'[`row_`age'',1] = `row_`age''
-			
+
 		capture confirm variable norm_sameroff`age'y_`r'
-			if !_rc {
+		if !_rc {
 			* Randomisation variable
 			qui regress norm_sameroff`age'y_`r' R $covariates if !missing(D)
 			* r(table) stores values from regression (ex. coeff, var, CI).
@@ -102,23 +100,23 @@ local row_`age' = 1
 			qui matrix ihdpR_`age'[`row_`age'',3] = r[5,1]
 			qui matrix ihdpR_`age'[`row_`age'',4] = r[6,1]
 			qui matrix ihdpR_`age'[`row_`age'',5] = r[4,1]
-				
+
 			local row_`age' = `row_`age'' + 1
-			}
-				
-			else {
+		}
+
+		else {
 			local row_`age' = `row_`age'' + 1
-			}
+		}
 	}
 
-svmat ihdpR_`age', names(col)
-rename ihdpR_`age'num row_`age'
-keep row_`age' ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
-keep if row_`age' != .
-save "ihdp-pile-sameroff-`age'", replace
+	svmat ihdpR_`age', names(col)
+	rename ihdpR_`age'num row_`age'
+	keep row_`age' ihdpR_`age'coeff ihdpR_`age'lower ihdpR_`age'upper ihdpR_`age'pval
+	keep if row_`age' != .
+	save "ihdp-pile-sameroff-`age'", replace
 }
 
-cd "$pile_working"
+cd "$data_analysis"
 
 * Randomisation
 
@@ -147,40 +145,40 @@ local 2_row = 55
 foreach p in abc {
 	foreach age of numlist 1 2 {
 
-	cd "$pile_working"
-	use "`p'-parent-pile.dta", clear
+		cd "$data_analysis"
+		use "`p'-parent-pile.dta", clear
 
-	* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-	qui matrix `p'R_`age' = J(``age'_row', 5, .) // for randomisation variable
+		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
+		qui matrix `p'R_`age' = J(``age'_row', 5, .) // for randomisation variable
 
-	qui matrix colnames `p'R_`age' = `p'R_`age'num `p'R_`age'coeff `p'R_`age'lower `p'R_`age'upper `p'R_`age'pval
+		qui matrix colnames `p'R_`age' = `p'R_`age'num `p'R_`age'coeff `p'R_`age'lower `p'R_`age'upper `p'R_`age'pval
 
-	local row_`age' = 1
+		local row_`age' = 1
 
-	* Loop over rows to fill in values into the empty matrix.
+		* Loop over rows to fill in values into the empty matrix.
 
 		forvalues r = 1/``age'_row' {
 			qui matrix `p'R_`age'[`row_`age'',1] = `row_`age''
-				
+
 			capture confirm variable norm_pari`age'y_`r'
-				if !_rc {
+			if !_rc {
 				* Randomisation variable
 				qui regress norm_pari`age'y_`r' R $covariates if !missing(D)
 				* r(table) stores values from regression (ex. coeff, var, CI).
 				qui matrix list r(table)
 				qui matrix r = r(table)
-				
+
 				qui matrix `p'R_`age'[`row_`age'',2] = r[1,1]
 				qui matrix `p'R_`age'[`row_`age'',3] = r[5,1]
 				qui matrix `p'R_`age'[`row_`age'',4] = r[6,1]
 				qui matrix `p'R_`age'[`row_`age'',5] = r[4,1]					
-				
+
 				local row_`age' = `row_`age'' + 1
-				}
-					
-				else {
+			}
+
+			else {
 				local row_`age' = `row_`age'' + 1
-				}
+			}
 		}
 
 		svmat `p'R_`age', names(col)
@@ -191,7 +189,7 @@ foreach p in abc {
 	}
 }
 
-cd "$pile_working"
+cd "$data_analysis"
 
 * Randomisation
 
@@ -208,7 +206,7 @@ save abc-pari-pile-2, replace
 * --------*
 * Questions
 
-cd "$pile_working"
+cd "$data_analysis"
 
 use ihdp-kidi-pile-1, clear
 
@@ -262,9 +260,9 @@ save ihdp-kidi-pile-2, replace
 
 foreach age of numlist 1 3 {
 	use ihdp-sameroff-pile-`age', clear
-	
+
 	tostring row, gen(scale_num)
-	
+
 	replace scale = "Children have to be treated differently as they grow older" if scale_num == "1"
 	replace scale = "Parents must keep to their standards and rules no matter what their child is like" if scale_num == "2"
 	replace scale = "It is not easy to define a good home because a good home is made up of many different things" if scale_num == "3"
@@ -357,14 +355,15 @@ foreach age of numlist 1 2 {
 * Execution - P-value
 
 foreach age of numlist 1 2 {
+
 	* IHDP KIDI	
-	cd "$pile_working"
+	cd "$data_analysis"
 	use ihdp-kidi-pile-`age', clear
-	
+
 	if "`age'" == "2" {
 		drop if inlist(row, 1, 5)
 	}
-	
+
 	gen inv_ihdpRcoeff = ihdpR_`age'coeff * -1
 	gen ihdpRinsig = .
 	gen ihdpR0_1 = .
@@ -372,24 +371,24 @@ foreach age of numlist 1 2 {
 	replace ihdpRinsig = ihdpR_`age'coeff if ihdpR_`age'pval > 0.1
 	replace ihdpR0_1 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.1 & ihdpR_`age'pval > 0.05
 	replace ihdpR0_05 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.05
-		
+
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-	marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
-	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-	legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
-	ylabel($item_axis_range) ///
-	graphregion(fcolor(white))
+		marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+		over(scale, label(labsize(vsmall)) sort(scale_num)) ///
+		legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+		ylabel($item_axis_range) ///
+		graphregion(fcolor(white))
 
 	cd "$pile_out"
 	graph export "ihdp_kidi_pile_R_`age'.pdf", replace
-	
+
 	cd "$pile_git_out"
 	graph export "ihdp_kidi_pile_R_`age'.png", replace
 
 	* ABC/CARE PARI
-	cd "$pile_working"
+	cd "$data_analysis"
 	use abc-pari-pile-`age', clear
-	
+
 	foreach p in abc {
 		gen inv_`p'Rcoeff = `p'R_`age'coeff * -1
 		gen `p'Rinsig = .
@@ -401,24 +400,24 @@ foreach age of numlist 1 2 {
 	}
 
 	graph dot abcRinsig abcR0_1 abcR0_05, ///
-	marker(1,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(2,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(3,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
-	over(scale, label(labsize(tiny)) sort(scale_num)) ///
-	legend (order (3 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
-	ylabel($item_axis_range) ///
-	graphregion(fcolor(white))
-	
+		marker(1,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(2,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(3,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
+		over(scale, label(labsize(tiny)) sort(scale_num)) ///
+		legend (order (3 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
+		ylabel($item_axis_range) ///
+		graphregion(fcolor(white))
+
 	cd "$pile_out"
 	graph export "abccare_pari_pile_R_`age'.pdf", replace
-	
+
 	cd "$pile_git_out"
 	graph export "abccare_pari_pile_R_`age'.png", replace
 }
 
 foreach age of numlist 1 3 {
 	* IHDP Sameroff	
-	cd "$pile_working"
+	cd "$data_analysis"
 	use ihdp-sameroff-pile-`age', clear
-	
+
 	gen inv_ihdpRcoeff = ihdpR_`age'coeff * -1
 	gen ihdpRinsig = .
 	gen ihdpR0_1 = .
@@ -426,23 +425,23 @@ foreach age of numlist 1 3 {
 	replace ihdpRinsig = ihdpR_`age'coeff if ihdpR_`age'pval > 0.1
 	replace ihdpR0_1 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.1 & ihdpR_`age'pval > 0.05
 	replace ihdpR0_05 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.05
-	
+
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-	marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
-	over(scale, label(labsize(tiny)) sort(scale_num)) ///
-	legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
-	ylabel($item_axis_range) ///
-	graphregion(fcolor(white))
-	
+		marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+		over(scale, label(labsize(tiny)) sort(scale_num)) ///
+		legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
+		ylabel($item_axis_range) ///
+		graphregion(fcolor(white))
+
 	cd "$pile_out"
 	graph export "ihdp_sameroff_pile_R_`age'.pdf", replace
-	
+
 	cd "$pile_git_out"
 	graph export "ihdp_sameroff_pile_R_`age'.png", replace
 }
 
 * IHDP Belief
-cd "$pile_working"
+cd "$data_analysis"
 use ihdp-kidi-pile-2, clear
 rename ihdpR_2coeff ihdpR_coeff
 rename ihdpR_2pval ihdpR_pval
@@ -460,7 +459,7 @@ append using "`tmp_kidi'"
 
 replace scale = "Way infant is brought up will have little effect on intelligence" if row == 1
 replace scale = "The baby's personality is set by 6mo" if row == 5
-replace scale = "Child's school success depends on how mother taught at home" if row == 14
+replace scale = "Child's school success depends on mother's teach at home" if row == 14
 
 gen inv_ihdpRcoeff = ihdpR_coeff * -1
 gen ihdpRinsig = .
@@ -469,16 +468,16 @@ gen ihdpR0_05 = .
 replace ihdpRinsig = ihdpR_coeff if ihdpR_pval > 0.1
 replace ihdpR0_1 = ihdpR_coeff if ihdpR_pval <= 0.1 & ihdpR_pval > 0.05
 replace ihdpR0_05 = ihdpR_coeff if ihdpR_pval <= 0.05
-	
+
 graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-marker(1,msize(vhuge) msymbol(O) mlc(green) mfc(green*0) mlw(thick)) marker(2,msize(vhuge) msymbol(O) mlc(green) mfc(green*0.5) mlw(thick)) marker(3,msize(vhuge) msymbol(O) mlc(green) mfc(green) mlw(thick)) ///
-over(scale, label(labsize(vlarge)) sort(scale_num)) ///
-legend (order (3 "IHDP") size(large)) yline(0) ylabel(#6, labsize(large)) ///
-ylabel($item_axis_range) ysize(1) xsize(2.5) ///
-graphregion(fcolor(white))
-	
+	marker(1,msize(vhuge) msymbol(O) mlc(green) mfc(green*0) mlw(thick)) marker(2,msize(vhuge) msymbol(O) mlc(green) mfc(green*0.5) mlw(thick)) marker(3,msize(vhuge) msymbol(O) mlc(green) mfc(green) mlw(thick)) ///
+	over(scale, label(labsize(vlarge)) sort(scale_num)) ///
+	legend (order (3 "IHDP") size(large)) yline(0) ylabel(#6, labsize(large)) ///
+	ylabel($item_axis_range) ysize(1) xsize(2.5) ///
+	graphregion(fcolor(white))
+
 cd "$pile_out"
 graph export "ihdp_belief_pile_R.pdf", replace
-	
+
 cd "$pile_git_out"
 graph export "ihdp_belief_pile_R.png", replace

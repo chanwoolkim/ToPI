@@ -13,6 +13,6 @@ marker(13,msize(large) msymbol(S) mlc(blue) mfc(blue*0) mlw(thick)) marker(14,ms
 marker(16,msize(large) msymbol(D) mlc(purple) mfc(purple*0) mlw(thick)) marker(17,msize(large) msymbol(D) mlc(purple) mfc(purple*0.5) mlw(thick)) marker(18,msize(large) msymbol(D) mlc(purple) mfc(purple) mlw(thick)) ///
 marker(19,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thick)) marker(20,msize(large) msymbol(T) mlc(purple) mfc(purple*0.5) mlw(thick)) marker(21,msize(large) msymbol(T) mlc(purple) mfc(purple) mlw(thick)) ///
 over(scale, label(labsize(large)) sort(scale_row)) ///
-legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC" 18 "CARE-Both" 21 "CARE-Home") size(medsmall)) yline(0) ylabel(#6, labsize(medsmall)) ///
+legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC" 18 "CARE-Both" 21 "CARE-Home") size(medsmall)) yline(0) ylabel(#7, labsize(medsmall)) ///
 ylabel($agg_axis_range) ///
 graphregion(fcolor(white))

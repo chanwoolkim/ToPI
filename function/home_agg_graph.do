@@ -7,6 +7,6 @@ marker(4,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thick)) marker(5,ms
 marker(7,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thick)) marker(8,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thick)) marker(9,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thick)) ///
 marker(10,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thick)) marker(11,msize(large) msymbol(O) mlc(purple) mfc(purple*0.5) mlw(thick)) marker(12,msize(large) msymbol(O) mlc(purple) mfc(purple) mlw(thick)) ///
 over(scale, label(labsize(large)) sort(scale_row)) ///
-legend (order (3 "EHS" 6 "IHDP" 9 "ABC" 12 "CARE") size(medsmall)) yline(0) ylabel(#6, labsize(medsmall)) ///
+legend (order (3 "EHS" 6 "IHDP" 9 "ABC" 12 "CARE") size(medsmall)) yline(0) ylabel(#4, labsize(medsmall)) ///
 ylabel($agg_axis_range) ///
 graphregion(fcolor(white))
