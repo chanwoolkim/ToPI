@@ -1,8 +1,6 @@
 * ------------------------------------------------------- *
 * Treatment effects - population homogenisation (aggregate)
 * Author: Chanwool Kim
-* Date Created: 14 Sep 2017
-* Last Update: 3 Mar 2018
 * ------------------------------------------------------- *
 
 clear all
@@ -11,16 +9,16 @@ clear all
 * Define macros for abstraction
 
 /*
-Weights: benchmark is ABC
+   Weights: benchmark is ABC
 
-Mother's age: 1 Adult 0 Teenage
-Mother's education: 1 Graduated high school or above 0 Some high school or below
-Poverty: 1 Over poverty line 0 Under poverty line
-Race: 1 White 0 Non-white
+   Mother's age: 1 Adult 0 Teenage
+   Mother's education: 1 Graduated high school or above 0 Some high school or below
+   Poverty: 1 Over poverty line 0 Under poverty line
+   Race: 1 White 0 Non-white
 */
 
-cd "$homo_working"
-use distribution_D, clear
+cd "$data_analysis"
+use distribution_homo_D, clear
 mkmat abc
 
 local abc_D_1 = abc[1,1]
@@ -59,194 +57,109 @@ local cond_16 "m_age_g == 1 & m_edu_g == 1 & poverty == 1 & race_g == 1"
 
 local cond_all "sibling != . & m_iq != . & sex != . & gestage != . & mf != . & !missing(D)"
 
+local nrow : list sizeof global(home_types)
+
 * ------------ *
 * Prepare matrix
 
-foreach p of global programs {
+foreach age of numlist 1 3 {
+	foreach p of global programs {
 
-cd "$homo_working"
-use "`p'-home-homo-merge.dta", clear
+		cd "$data_analysis"
+		use "`p'-homo-merge.dta", clear
 
-* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-qui matrix `p'R_1 = J(7, 3, .) // for randomisation variable
-qui matrix `p'R_3 = J(8, 3, .) // for randomisation variable
+		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
+		qui matrix `p'R_`age' = J(`nrow', 3, .) // for randomisation variable
 
-qui matrix colnames `p'R_1 = `p'R_1num `p'R_1coeff `p'R_1pval
-qui matrix colnames `p'R_3 = `p'R_3num `p'R_3coeff `p'R_3pval
+		qui matrix colnames `p'R_`age' = `p'R_`age'num `p'R_`age'coeff `p'R_`age'pval
 
-local row_1 = 1
-local row_3 = 1
+		local row_`age' = 1
 
-	* Loop over rows to fill in values into the empty matrix.
-	foreach r of global early_home_types {
-		qui matrix `p'R_1[`row_1',1] = `row_1'
-		
-		* Create weights
-		qui gen w_1_`row_1' = .
-		
-		capture confirm variable norm_home_`r'1y
+		* Loop over rows to fill in values into the empty matrix.
+		foreach r of global home_types {
+			qui matrix `p'R_`age'[`row_`age'',1] = `row_`age''
+
+			* Create weights
+			qui gen w_`age'_`row_`age'' = .
+
+			capture confirm variable norm_home_`r'`age'y
 			if !_rc {
 				di "`p'_`r'"
 				forvalues i = 1/16 {
-					qui count if norm_home_`r'1y != . & `cond_`i'' & `cond_all'
+					qui count if norm_home_`r'`age'y != . & `cond_`i'' & `cond_all'
 					local num_count_`i' = r(N)
-					qui replace w_1_`row_1' = `abc_D_`i''/`num_count_`i'' if norm_home_`r'1y != . & `cond_`i'' & `cond_all'
+					qui replace w_`age'_`row_`age'' = `abc_D_`i''/`num_count_`i'' if norm_home_`r'`age'y != . & `cond_`i'' & `cond_all'
 				}
-	
-			* Run regression
-			qui regress norm_home_`r'1y R $covariates [pweight=w_1_`row_1']
-			* r(table) stores values from regression (ex. coeff, var, CI).
-			qui matrix list r(table)
-			qui matrix r = r(table)
-			
-			qui matrix `p'R_1[`row_1',2] = r[1,1]
-			qui matrix `p'R_1[`row_1',3] = r[4,1]
-					
-			local row_1 = `row_1' + 1
+
+				* Run regression
+				qui regress norm_home_`r'`age'y R $covariates [pweight=w_`age'_`row_`age'']
+				* r(table) stores values from regression (ex. coeff, var, CI).
+				qui matrix list r(table)
+				qui matrix r = r(table)
+
+				qui matrix `p'R_`age'[`row_`age'',2] = r[1,1]
+				qui matrix `p'R_`age'[`row_`age'',3] = r[4,1]
+
+				local row_`age' = `row_`age'' + 1
 			}
 
 			else {
-			local row_1 = `row_1' + 1
+				local row_`age' = `row_`age'' + 1
 			}
+		}
+
+		cd "$data_analysis"
+
+		svmat `p'R_`age', names(col)
+		rename `p'R_`age'num row_`age'
+		keep row_`age' `p'R_`age'coeff `p'R_`age'pval
+		keep if row_`age' != .
+		save "`p'-homo-agg-`age'", replace
 	}
 
-	* Loop over rows to fill in values into the empty matrix.
-	foreach r of global later_home_types {
-		qui matrix `p'R_3[`row_3',1] = `row_3'
-		
-		* Create weights
-		qui gen w_3_`row_3' = .
-		
-		capture confirm variable norm_home_`r'3y
-			if !_rc {
-				di "`p'_`r'"
-				forvalues i = 1/16 {
-					qui count if norm_home_`r'3y != . & `cond_`i'' & `cond_all'
-					local num_count_`i' = r(N)
-					qui replace w_3_`row_3' = `abc_D_`i''/`num_count_`i'' if norm_home_`r'3y != . & `cond_`i'' & `cond_all'
-				}
-	
-			* Run regression
-			qui regress norm_home_`r'3y R $covariates [pweight=w_3_`row_3']
-			* r(table) stores values from regression (ex. coeff, var, CI).
-			qui matrix list r(table)
-			qui matrix r = r(table)
-			
-			qui matrix `p'R_3[`row_3',2] = r[1,1]
-			qui matrix `p'R_3[`row_3',3] = r[4,1]
-					
-			local row_3 = `row_3' + 1
-			}
+	cd "$data_analysis"
 
-			else {
-			local row_3 = `row_3' + 1
-			}
+	use ehscenter-homo-agg-`age', clear
+
+	foreach p of global programs {
+		merge 1:1 row_`age' using `p'-homo-agg-`age', nogen nolabel
 	}
 
-cd "$homo_working"
-
-svmat `p'R_1, names(col)
-rename `p'R_1num row_1
-keep row_1 `p'R_1coeff `p'R_1pval
-keep if row_1 != .
-save "`p'-homo-agg-1", replace
-
-svmat `p'R_3, names(col)
-rename `p'R_3num row_3
-keep row_3 `p'R_3coeff `p'R_3pval
-keep if row_3 != .
-save "`p'-homo-agg-3", replace
+	rename row_`age' row
+	save agg-homo-`age', replace
 }
-
-cd "$homo_working"
-
-use ehscenter-homo-agg-1, clear
-
-foreach p of global programs {
-	merge 1:1 row_1 using `p'-homo-agg-1, nogen nolabel
-}
-
-rename row_1 row
-save agg-homo-1, replace
-
-use ehscenter-homo-agg-3, clear
-
-foreach p of global programs {
-	merge 1:1 row_3 using `p'-homo-agg-3, nogen nolabel
-}
-
-rename row_3 row
-save agg-homo-3, replace
 
 * --------*
 * Questions
 
-cd "$homo_working"
-
-use agg-homo-1, clear
-
-tostring row, gen(scale_num)
-
-replace scale = "Total Score" if scale_num == "1"
-replace scale = "Development Materials" if scale_num == "2"
-replace scale = "Family Culture" if scale_num == "3"
-replace scale = "Lack of Hostility" if scale_num == "4"
-replace scale = "Learning Stimulation" if scale_num == "5"
-replace scale = "Opportunities for Variety" if scale_num == "6"
-replace scale = "Warmth" if scale_num == "7"
-
-save agg-homo-1, replace
-
-use agg-homo-3, clear
-
-tostring row, gen(scale_num)
-
-replace scale = "Total Score" if scale_num == "1"
-replace scale = "Development Materials" if scale_num == "2"
-replace scale = "Family Culture" if scale_num == "3"
-replace scale = "Housing" if scale_num == "4"
-replace scale = "Lack of Hostility" if scale_num == "5"
-replace scale = "Learning Stimulation" if scale_num == "6"
-replace scale = "Opportunities for Variety" if scale_num == "7"
-replace scale = "Warmth" if scale_num == "8"
-
-save agg-homo-3, replace
+foreach age of numlist 1 3 {
+	cd "$data_analysis"
+	use agg-homo-`age', clear
+	include "${code_path}/function/home_agg"
+	save agg-homo-`age', replace
+}
 
 * ----------------- *
 * Execution - P-value
 
 foreach age of numlist 1 3 {
-	cd "$homo_working"
+	cd "$data_analysis"
 	use agg-homo-`age', clear
-	
-	foreach p of global programs {
-		gen inv_`p'Rcoeff = `p'R_`age'coeff * -1
-		gen `p'Rinsig = .
-		gen `p'R0_1 = .
-		gen `p'R0_05 = .
-		replace `p'Rinsig = `p'R_`age'coeff if `p'R_`age'pval > 0.1
-		replace `p'R0_1 = `p'R_`age'coeff if `p'R_`age'pval <= 0.1 & `p'R_`age'pval > 0.05
-		replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
-	}
+	include "${code_path}/function/significance"
 
-	graph dot ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
-			  ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
-			  ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05 ///
-			  ihdpRinsig ihdpR0_1 ihdpR0_05 ///
-			  abcRinsig abcR0_1 abcR0_05, ///
-	marker(1,msize(large) msymbol(D) mlc(red) mfc(red*0) mlw(thin)) marker(2,msize(large) msymbol(D) mlc(red) mfc(red*0.5) mlw(thin)) marker(3,msize(large) msymbol(D) mlc(red) mfc(red) mlw(thin)) ///
-	marker(4,msize(large) msymbol(T) mlc(red) mfc(red*0) mlw(thin)) marker(5,msize(large) msymbol(T) mlc(red) mfc(red*0.5) mlw(thin)) marker(6,msize(large) msymbol(T) mlc(red) mfc(red) mlw(thin)) ///
-	marker(7,msize(large) msymbol(S) mlc(red) mfc(red*0) mlw(thin)) marker(8,msize(large) msymbol(S) mlc(red) mfc(red*0.5) mlw(thin)) marker(9,msize(large) msymbol(S) mlc(red) mfc(red) mlw(thin)) ///
-	marker(10,msize(large) msymbol(O) mlc(green) mfc(green*0) mlw(thin)) marker(11,msize(large) msymbol(O) mlc(green) mfc(green*0.5) mlw(thin)) marker(12,msize(large) msymbol(O) mlc(green) mfc(green) mlw(thin)) ///
-	marker(13,msize(large) msymbol(O) mlc(blue) mfc(blue*0) mlw(thin)) marker(14,msize(large) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(thin)) marker(15,msize(large) msymbol(O) mlc(blue) mfc(blue) mlw(thin)) ///
-	over(scale, label(labsize(vsmall)) sort(scale_num)) ///
-	legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
-	ylabel($agg_axis_range) ///
-	graphregion(fcolor(white))
-	
+	include "${code_path}/function/home_agg_graph"
+
 	cd "${homo_out}/home"
 	graph export "agg_homo_R_`age'.pdf", replace
 
 	cd "${homo_git_out}/home"
 	graph export "agg_homo_R_`age'.png", replace
+
+	include "${code_path}/function/home_agg_graph_sep"
+
+	cd "${homo_out}/home"
+	graph export "agg_homo_R_`age'_sep.pdf", replace
+
+	cd "${homo_git_out}/home"
+	graph export "agg_homo_R_`age'_sep.png", replace
 }

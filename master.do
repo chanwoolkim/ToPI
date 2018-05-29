@@ -130,17 +130,17 @@ cd "${code_path}/homogenisation"
 	include "data - homo (merge)"
 cd "${code_path}/homogenisation"
 	include "data - homo (table)"
-*cd "${code_path}/homogenisation"
-*	include "treatment - homogenisation (table)"
+cd "${code_path}/homogenisation"
+	include "treatment - homogenisation (table)"
 cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (aggregate)"
 cd "${code_path}/homogenisation"
 	include "treatment - homogenisation (item)"
-*cd "${code_path}/homogenisation"
-*	include "treatment - homogenisation (comparison)"
+cd "${code_path}/homogenisation"
+	include "treatment - homogenisation (comparison)"
 cd "${code_path}/homogenisation"
 	include "comparison - aggregate"
-	
+
 * ----------- *
 * Subpopulation
 

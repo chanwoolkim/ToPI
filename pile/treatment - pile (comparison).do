@@ -11,7 +11,7 @@ clear all
 local p_row_names	""Insig" "Moderate" "Statistical" "Total""
 local nrow : list sizeof local(p_row_names)
 local ncol_program : list sizeof global(programs)
-local ncol_scale : list sizeof global(early_home_types)
+local ncol_scale : list sizeof global(home_types)
 
 * ---------------------------- *
 * Execution - Summary of Results

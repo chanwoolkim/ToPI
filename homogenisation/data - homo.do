@@ -1,8 +1,6 @@
 * ------------------------------- *
 * Data preparation - homogenisation
 * Author: Chanwool Kim
-* Date Created: 4 Jul 2017
-* Last Update: 15 Nov 2017
 * ------------------------------- *
 
 clear all
@@ -15,7 +13,7 @@ label define race 1 "White" 0 "Non-white"
 * -------------- *
 * Early Head Start
 
-cd "$data_ehs"
+cd "$data_raw"
 use "std-ehs.dta", clear
 
 * Income
@@ -25,8 +23,8 @@ label val poverty pov
 
 keep id treat poverty
 
-cd "$data_home"
-merge 1:1 id using "ehs-home-control", nogen nolabel
+cd "$data_working"
+merge 1:1 id using "ehs-control", nogen nolabel
 
 * Mother's age
 gen m_age_g = .
@@ -49,13 +47,13 @@ replace race_g = 0 if race >= 2 & !missing(race)
 label var race_g "Race (estimated from mother's race)"
 label val race_g race
 
-cd "$homo_working"
+cd "$data_working"
 save ehs-control-homo, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program
 
-cd "$data_ihdp"
+cd "$data_raw"
 use "base-ihdp.dta", clear
 
 rename admin_treat	treat
@@ -100,8 +98,8 @@ replace poverty = 0 if income <= 28650 & hh_num == 14
 label var poverty "Poverty line"
 label val poverty pov
 
-cd "$data_home"
-merge 1:1 id using "ihdp-home-control", nogen nolabel
+cd "$data_working"
+merge 1:1 id using "ihdp-control", nogen nolabel
 
 * Mother's age
 gen m_age_g = .
@@ -125,13 +123,13 @@ replace race_g = 0 if race >= 3 & !missing(race)
 label var race_g "Race (estimated from mother's race)"
 label val race_g race
 
-cd "$homo_working"
+cd "$data_working"
 save ihdp-control-homo, replace
 
 * --------- *
 * Abecedarian
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "abc"
@@ -141,27 +139,27 @@ rename f_home0y f_home
 gen hh_child = hh_sibs_base + 1
 
 /*
-Notes
------
-The income codes come from the preschool codebooks. They define the codes as follows:
+   Notes
+   -----
+   The income codes come from the preschool codebooks. They define the codes as follows:
 
-	1  = No income
-	2  = Under $1000
-	3  = $1000 to $2000
-	4  = $2000 to $3000
-	5  = $3000 to $4000
-	6  = $4000 to $5000
-	7  = $5000 to $6000
-	8  = $6000 to $7000
-	9  = $7000 to $8000
-	10 = $8000 to $9000
-	11 = $9000 to $10000
-	12 = $10000 to $11000
-	13 = $11000 to $12000
-	14 = $12000 to $13000
-	15 = $13000 to $14000
-	16 = Over $14000
-	17 = Unknown
+   1  = No income
+   2  = Under $1000
+   3  = $1000 to $2000
+   4  = $2000 to $3000
+   5  = $3000 to $4000
+   6  = $4000 to $5000
+   7  = $5000 to $6000
+   8  = $6000 to $7000
+   9  = $7000 to $8000
+   10 = $8000 to $9000
+   11 = $9000 to $10000
+   12 = $10000 to $11000
+   13 = $11000 to $12000
+   14 = $12000 to $13000
+   15 = $13000 to $14000
+   16 = Over $14000
+   17 = Unknown
 */
 
 gen income = .
@@ -183,12 +181,12 @@ replace income = 13500 if income_c == 15
 replace income = 14000 if income_c == 16
 
 /*
-Notes:
-1. The ABC codebook describes income (income_c) as "parent's annual income". 
-Thus, we don't know if it is pre/post taxes, if it includes
-transfers, it it is earned income, who are the contributors, etc.
+   Notes:
+   1. The ABC codebook describes income (income_c) as "parent's annual income". 
+   Thus, we don't know if it is pre/post taxes, if it includes
+   transfers, it it is earned income, who are the contributors, etc.
 
-However, Peg Burchinal said to treat all ambiguous income as labor income.
+   However, Peg Burchinal said to treat all ambiguous income as labor income.
 */
 
 // This is 1972, so divide according to poverty line guideline in 1972
@@ -243,8 +241,8 @@ replace poverty = 0 if income <= 6652 & f_home == 0 & hh_num >= 7 & hh_child >= 
 label var poverty "Poverty line"
 label val poverty pov
 
-cd "$data_home"
-merge 1:1 id using "abc-home-control", nogen nolabel
+cd "$data_working"
+merge 1:1 id using "abc-control", nogen nolabel
 
 * Mother's age
 gen m_age_g = .
@@ -270,13 +268,13 @@ label val race_g race
 
 keep if program == "abc"
 
-cd "$homo_working"
+cd "$data_working"
 save abc-control-homo, replace
 
 * -- *
 * CARE
 
-cd "$data_abc"
+cd "$data_raw"
 use "append-abccare.dta", clear
 
 keep if program == "care"
@@ -286,27 +284,27 @@ rename f_home0y f_home
 gen hh_child = hh_sibs_base + 1
 
 /*
-Notes
------
-The income codes come from the preschool codebooks. They define the codes as follows:
+   Notes
+   -----
+   The income codes come from the preschool codebooks. They define the codes as follows:
 
-	1  = No income
-	2  = Under $1000
-	3  = $1000 to $2000
-	4  = $2000 to $3000
-	5  = $3000 to $4000
-	6  = $4000 to $5000
-	7  = $5000 to $6000
-	8  = $6000 to $7000
-	9  = $7000 to $8000
-	10 = $8000 to $9000
-	11 = $9000 to $10000
-	12 = $10000 to $11000
-	13 = $11000 to $12000
-	14 = $12000 to $13000
-	15 = $13000 to $14000
-	16 = Over $14000
-	17 = Unknown
+   1  = No income
+   2  = Under $1000
+   3  = $1000 to $2000
+   4  = $2000 to $3000
+   5  = $3000 to $4000
+   6  = $4000 to $5000
+   7  = $5000 to $6000
+   8  = $6000 to $7000
+   9  = $7000 to $8000
+   10 = $8000 to $9000
+   11 = $9000 to $10000
+   12 = $10000 to $11000
+   13 = $11000 to $12000
+   14 = $12000 to $13000
+   15 = $13000 to $14000
+   16 = Over $14000
+   17 = Unknown
 */
 
 replace income = 0 if income_c == 1 & income == .
@@ -327,12 +325,12 @@ replace income = 13500 if income_c == 15 & income == .
 replace income = 14000 if income_c == 16 & income == .
 
 /*
-Notes:
-1. The ABC codebook describes income (income_c) as "parent's annual income". 
-Thus, we don't know if it is pre/post taxes, if it includes
-transfers, it it is earned income, who are the contributors, etc.
+   Notes:
+   1. The ABC codebook describes income (income_c) as "parent's annual income". 
+   Thus, we don't know if it is pre/post taxes, if it includes
+   transfers, it it is earned income, who are the contributors, etc.
 
-However, Peg Burchinal said to treat all ambiguous income as labor income.
+   However, Peg Burchinal said to treat all ambiguous income as labor income.
 */
 
 // This is 1978, so divide according to poverty line guideline in 1978
@@ -387,8 +385,8 @@ replace poverty = 0 if income <= 10368 & f_home == 0 & hh_num >= 7 & hh_child >=
 label var poverty "Poverty line"
 label val poverty pov
 
-cd "$data_home"
-merge 1:1 id using "abc-home-control", nogen nolabel
+cd "$data_working"
+merge 1:1 id using "care-control", nogen nolabel
 
 * Mother's age
 gen m_age_g = .
@@ -414,5 +412,5 @@ label val race_g race
 
 keep if program == "care"
 
-cd "$homo_working"
+cd "$data_working"
 save care-control-homo, replace
