@@ -10,8 +10,8 @@ adoupdate outreg
 
 global klmshare 			: env klmshare
 
-global code_path 			"C:/Users/chanw/Desktop/ToPI"
-global master_path			"C:/Users/chanw/Dropbox (Work)"
+global code_path 			"/Users/ckim/Desktop/ToPI"
+global master_path			"/Users/ckim/Dropbox (Work)"
 
 global main_path			"${master_path}/TOPI/treatment_effect"
 
@@ -179,4 +179,4 @@ cd "${code_path}/mediation"
 * By-Site (IHDP)
 
 cd "${code_path}/by_site"
-	include "treatment_by site (ihdp)"
+	include "treatment_ihdp_by_site"

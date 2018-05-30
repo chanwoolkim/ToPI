@@ -17,7 +17,7 @@ clear all
    Race: 1 White 0 Non-white
 */
 
-cd "$homo_subpop_working"
+cd "$data_analysis"
 use distribution_homo_subpop_D, clear
 mkmat abc
 
