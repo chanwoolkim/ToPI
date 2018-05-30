@@ -1,8 +1,6 @@
 * ------------------------------------------------- *
 * Data table - homogenisation + subpopulation (table)
 * Author: Chanwool Kim
-* Date Created: 11 Jan 2018
-* Last Update: 1 Mar 2018
 * ------------------------------------------------- *
 
 clear all
@@ -23,26 +21,29 @@ local combination	""Teen.BelowHS.UnderPoverty"
 ;
 #delimit cr
 
+local nrow : list sizeof local(combination)
+local ncol : list sizeof global(programs)
+
 * ---------------------- *
 * Execution - Unrestricted
 
-matrix distribution = J(9, 5, .)
+matrix distribution = J(`nrow', `ncol', .)
 matrix rownames distribution = `combination'
 matrix colnames distribution = $program_name
 local col = 1
-	
+
 foreach p of global programs {
-	cd "$homo_working"
-	use "`p'-home-homo-merge.dta", clear
+	cd "$data_analysis"
+	use "`p'-homo-merge.dta", clear
 	di "`p'"
-	
+
 	* Count total number of observations
 	count
 	local total = r(N)
 	* Count total number of nonmissing observations
 	count if !missing(m_age_g) & !missing(m_edu_g) & !missing(poverty) & race_g == 0
 	local nonmissing = r(N)
-	
+
 	count if m_age_g == 0 & m_edu_g == 0 & poverty == 0 & race_g == 0
 	matrix distribution[1,`col'] = r(N)/`nonmissing'
 	count if m_age_g == 0 & m_edu_g == 0 & poverty == 1 & race_g == 0
@@ -59,17 +60,17 @@ foreach p of global programs {
 	matrix distribution[7,`col'] = r(N)/`nonmissing'
 	count if m_age_g == 1 & m_edu_g == 1 & poverty == 1 & race_g == 0
 	matrix distribution[8,`col'] = r(N)/`nonmissing'
-	
+
 	local psum = distribution[1,`col'] ///
-				 + distribution[2,`col'] ///
-				 + distribution[3,`col'] ///
-				 + distribution[4,`col'] ///
-				 + distribution[5,`col'] ///
-				 + distribution[6,`col'] ///
-				 + distribution[7,`col'] ///
-				 + distribution[8,`col']
+		+ distribution[2,`col'] ///
+		+ distribution[3,`col'] ///
+		+ distribution[4,`col'] ///
+		+ distribution[5,`col'] ///
+		+ distribution[6,`col'] ///
+		+ distribution[7,`col'] ///
+		+ distribution[8,`col']
 	matrix distribution[9,`col'] = `psum'
-	
+
 	local col = `col' + 1
 }
 
@@ -84,29 +85,29 @@ matrix colnames distribution = $programs
 svmat distribution, names(col)
 keep $programs
 keep if abc != . & abc != 1
-cd "$homo_subpop_working"
-save distribution, replace
+cd "$data_analysis"
+save distribution_homo_subpop, replace
 
 * ---------------------- *
 * Execution - Nonmissing D
 
-matrix distribution_D = J(9, 5, .)
+matrix distribution_D = J(`nrow', `ncol', .)
 matrix rownames distribution_D = `combination'
 matrix colnames distribution_D = $program_name
 local col = 1
-	
+
 foreach p of global programs {
-	cd "$homo_working"
-	use "`p'-home-homo-merge.dta", clear
+	cd "$data_analysis"
+	use "`p'-homo-merge.dta", clear
 	di "`p'"
-	
+
 	* Count total number of observations
 	count
 	local total = r(N)
 	* Count total number of nonmissing observations
 	count if !missing(m_age_g) & !missing(m_edu_g) & !missing(poverty) & race_g == 0 & !missing(D)
 	local nonmissing = r(N)
-	
+
 	count if m_age_g == 0 & m_edu_g == 0 & poverty == 0 & race_g == 0 & !missing(D)
 	matrix distribution_D[1,`col'] = r(N)/`nonmissing'
 	count if m_age_g == 0 & m_edu_g == 0 & poverty == 1 & race_g == 0 & !missing(D)
@@ -123,17 +124,17 @@ foreach p of global programs {
 	matrix distribution_D[7,`col'] = r(N)/`nonmissing'
 	count if m_age_g == 1 & m_edu_g == 1 & poverty == 1 & race_g == 0 & !missing(D)
 	matrix distribution_D[8,`col'] = r(N)/`nonmissing'
-	
+
 	local psum = distribution_D[1,`col'] ///
-				 + distribution_D[2,`col'] ///
-				 + distribution_D[3,`col'] ///
-				 + distribution_D[4,`col'] ///
-				 + distribution_D[5,`col'] ///
-				 + distribution_D[6,`col'] ///
-				 + distribution_D[7,`col'] ///
-				 + distribution_D[8,`col']
+		+ distribution_D[2,`col'] ///
+		+ distribution_D[3,`col'] ///
+		+ distribution_D[4,`col'] ///
+		+ distribution_D[5,`col'] ///
+		+ distribution_D[6,`col'] ///
+		+ distribution_D[7,`col'] ///
+		+ distribution_D[8,`col']
 	matrix distribution_D[9,`col'] = `psum'
-	
+
 	local col = `col' + 1
 }
 
@@ -148,5 +149,5 @@ matrix colnames distribution_D = $programs
 svmat distribution_D, names(col)
 keep $programs
 keep if abc != . & abc != 1
-cd "$homo_subpop_working"
-save distribution_D, replace
+cd "$data_analysis"
+save distribution_homo_subpop_D, replace
