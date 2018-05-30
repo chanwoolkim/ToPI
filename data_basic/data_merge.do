@@ -74,6 +74,12 @@ foreach m of numlist 12 36 {
 
 save ihdp-merge, replace
 
+keep if bwg == 0
+save ihdplow-merge, replace
+use ihdp-merge, clear
+keep if bwg == 1
+save ihdphigh-merge, replace
+
 * --------- *
 * Abecedarian
 

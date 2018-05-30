@@ -171,7 +171,9 @@ cd "${code_path}/homo_subpop"
 * Mediation
 
 cd "${code_path}/mediation"
-	include "treatment_mediation (cognitive home)"
+	include "treatment_home_outcome_mediation"
+cd "${code_path}/mediation"
+	include "treatment_home_outcome_interaction"
 	
 * ------------ *
 * By-Site (IHDP)
