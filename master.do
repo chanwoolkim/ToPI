@@ -69,110 +69,112 @@ set seed 2018
 * Data Preperation
 
 cd "${code_path}/data_basic"
-	include "data - control"
+	include "data_control"
 cd "${code_path}/data_basic"
-	include "data - participation"
+	include "data_participation"
 cd "${code_path}/data_basic"
-	include "data - outcome"
+	include "data_outcome"
 cd "${code_path}/data_basic"
-	include "data - labor"
+	include "data_labor"
 cd "${code_path}/data_basic"
-	include "data - home item"
+	include "data_home_item"
 cd "${code_path}/data_basic"
-	include "data - home aggregate"
+	include "data_home_aggregate"
 cd "${code_path}/data_basic"
-	include "data - parental info"
+	include "data_parental_info"
 cd "${code_path}/data_basic"
-	include "data - merge"
+	include "data_merge"
 
 * -------- *
 * Diagnostic
 
 cd "${code_path}/data_basic"
-	include "data - description"
+	include "data_description"
 
 * ----------- *
 * Main Analysis
 
 cd "${code_path}/analysis_basic"
-	include "treatment - longitudinal"
+	include "treatment_longitudinal"
 cd "${code_path}/analysis_basic"
-	include "treatment - table"
+	include "treatment_table"
 
 * -- *
 * Pile
 
 cd "${code_path}/pile"
-	include "data - aggregate pile"
+	include "data_home_aggregate_pile"
 cd "${code_path}/pile"
-	include "data - item pile"
+	include "data_home_item_pile"
 cd "${code_path}/pile"
-	include "data - parent pile"
+	include "data_parent_pile"
 cd "${code_path}/pile"
-	include "treatment - outcome pile"
+	include "treatment_outcome_pile"
 cd "${code_path}/pile"
-	include "treatment - aggregate pile"
+	include "treatment_home_aggregate_pile"
 cd "${code_path}/pile"
-	include "treatment - aggregate pile (substitution)"
+	include "treatment_home_aggregate_substitution_pile"
 cd "${code_path}/pile"
-	include "treatment - item pile"
+	include "treatment_home_item_pile"
 cd "${code_path}/pile"
-	include "treatment - parent item pile"
+	include "treatment_parent_item_pile"
 cd "${code_path}/pile"
-	include "treatment - pile (comparison)"
+	include "treatment_home_comparison_pile"
 
 * ------------ *
 * Homogenisation
 
 cd "${code_path}/homogenisation"
-	include "data - homo"
+	include "data_homo"
 cd "${code_path}/homogenisation"
-	include "data - homo (merge)"
+	include "data_merge_homo"
 cd "${code_path}/homogenisation"
-	include "data - homo (table)"
+	include "data_table_homo"
 cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (table)"
+	include "treatment_table_homo"
 cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (aggregate)"
+	include "treatment_home_aggregate_homo"
 cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (item)"
+	include "treatment_home_item_homo"
 cd "${code_path}/homogenisation"
-	include "treatment - homogenisation (comparison)"
+	include "treatment_home_comparison_homo"
 cd "${code_path}/homogenisation"
-	include "comparison - aggregate"
+	include "home_comparison_aggregate"
 
 * ----------- *
 * Subpopulation
 
 cd "${code_path}/subpopulation"
-	include "data - subpop"
+	include "data_subpop"
 cd "${code_path}/subpopulation"
-	include "data - subpop (merge)"
+	include "data_table_subpop"
 cd "${code_path}/subpopulation"
-	include "data - subpop (table)"
+	include "treatment_home_aggregate_subpop"
 cd "${code_path}/subpopulation"
-	include "treatment - subpop (aggregate)"
+	include "treatment_home_item_subpop"
 cd "${code_path}/subpopulation"
-	include "treatment - subpop (item)"
+	include "treatment_home_aggregate_vulnerable_subpop"
+cd "${code_path}/subpopulation"
+	include "treatment_outcome_vulnerable_subpop"
 
 * ---------------------------- *
 * Homogenisation + Subpopulation
 
 cd "${code_path}/homo_subpop"
-	include "data - homo_subpop (table)"
+	include "data_table_homo_subpop"
 cd "${code_path}/homo_subpop"
-	include "treatment - homo_subpop (aggregate)"
+	include "treatment_home_aggregate_homo_subpop"
 cd "${code_path}/homo_subpop"
-	include "treatment - homo_subpop (item)"
+	include "treatment_home_item_homo_subpop"
 
 * ------- *
 * Mediation
 
 cd "${code_path}/mediation"
-	include "treatment - mediation (cognitive home)"
+	include "treatment_mediation (cognitive home)"
 	
 * ------------ *
 * By-Site (IHDP)
 
 cd "${code_path}/by_site"
-	include "treatment - by site (ihdp)"
+	include "treatment_by site (ihdp)"
