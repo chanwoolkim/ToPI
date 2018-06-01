@@ -32,6 +32,15 @@ foreach t of global ehs_type {
 		capture egen norm_kidi_total`m' = std(kidi_total`m')
 	}
 
+	merge 1:1 id using ehs-noncog, nogen nolabel keep(match)
+
+	* Normalise to have in-group sample mean 0 and variance 1
+	foreach s of global cbcl_types {
+		foreach m of numlist 120 {
+			capture egen norm_cbcl_`s'`m' = std(cbcl_`s'`m')
+		}
+	}
+
 	save ehs`t'-merge, replace
 }
 
@@ -71,6 +80,8 @@ foreach m of numlist 12 36 {
 		capture egen norm_sameroff`m'_`i' = std(sameroff`m'_`i')
 	}
 }
+
+merge 1:1 id using ihdp-noncog, nogen nolabel keep(match)
 
 save ihdp-merge, replace
 
@@ -117,6 +128,8 @@ foreach s in auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ {
 	}
 }
 
+merge 1:1 id using abc-noncog, nogen nolabel keep(match)
+
 save abc-merge, replace
 
 * -- *
@@ -156,7 +169,9 @@ foreach t of global care_type {
 			capture egen norm_pase_`s'`m' = std(pase_`s'`m')
 		}
 	}
-	
+
+	merge 1:1 id using abc-noncog, nogen nolabel keep(match)
+
 	drop treat
 	gen treat = R
 

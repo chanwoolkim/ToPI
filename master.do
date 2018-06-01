@@ -10,8 +10,8 @@ adoupdate outreg
 
 global klmshare 			: env klmshare
 
-global code_path 			"/Users/ckim/Desktop/ToPI"
-global master_path			"/Users/ckim/Dropbox (Work)"
+global code_path 			"C:/Users/chanw/Desktop/ToPI"
+global master_path			"C:/Users/chanw/Dropbox (Work)"
 
 global main_path			"${master_path}/TOPI/treatment_effect"
 
@@ -50,6 +50,8 @@ global abc_type				""""
 global care_type			""both" "home" """
 
 global outcome_types		ppvt sb
+global noncog_types			cbcl
+global cbcl_types			aggressive attention anxious external internal rule somatic social thought withdrawn
 global home_types			total learning develop variety hostility warmth
 global parent_types			kidi pari pase
 global kidi_types			total accuracy attempted right
@@ -83,6 +85,8 @@ cd "${code_path}/data_basic"
 cd "${code_path}/data_basic"
 	include "data_parental_info"
 cd "${code_path}/data_basic"
+	include "data_noncognitive"
+cd "${code_path}/data_basic"
 	include "data_merge"
 
 * -------- *
@@ -109,6 +113,8 @@ cd "${code_path}/pile"
 cd "${code_path}/pile"
 	include "data_parent_pile"
 cd "${code_path}/pile"
+	include "data_noncognitive_pile"
+cd "${code_path}/pile"
 	include "treatment_outcome_pile"
 cd "${code_path}/pile"
 	include "treatment_home_aggregate_pile"
@@ -118,6 +124,8 @@ cd "${code_path}/pile"
 	include "treatment_home_item_pile"
 cd "${code_path}/pile"
 	include "treatment_parent_item_pile"
+cd "${code_path}/pile"
+	include "treatment_noncognitive_item_pile"
 cd "${code_path}/pile"
 	include "treatment_home_comparison_pile"
 
