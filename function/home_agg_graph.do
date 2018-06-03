@@ -9,4 +9,4 @@ marker(10,msize(large) msymbol(O) mlc(purple) mfc(purple*0) mlw(thick)) marker(1
 over(scale, label(labsize(large)) sort(scale_row)) ///
 legend (order (3 "EHS" 6 "IHDP" 9 "ABC" 12 "CARE") size(medsmall)) yline(0) ylabel(#4, labsize(medsmall)) ///
 ylabel($agg_axis_range) ///
-graphregion(fcolor(white))
+graphregion(fcolor(white)) bgcolor(white)

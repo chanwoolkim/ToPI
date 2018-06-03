@@ -15,4 +15,4 @@ marker(19,msize(large) msymbol(T) mlc(purple) mfc(purple*0) mlw(thick)) marker(2
 over(scale, label(labsize(large)) sort(scale_row)) ///
 legend (order (3 "EHS-Center" 6 "EHS-Home" 9 "EHS-Mixed" 12 "IHDP" 15 "ABC" 18 "CARE-Both" 21 "CARE-Home") size(medsmall)) yline(0) ylabel(#7, labsize(medsmall)) ///
 ylabel($outcome_axis_range) ysize(1) xsize(2) ///
-graphregion(fcolor(white))
+graphregion(fcolor(white)) bgcolor(white)
