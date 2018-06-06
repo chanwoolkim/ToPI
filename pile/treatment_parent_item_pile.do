@@ -373,7 +373,7 @@ foreach age of numlist 1 2 {
 	replace ihdpR0_05 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.05
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-		marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+		marker(1,msize(medium) msymbol(O) mlc(navy) mfc(navy*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(navy) mfc(navy*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(navy) mfc(navy) mlw(vthin)) ///
 		over(scale, label(labsize(vsmall)) sort(scale_num)) ///
 		legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 		ylabel($item_axis_range) ///
@@ -400,7 +400,7 @@ foreach age of numlist 1 2 {
 	}
 
 	graph dot abcRinsig abcR0_1 abcR0_05, ///
-		marker(1,msize(small) msymbol(O) mlc(blue) mfc(blue*0) mlw(vthin)) marker(2,msize(small) msymbol(O) mlc(blue) mfc(blue*0.5) mlw(vthin)) marker(3,msize(small) msymbol(O) mlc(blue) mfc(blue) mlw(vthin)) ///
+		marker(1,msize(small) msymbol(O) mlc(navy) mfc(navy*0) mlw(vthin)) marker(2,msize(small) msymbol(O) mlc(navy) mfc(navy*0.5) mlw(vthin)) marker(3,msize(small) msymbol(O) mlc(navy) mfc(navy) mlw(vthin)) ///
 		over(scale, label(labsize(tiny)) sort(scale_num)) ///
 		legend (order (3 "ABC") size(vsmall)) yline(0) ylabel(#6, labsize(tiny)) ///
 		ylabel($item_axis_range) ///
@@ -427,7 +427,7 @@ foreach age of numlist 1 3 {
 	replace ihdpR0_05 = ihdpR_`age'coeff if ihdpR_`age'pval <= 0.05
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-		marker(1,msize(medium) msymbol(O) mlc(green) mfc(green*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(green) mfc(green*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(green) mfc(green) mlw(vthin)) ///
+		marker(1,msize(medium) msymbol(O) mlc(navy) mfc(navy*0) mlw(vthin)) marker(2,msize(medium) msymbol(O) mlc(navy) mfc(navy*0.5) mlw(vthin)) marker(3,msize(medium) msymbol(O) mlc(navy) mfc(navy) mlw(vthin)) ///
 		over(scale, label(labsize(tiny)) sort(scale_num)) ///
 		legend (order (3 "IHDP") size(vsmall)) yline(0) ylabel(#6, labsize(vsmall)) ///
 		ylabel($item_axis_range) ///
@@ -470,7 +470,7 @@ replace ihdpR0_1 = ihdpR_coeff if ihdpR_pval <= 0.1 & ihdpR_pval > 0.05
 replace ihdpR0_05 = ihdpR_coeff if ihdpR_pval <= 0.05
 
 graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
-	marker(1,msize(vhuge) msymbol(O) mlc(green) mfc(green*0) mlw(thick)) marker(2,msize(vhuge) msymbol(O) mlc(green) mfc(green*0.5) mlw(thick)) marker(3,msize(vhuge) msymbol(O) mlc(green) mfc(green) mlw(thick)) ///
+	marker(1,msize(vhuge) msymbol(O) mlc(navy) mfc(navy*0) mlw(thick)) marker(2,msize(vhuge) msymbol(O) mlc(navy) mfc(navy*0.5) mlw(thick)) marker(3,msize(vhuge) msymbol(O) mlc(navy) mfc(navy) mlw(thick)) ///
 	over(scale, label(labsize(vlarge)) sort(scale_num)) ///
 	legend (order (3 "IHDP") size(large)) yline(0) ylabel(#6, labsize(large)) ///
 	ylabel($item_axis_range) ysize(1) xsize(2.5) ///
