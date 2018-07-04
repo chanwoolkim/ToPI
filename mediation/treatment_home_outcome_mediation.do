@@ -1,7 +1,7 @@
-* ---------------------------- *
-* Mediation analysis (IQ - HOME)
+* ---------------- *
+* Mediation analysis
 * Author: Chanwool Kim
-* ---------------------------- *
+* ---------------- *
 
 clear all
 
@@ -18,261 +18,130 @@ local nrow : list sizeof global(home_types)
 * ---------------------------- *
 * Execution - Mediation Analysis
 
-foreach p of global programs_merge {
-	foreach t of global `p'_type {
-		foreach c of local `p'_cogs {
-			cd "$data_working"
-			use "`p'`t'-merge.dta", clear
+cd "$data_working"
+use "ihdp-merge.dta", clear
 
-			if "`p'" == "abc" | "`p'" == "care" {
-				rename norm_home_*42 norm_home_*36
-			}
+factor home36_1-home36_55
+predict theta36, bartlett
+gen theta36_R = theta36*R
 
-			foreach s of local matrix_type {
-				qui matrix `p'`t'_`c'`s'_3 = J(`nrow', 4, .)
-				qui matrix colnames `p'`t'_`c'`s'_3 = `p'`t'_`c'`s'_3num `p'`t'_`c'`s'_3coeff `p'`t'_`c'`s'_3se `p'`t'_`c'`s'_3pval
-			}
+factor home12_1-home12_45
+predict theta12, bartlett
+gen theta12_R = theta12*R
 
-			local row_`c'3 = 1
-
-			foreach r of global home_types {
-				qui matrix `p'`t'_`c'indirect_3[`row_`c'3',1] = `row_`c'3'
-				qui matrix `p'`t'_`c'direct_3[`row_`c'3',1] = `row_`c'3'
-				qui matrix `p'`t'_`c'total_3[`row_`c'3',1] = `row_`c'3'
-
-				capture confirm variable norm_home_`r'36
-				if !_rc {
-
-					bootstrap r(ind_eff) r(dir_eff) r(tot_eff), reps(500): sgmediation `c'36 if !missing(D), mv(norm_home_`r'36) iv(R) cv($covariates)
-					* r(table) stores values from regression (ex. coeff, var, CI).
-					qui matrix list r(table)
-					qui matrix r = r(table)
-
-					qui matrix `p'`t'_`c'indirect_3[`row_`c'3',2] = r[1,1]
-					qui matrix `p'`t'_`c'indirect_3[`row_`c'3',3] = r[2,1]
-					qui matrix `p'`t'_`c'indirect_3[`row_`c'3',4] = r[4,1]
-
-					qui matrix `p'`t'_`c'direct_3[`row_`c'3',2] = r[1,2]
-					qui matrix `p'`t'_`c'direct_3[`row_`c'3',3] = r[2,2]
-					qui matrix `p'`t'_`c'direct_3[`row_`c'3',4] = r[4,2]
-
-					qui matrix `p'`t'_`c'total_3[`row_`c'3',2] = r[1,3]
-					qui matrix `p'`t'_`c'total_3[`row_`c'3',3] = r[2,3]
-					qui matrix `p'`t'_`c'total_3[`row_`c'3',4] = r[4,3]
-
-					local row_`c'3 = `row_`c'3' + 1
-				}
-
-				else {
-					local row_`c'3 = `row_`c'3' + 1				
-				}
-			}
-
-			cd "$data_analysis"
-
-			foreach s of local matrix_type {
-				clear
-				svmat `p'`t'_`c'`s'_3, names(col)
-				rename `p'`t'_`c'`s'_3num row_3
-				keep row_3 `p'`t'_`c'`s'_3coeff `p'`t'_`c'`s'_3se `p'`t'_`c'`s'_3pval
-				keep if row_3 != .
-				save "`p'`t'-`c'`s'-agg-mediation-3", replace
-			}
-		}
-	}
+foreach v of global covariates {
+	gen `v'_R = `v'*R
 }
 
-* --------*
-* Questions
+ivregress 2sls ppvt36 (theta36 theta36_R = theta12 theta12_R) R $covariates m_age_R m_edu_R sibling_R m_iq_R race_R sex_R gestage_R mf_R, vce(robust)
 
-* Randomisation
+reg ppvt36 R $covariates, robust
+ivregress 2sls ppvt36 (theta36 = theta12) R $covariates, vce(robust)
+reg theta36 R $covariates, robust
 
-foreach p of global programs_merge {
-	cd "$data_analysis"
-	foreach c of local `p'_cogs {
+qui matrix ihdp_ppvt = J(1000, 3, .)
+qui matrix colnames ihdp_ppvt = ihdp_ppvt_all ihdp_ppvt_ind_outcome ihdp_ppvt_ind_mediator
 
-		use `p'-`c'total-agg-mediation-3, clear
-
-		foreach t of global `p'_type {
-			foreach s of local matrix_type {
-				merge 1:1 row_3 using `p'`t'-`c'`s'-agg-mediation-3, nogen nolabel
-			}
-		}
-
-		rename row_3 row
-		include "${code_path}/function/home_agg"
-		save `p'-`c'-agg-mediation-3, replace
+forvalues b = 1/1000 {
+	preserve
+	bsample
+	
+	quietly {
+	reg ppvt36 R $covariates, robust
+	matrix list r(table)
+	matrix r = r(table)
+	matrix ihdp_ppvt[`b',1] = r[1,1]
+	
+	ivregress 2sls ppvt36 (theta36 = theta12) R $covariates, vce(robust)
+	matrix list r(table)
+	matrix r = r(table)
+	matrix ihdp_ppvt[`b',2] = r[1,1]
+	
+	reg theta36 R $covariates, robust
+	matrix list r(table)
+	matrix r = r(table)
+	matrix ihdp_ppvt[`b',3] = r[1,1]
 	}
+	
+	restore
 }
 
-* ----------------- *
-* Execution - P-value
+svmat ihdp_ppvt, names(col)
+gen mediation_effect = ihdp_ppvt_ind_outcome * ihdp_ppvt_ind_mediator / ihdp_ppvt_all
+keep mediation_effect ihdp_ppvt_all ihdp_ppvt_ind_outcome ihdp_ppvt_ind_mediator
+keep if !missing(mediation_effect)
+sort mediation_effect
 
-foreach c of local ehs_cogs {
-	cd "$data_analysis"
+ivregress 2sls sb36 (theta36 theta36_R = theta12 theta12_R) R $covariates m_age_R m_edu_R sibling_R m_iq_R race_R sex_R gestage_R mf_R, vce(robust)
 
-	use ehs-`c'-agg-mediation-3, clear
+reg sb36 R $covariates, robust
+ivregress 2sls sb36 (theta36 = theta12) R $covariates, vce(robust)
+reg theta36 R $covariates, robust
 
-	foreach p in ehs ehscenter ehshome ehsmixed {
-		gen `p'_`c'indirect_3dup = 1
-		gen `p'_`c'direct_3dup = 1
-		gen `p'_`c'total_3dup = 1
+
+cd "$data_working"
+use "abc-merge.dta", clear
+
+factor home42_1-home42_80
+predict theta42, bartlett
+gen theta42_R = theta42*R
+
+forvalues i = 1/45 {
+	quietly {
+	reg home30_`i' home18_`i' home6_`i'
+	local df_r = e(df_r)
+	predict home30_`i'_p, xb
+	gen home30_`i'_r = home30_`i' - home30_`i'_p
+	qui sum home30_`i'_r
+	local var_r = r(Var)
+	sum home30_`i'_p
+	replace home30_`i'_p = r(mean) if missing(home30_`i'_p)
+	replace home30_`i'_p = home30_`i'_p + rnormal()*sqrt(`var_r'/`df_r')
+	replace home30_`i' = home30_`i'_p if missing(home30_`i')
+	
+	reg home18_`i' home30_`i' home6_`i'
+	local df_r = e(df_r)
+	predict home18_`i'_p, xb
+	gen home18_`i'_r = home18_`i' - home18_`i'_p
+	qui sum home18_`i'_r
+	local var_r = r(Var)
+	sum home18_`i'_p
+	replace home18_`i'_p = r(mean) if missing(home18_`i'_p)
+	replace home18_`i'_p = home18_`i'_p + rnormal()*sqrt(`var_r'/`df_r')
+	replace home18_`i' = home18_`i'_p if missing(home18_`i')
+	
+	reg home6_`i' home30_`i' home18_`i'
+	local df_r = e(df_r)
+	predict home6_`i'_p, xb
+	gen home6_`i'_r = home6_`i' - home6_`i'_p
+	qui sum home6_`i'_r
+	local var_r = r(Var)
+	sum home6_`i'_p
+	replace home6_`i'_p = r(mean) if missing(home6_`i'_p)
+	replace home6_`i'_p = home6_`i'_p + rnormal()*sqrt(`var_r'/`df_r')
+	replace home6_`i' = home6_`i'_p if missing(home6_`i')
 	}
-
-	mkmat ehs_`c'indirect_3coeff ehs_`c'indirect_3se ehs_`c'direct_3coeff ehs_`c'direct_3se ehs_`c'total_3coeff ehs_`c'total_3se ///
-		ehscenter_`c'indirect_3coeff ehscenter_`c'indirect_3se ehscenter_`c'direct_3coeff ehscenter_`c'direct_3se ehscenter_`c'total_3coeff ehscenter_`c'total_3se ///
-		ehshome_`c'indirect_3coeff ehshome_`c'indirect_3se ehshome_`c'direct_3coeff ehshome_`c'direct_3se ehshome_`c'total_3coeff ehshome_`c'total_3se ///
-		ehsmixed_`c'indirect_3coeff ehsmixed_`c'indirect_3se ehsmixed_`c'direct_3coeff ehsmixed_`c'direct_3se ehsmixed_`c'total_3coeff ehsmixed_`c'total_3se, ///
-		matrix(main_`c') rownames(scale)
-
-	mkmat ehs_`c'indirect_3pval ehs_`c'indirect_3dup ehs_`c'direct_3pval ehs_`c'direct_3dup ehs_`c'total_3pval ehs_`c'total_3dup ///
-		ehscenter_`c'indirect_3pval ehscenter_`c'indirect_3dup ehscenter_`c'direct_3pval ehscenter_`c'direct_3dup ehscenter_`c'total_3pval ehscenter_`c'total_3dup ///
-		ehshome_`c'indirect_3pval ehshome_`c'indirect_3dup ehshome_`c'direct_3pval ehshome_`c'direct_3dup ehshome_`c'total_3pval ehshome_`c'total_3dup ///
-		ehsmixed_`c'indirect_3pval ehsmixed_`c'indirect_3dup ehsmixed_`c'direct_3pval ehsmixed_`c'direct_3dup ehsmixed_`c'total_3pval ehsmixed_`c'total_3dup, ///
-		matrix(pval_`c') rownames(scale)
-
-	local nrow_`c' = rowsof(pval_`c')
-	local ncol_`c' = colsof(pval_`c')
-
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
-
-	forvalues k = 1/`nrow_`c'' {
-		forvalues l = 1/`ncol_`c'' {
-			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
-				+ (pval_`c'[`k',`l'] < 0.05) ///
-				+ (pval_`c'[`k',`l'] < 0.01)
-		}
-	}
-
-	cd "$mediation_out"
-	frmttable using ehs-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-
-	cd "$mediation_git_out"
-	frmttable using ehs-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
+	drop *_p *_r
 }
 
-foreach c of local ihdp_cogs {
-	cd "$data_analysis"
+factor home30_1-home30_45
+predict theta30, bartlett
+gen theta30_R = theta30*R
 
-	use ihdp-`c'-agg-mediation-3, clear
+factor home18_1-home18_45
+predict theta18, bartlett
+gen theta18_R = theta18*R
 
-	foreach p in ihdp ihdphigh ihdplow {
-		gen `p'_`c'indirect_3dup = 1
-		gen `p'_`c'direct_3dup = 1
-		gen `p'_`c'total_3dup = 1
-	}
+factor home6_1-home6_45
+predict theta6, bartlett
+gen theta6_R = theta6*R
 
-	mkmat ihdp_`c'indirect_3coeff ihdp_`c'indirect_3se ihdp_`c'direct_3coeff ihdp_`c'direct_3se ihdp_`c'total_3coeff ihdp_`c'total_3se ///
-		ihdphigh_`c'indirect_3coeff ihdphigh_`c'indirect_3se ihdphigh_`c'direct_3coeff ihdphigh_`c'direct_3se ihdphigh_`c'total_3coeff ihdphigh_`c'total_3se ///
-		ihdplow_`c'indirect_3coeff ihdplow_`c'indirect_3se ihdplow_`c'direct_3coeff ihdplow_`c'direct_3se ihdplow_`c'total_3coeff ihdplow_`c'total_3se, ///
-		matrix(main_`c') rownames(scale)
-
-	mkmat ihdp_`c'indirect_3pval ihdp_`c'indirect_3dup ihdp_`c'direct_3pval ihdp_`c'direct_3dup ihdp_`c'total_3pval ihdp_`c'total_3dup ///
-		ihdphigh_`c'indirect_3pval ihdphigh_`c'indirect_3dup ihdphigh_`c'direct_3pval ihdphigh_`c'direct_3dup ihdphigh_`c'total_3pval ihdphigh_`c'total_3dup ///
-		ihdplow_`c'indirect_3pval ihdplow_`c'indirect_3dup ihdplow_`c'direct_3pval ihdplow_`c'direct_3dup ihdplow_`c'total_3pval ihdplow_`c'total_3dup, ///
-		matrix(pval_`c') rownames(scale)
-
-	local nrow_`c' = rowsof(pval_`c')
-	local ncol_`c' = colsof(pval_`c')
-
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
-
-	forvalues k = 1/`nrow_`c'' {
-		forvalues l = 1/`ncol_`c'' {
-			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
-				+ (pval_`c'[`k',`l'] < 0.05) ///
-				+ (pval_`c'[`k',`l'] < 0.01)
-		}
-	}
-
-	cd "$mediation_out"
-	frmttable using ihdp-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-
-	cd "$mediation_git_out"
-	frmttable using ihdp-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
+foreach v of global covariates {
+	gen `v'_R = `v'*R
 }
 
-foreach c of local abc_cogs {
-	cd "$data_analysis"
+ivregress 2sls sb48 (theta42 theta42_R = theta30 theta30_R theta18 theta18_R theta6 theta6_R) R $covariates m_age_R m_edu_R sibling_R m_iq_R race_R sex_R gestage_R mf_R, vce(robust)
 
-	use abc-`c'-agg-mediation-3, clear
-
-	gen abc_`c'indirect_3dup = 1
-	gen abc_`c'direct_3dup = 1
-	gen abc_`c'total_3dup = 1
-
-
-	mkmat abc_`c'indirect_3coeff abc_`c'indirect_3se abc_`c'direct_3coeff abc_`c'direct_3se abc_`c'total_3coeff abc_`c'total_3se, ///
-		matrix(main_`c') rownames(scale)
-
-	mkmat abc_`c'indirect_3pval abc_`c'indirect_3dup abc_`c'direct_3pval abc_`c'direct_3dup abc_`c'total_3pval abc_`c'total_3dup, ///
-		matrix(pval_`c') rownames(scale)
-
-	local nrow_`c' = rowsof(pval_`c')
-	local ncol_`c' = colsof(pval_`c')
-
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
-
-	forvalues k = 1/`nrow_`c'' {
-		forvalues l = 1/`ncol_`c'' {
-			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
-				+ (pval_`c'[`k',`l'] < 0.05) ///
-				+ (pval_`c'[`k',`l'] < 0.01)
-		}
-	}
-
-	cd "$mediation_out"
-	frmttable using abc-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-
-	cd "$mediation_git_out"
-	frmttable using abc-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-}
-
-foreach c of local care_cogs {
-	cd "$data_analysis"
-
-	use care-`c'-agg-mediation-3, clear
-
-	foreach p in care careboth carehome {
-		gen `p'_`c'indirect_3dup = 1
-		gen `p'_`c'direct_3dup = 1
-		gen `p'_`c'total_3dup = 1
-	}
-
-	mkmat care_`c'indirect_3coeff care_`c'indirect_3se care_`c'direct_3coeff care_`c'direct_3se care_`c'total_3coeff care_`c'total_3se ///
-		careboth_`c'indirect_3coeff careboth_`c'indirect_3se careboth_`c'direct_3coeff careboth_`c'direct_3se careboth_`c'total_3coeff careboth_`c'total_3se ///
-		carehome_`c'indirect_3coeff carehome_`c'indirect_3se carehome_`c'direct_3coeff carehome_`c'direct_3se carehome_`c'total_3coeff carehome_`c'total_3se, ///
-		matrix(main_`c') rownames(scale)
-
-	mkmat care_`c'indirect_3pval care_`c'indirect_3dup care_`c'direct_3pval care_`c'direct_3dup care_`c'total_3pval care_`c'total_3dup ///
-		careboth_`c'indirect_3pval careboth_`c'indirect_3dup careboth_`c'direct_3pval careboth_`c'direct_3dup careboth_`c'total_3pval careboth_`c'total_3dup ///
-		carehome_`c'indirect_3pval carehome_`c'indirect_3dup carehome_`c'direct_3pval carehome_`c'direct_3dup carehome_`c'total_3pval carehome_`c'total_3dup, ///
-		matrix(pval_`c') rownames(scale)
-
-	local nrow_`c' = rowsof(pval_`c')
-	local ncol_`c' = colsof(pval_`c')
-
-	qui matrix stars_`c' = J(`nrow_`c'', `ncol_`c'', 0)
-
-	forvalues k = 1/`nrow_`c'' {
-		forvalues l = 1/`ncol_`c'' {
-			qui matrix stars_`c'[`k',`l'] = (pval_`c'[`k',`l'] < 0.1) ///
-				+ (pval_`c'[`k',`l'] < 0.05) ///
-				+ (pval_`c'[`k',`l'] < 0.01)
-		}
-	}
-
-	cd "$mediation_out"
-	frmttable using care-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-
-	cd "$mediation_git_out"
-	frmttable using care-mediation-`c', statmat(main_`c') substat(1) sdec(3) fragment tex replace nocenter ///
-		annotate(stars_`c') asymbol(*,**,***)
-}
+reg sb48 R $covariates, robust
+ivregress 2sls sb48 (theta42 = theta30 theta18 theta6) R $covariates, vce(robust)
+reg theta42 R $covariates, robust
