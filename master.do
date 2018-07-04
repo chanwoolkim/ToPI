@@ -50,7 +50,8 @@ global abc_type				""""
 global care_type			""both" "home" """
 
 global outcome_types		ppvt sb
-global noncog_types			cbcl
+global noncog_types			bayley /*cbcl*/
+global bayley_types			attention emotion engagement
 global cbcl_types			aggressive attention anxious external internal rule somatic social thought withdrawn
 global home_types			total learning develop variety hostility warmth
 global parent_types			kidi pari pase
@@ -124,6 +125,8 @@ cd "${code_path}/pile"
 	include "treatment_home_item_pile"
 cd "${code_path}/pile"
 	include "treatment_parent_item_pile"
+cd "${code_path}/pile"
+	include "treatment_noncognitive_aggregate_pile"
 cd "${code_path}/pile"
 	include "treatment_noncognitive_item_pile"
 cd "${code_path}/pile"

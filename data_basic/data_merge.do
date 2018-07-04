@@ -35,6 +35,13 @@ foreach t of global ehs_type {
 	merge 1:1 id using ehs-noncog, nogen nolabel keep(match)
 
 	* Normalise to have in-group sample mean 0 and variance 1
+	foreach s of global bayley_types {
+		foreach m of numlist 14 24 36 {
+			capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
+		}
+	}
+
+	* Normalise to have in-group sample mean 0 and variance 1
 	foreach s of global cbcl_types {
 		foreach m of numlist 120 {
 			capture egen norm_cbcl_`s'`m' = std(cbcl_`s'`m')
@@ -83,6 +90,13 @@ foreach m of numlist 12 36 {
 
 merge 1:1 id using ihdp-noncog, nogen nolabel keep(match)
 
+* Normalise to have in-group sample mean 0 and variance 1
+foreach s of global bayley_types {
+	foreach m of numlist 24 {
+		capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
+	}
+}
+
 save ihdp-merge, replace
 
 keep if bwg == 0
@@ -130,6 +144,13 @@ foreach s in auth cnfv cntr do dtch indp obey pos prog sdv socv talk educ {
 
 merge 1:1 id using abc-noncog, nogen nolabel keep(match)
 
+* Normalise to have in-group sample mean 0 and variance 1
+foreach s of global bayley_types {
+	foreach m of numlist 24 30 36 42 48 60 72 78 96 {
+		capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
+	}
+}
+
 save abc-merge, replace
 
 * -- *
@@ -171,6 +192,13 @@ foreach t of global care_type {
 	}
 
 	merge 1:1 id using abc-noncog, nogen nolabel keep(match)
+
+	* Normalise to have in-group sample mean 0 and variance 1
+	foreach s of global bayley_types {
+		foreach m of numlist 24 30 36 42 48 60 72 78 96 {
+			capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
+		}
+	}
 
 	drop treat
 	gen treat = R

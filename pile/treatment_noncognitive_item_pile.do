@@ -75,19 +75,19 @@ foreach age of numlist 5 8 {
 		rename `p'R_`age'num row_`age'
 		keep row_`age' `p'R_`age'coeff `p'R_`age'lower `p'R_`age'upper `p'R_`age'pval
 		keep if row_`age' != .
-		save "`p'-noncog-`age'", replace
+		save "`p'-noncog-item-`age'", replace
 	}
 
 	cd "$data_analysis"
 
-	use ihdp-noncog-`age', clear
+	use ihdp-noncog-item-`age', clear
 
 	foreach p of local `age'_program_noncog {
-		merge 1:1 row_`age' using `p'-noncog-`age', nogen nolabel
+		merge 1:1 row_`age' using `p'-noncog-item-`age', nogen nolabel
 	}
 
 	rename row_`age' row
-	save noncog-pile-`age', replace
+	save noncog-pile-item-`age', replace
 }
 
 * --------*
@@ -95,18 +95,18 @@ foreach age of numlist 5 8 {
 
 foreach age of numlist 5 8 {
 	cd "$data_analysis"
-	use noncog-pile-`age', clear
-	include "${code_path}/function/noncognitive"
-	save noncog-pile-`age', replace
+	use noncog-pile-item-`age', clear
+	include "${code_path}/function/noncognitive_item"
+	save noncog-pile-item-`age', replace
 
 	keep if inlist(scale_row, 1, 2, 3)
-	save noncog-pile-`age'-1, replace
-	use noncog-pile-`age', clear
+	save noncog-pile-item-`age'-1, replace
+	use noncog-pile-item-`age', clear
 	keep if inlist(scale_row, 4, 5, 6)
-	save noncog-pile-`age'-2, replace
-	use noncog-pile-`age', clear
+	save noncog-pile-item-`age'-2, replace
+	use noncog-pile-item-`age', clear
 	keep if inlist(scale_row, 7, 8, 9)
-	save noncog-pile-`age'-3, replace
+	save noncog-pile-item-`age'-3, replace
 }
 
 * ----------------- *
@@ -115,7 +115,7 @@ foreach age of numlist 5 8 {
 foreach age of numlist 5 8 {
 	foreach page of numlist 1 2 3 {
 		cd "$data_analysis"
-		use noncog-pile-`age'-`page', clear
+		use noncog-pile-item-`age'-`page', clear
 
 		foreach p of local `age'_program_noncog {
 			gen inv_`p'Rcoeff = `p'R_`age'coeff * -1
@@ -127,12 +127,12 @@ foreach age of numlist 5 8 {
 			replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 		}
 
-		include "${code_path}/function/noncognitive_graph"
+		include "${code_path}/function/noncognitive_item_graph"
 
 		cd "$pile_out"
-		graph export "noncognitive_pile_R_`age'_`page'.pdf", replace
+		graph export "noncognitive_pile_R_item_`age'_`page'.pdf", replace
 
 		cd "$pile_git_out"
-		graph export "noncognitive_pile_R_`age'_`page'.png", replace
+		graph export "noncognitive_pile_R_item_`age'_`page'.png", replace
 	}
 }

@@ -23,16 +23,24 @@ rename cbcl_soc5		cbcl_social120
 rename cbcl_tho5		cbcl_thought120
 rename cbcl_with5		cbcl_withdrawn120
 
-/*
-keep id treat cbcl_*
-tempfile tmpehs
-save "`tmpehs'", replace
+* Bayley
+rename bbrs_enga1		bayley_engagement14
+rename bbrs_emot1		bayley_emotion14
+rename bbrs_enga2		bayley_engagement24
+rename bbrs_emot2		bayley_emotion24
+rename bbrs_enga3		bayley_engagement36
+rename bbrs_emot3		bayley_emotion36
 
-cd "$data_ehs_harvard"
-use "00097_Early_Head_Start_B5P_ruf.dta", clear
+/*
+   keep id treat cbcl_*
+   tempfile tmpehs
+   save "`tmpehs'", replace
+
+   cd "$data_ehs_harvard"
+   use "00097_Early_Head_Start_B5P_ruf.dta", clear
 */
 
-keep id treat cbcl_*
+keep id treat cbcl_* bayley_*
 
 cd "$data_working"
 save ehs-noncog, replace
@@ -284,7 +292,50 @@ rename f526_d26110 		cbcl96_110
 rename f526_d26111 		cbcl96_111
 rename f526_d26112 		cbcl96_112
 
-keep id cbcl60_* cbcl96_*
+* Bayley
+rename v11a_f41			bayley24_11a
+rename v11b_f41			bayley24_11b
+rename v12a_f41			bayley24_12a
+rename v12b_f41			bayley24_12b
+rename v13a_f41			bayley24_13a
+rename v13b_f41			bayley24_13b
+
+foreach var in 11a 11b 12a 12b 13a 13b {
+	recode bayley24_`var' (1 = 4) (2 = 3) (3 = 2) (4 = 1) (5 = 0)
+	replace bayley24_`var' = bayley24_`var'/4
+}
+
+rename v16a_f41			bayley24_16a
+rename v16b_f41			bayley24_16b
+replace bayley24_16a = bayley24_16a/4
+replace bayley24_16b = bayley24_16b/4
+rename v18a_f41			bayley24_18a
+rename v18b_f41			bayley24_18b
+replace bayley24_18a = bayley24_18a/4
+replace bayley24_18b = bayley24_18b/4
+gen bayley24_19a = v19a_f41 == 3 | v19a_f41 == 4
+gen bayley24_19b = v19b_f41 == 3 | v19b_f41 == 4
+rename v24a_f41			bayley24_24a
+rename v24b_f41			bayley24_24b
+replace bayley24_24a = bayley24_24a/4
+replace bayley24_24b = bayley24_24b/4
+
+rename v17a_f41			bayley24_17a
+rename v17b_f41			bayley24_17b
+replace bayley24_17a = bayley24_17a/4
+replace bayley24_17b = bayley24_17b/4
+gen bayley24_21a = v21a_f41 == 3 | v21a_f41 == 4
+gen bayley24_21b = v21b_f41 == 3 | v21b_f41 == 4
+gen bayley24_22a = v22a_f41 == 3 | v22a_f41 == 4
+gen bayley24_22b = v22b_f41 == 3 | v22b_f41 == 4
+gen bayley24_23a = v23a_f41 == 2 | v23a_f41 == 3 | v23a_f41 == 4
+gen bayley24_23b = v23b_f41 == 2 | v23b_f41 == 3 | v23b_f41 == 4
+
+gen bayley24_20a = v20a_f41 == 3 | v20a_f41 == 4
+gen bayley24_20b = v20b_f41 == 3 | v20b_f41 == 4
+
+
+keep id cbcl60_* cbcl96_* bayley24_*
 
 * Data has a problem of string-coded missing
 foreach var of varlist _all {
@@ -304,6 +355,11 @@ foreach var of varlist _all {
 egen cbcl60_56 = rowmean(cbcl60_56a cbcl60_56b cbcl60_56c cbcl60_56d cbcl60_56e cbcl60_56f cbcl60_56g)
 egen cbcl96_56 = rowmean(cbcl96_56a cbcl96_56b cbcl96_56c cbcl96_56d cbcl96_56e cbcl96_56f cbcl96_56g)
 
+* It seems like "b" has lots of missings: using "a" which corresponds to session 1
+egen bayley_attention24 = rowmean(bayley24_11a bayley24_12a bayley24_13a bayley24_16a bayley24_18a bayley24_19a bayley24_24a)
+egen bayley_emotion24 = rowmean(bayley24_17a bayley24_21a bayley24_22a bayley24_23a)
+egen bayley_engagement24 = rowmean(bayley24_20a)
+
 cd "$data_working"
 save ihdp-noncog, replace
 
@@ -317,7 +373,17 @@ use "append-abccare.dta", clear
 rename achp8y_i*		cbcl96_*
 egen cbcl96_56 = rowmean(cbcl96_56a cbcl96_56b cbcl96_56c cbcl96_56d cbcl96_56e cbcl96_56f cbcl96_56g)
 
-keep id treat program cbcl96_*
+* Kohn & Rosman (will treat as Bayley)
+rename kr72k*			kr72i*
+
+foreach age of numlist 24 30 36 42 48 60 72 78 96 {
+	rename kr`age'i*	bayley`age'_*
+	egen bayley_attention`age' = rowmean(bayley`age'_2 bayley`age'_4 bayley`age'_6 bayley`age'_9 bayley`age'_11 bayley`age'_16 bayley`age'_20)
+	egen bayley_emotion`age' = rowmean(bayley`age'_3 bayley`age'_7 bayley`age'_10 bayley`age'_15 bayley`age'_17 bayley`age'_19 bayley`age'_21 bayley`age'_23 bayley`age'_24)
+	egen bayley_engagement`age' = rowmean(bayley`age'_1 bayley`age'_5 bayley`age'_8 bayley`age'_12 bayley`age'_14 bayley`age'_18 bayley`age'_22 bayley`age'_25 bayley`age'_26)
+}
+
+keep id treat program cbcl96_* bayley_* bayley*_*
 
 cd "$data_working"
 save abc-noncog, replace
