@@ -621,7 +621,7 @@ replace program_outcome = "IHDP - PPVT" if program == 2 & outcome == 1
 replace program_outcome = "IHDP - SB" if program == 2 & outcome == 2
 replace program_outcome = "ABC - SB" if program == 3 & outcome == 2
 
-graph hbar estimate_mediation estimate_indirect, over(program_outcome) stack percent ///
+graph hbar estimate_mediation estimate_indirect, over(program_outcome) stack ///
 	legend(label(1 "Mediator") label(2 "Else")) ///
 	ytitle("Percent Total Effect") ///
 	graphregion(fcolor(white)) bgcolor(white)
