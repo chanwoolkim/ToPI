@@ -47,6 +47,8 @@ foreach t of global ehs_type {
 			capture egen norm_cbcl_`s'`m' = std(cbcl_`s'`m')
 		}
 	}
+	
+	merge 1:1 id using ehs-video, nogen nolabel keep(match)
 
 	save ehs`t'-merge, replace
 }
@@ -96,6 +98,8 @@ foreach s of global bayley_types {
 		capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
 	}
 }
+
+merge 1:1 id using ihdp-video, nogen nolabel keep(match)
 
 save ihdp-merge, replace
 
@@ -150,6 +154,8 @@ foreach s of global bayley_types {
 		capture egen norm_bayley_`s'`m' = std(bayley_`s'`m')
 	}
 }
+
+merge 1:1 id using abc-video, nogen nolabel keep(match)
 
 save abc-merge, replace
 

@@ -200,6 +200,13 @@ save ihdp-parent, replace
 cd "$data_raw"
 use "append-abccare.dta", clear
 
+* Parent's interest in spending time with child
+rename eps8		parent_disinterest96
+rename eiebs7	parent_irritable96
+
+* KIDI
+rename kidi_acc2y6m	kidi_accuracy30
+
 * PARI
 foreach q in dpnd scls noaggr isltd supsex maritl nohome rage verb egal comrde auth hostl demo {
 	rename pari_`q'			pari_`q'6
@@ -222,7 +229,7 @@ foreach q in auth cnfv cntr do dtch indp obey pos prog sdv socv talk {
 
 rename pase_educ5y6m		pase_educ66
 
-keep id treat program pari_* pari6_* pari18_* pase_*
+keep id treat program parent_* kidi_* pari_* pari6_* pari18_* pase_*
 
 cd "$data_working"
 save abc-parent, replace

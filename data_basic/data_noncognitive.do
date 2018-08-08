@@ -334,8 +334,8 @@ gen bayley24_23b = v23b_f41 == 2 | v23b_f41 == 3 | v23b_f41 == 4
 gen bayley24_20a = v20a_f41 == 3 | v20a_f41 == 4
 gen bayley24_20b = v20b_f41 == 3 | v20b_f41 == 4
 
-
-keep id cbcl60_* cbcl96_* bayley24_*
+keep id cbcl60_* cbcl96_* bayley24_* ///
+	 v11_f62 v12_f62 v13_f62 v14_f62 v15_f62 v16_f62 v17_f62 v18_f62 v19_f62 v20_f62 v21_f62 v22_f62 v23_f62
 
 * Data has a problem of string-coded missing
 foreach var of varlist _all {
@@ -374,6 +374,10 @@ rename achp8y_i*		cbcl96_*
 egen cbcl96_56 = rowmean(cbcl96_56a cbcl96_56b cbcl96_56c cbcl96_56d cbcl96_56e cbcl96_56f cbcl96_56g)
 
 * Kohn & Rosman (will treat as Bayley)
+rename kr_confs3y		kr_confidence36
+rename kr_withds3y		kr_withdrawn36
+rename kr_atts3y		kr_attentive36
+rename kr_dsts3y		kr_distractible36
 rename kr72k*			kr72i*
 
 foreach age of numlist 24 30 36 42 48 60 72 78 96 {
@@ -383,7 +387,7 @@ foreach age of numlist 24 30 36 42 48 60 72 78 96 {
 	egen bayley_engagement`age' = rowmean(bayley`age'_1 bayley`age'_5 bayley`age'_8 bayley`age'_12 bayley`age'_14 bayley`age'_18 bayley`age'_22 bayley`age'_25 bayley`age'_26)
 }
 
-keep id treat program cbcl96_* bayley_* bayley*_*
+keep id treat program kr_* cbcl96_* bayley_* bayley*_*
 
 cd "$data_working"
 save abc-noncog, replace

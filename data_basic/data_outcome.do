@@ -16,12 +16,16 @@ rename ppvt3 ppvt36
 rename ppvt5 ppvt48
 rename ppvt10 ppvt120
 
+* Price
+rename ccare_cost26m	price_care26
+
 #delimit ;
 keep id
 treat
 ppvt36
 ppvt48
 ppvt120
+price_care
 ;
 #delimit cr
 
@@ -48,6 +52,9 @@ rename ppvt18y ppvt216
 * SB
 rename sb3y sb36
 
+* Price
+rename care_oth3y_i55a	price_care36
+
 #delimit ;
 keep id
 treat
@@ -56,6 +63,7 @@ ppvt60
 ppvt96
 ppvt216
 sb36
+price_care
 ;
 #delimit cr
 

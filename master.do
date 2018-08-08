@@ -88,6 +88,8 @@ cd "${code_path}/data_basic"
 cd "${code_path}/data_basic"
 	include "data_noncognitive"
 cd "${code_path}/data_basic"
+	include "data_video"
+cd "${code_path}/data_basic"
 	include "data_merge"
 
 * -------- *
@@ -103,6 +105,8 @@ cd "${code_path}/analysis_basic"
 	include "treatment_longitudinal"
 cd "${code_path}/analysis_basic"
 	include "treatment_table"
+cd "${code_path}/analysis_basic"
+	include "treatment_list"
 
 * -- *
 * Pile
