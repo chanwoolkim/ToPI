@@ -1,0 +1,93 @@
+ToPI: This folder contains all the codes for ToPI (GitHub). 
+
+(*Cuando escribo "" quiere decir que es para cada uno de los programs: ehs, ihdp, abc care)
+
+/analysis_basic 
+-treatment_list.do: list of new treatment effects (nuevo treatment effects a partir de bases ""-merge.dta )
+-treatment_longitudinal.do : graphs for treatment effects
+-treatment_tables.do : tables of treatment effects
+
+/by_site:
+-treatment_ihdp_by_site.do : by-site analysis (IHDP)
+
+/data_basic: clean code (limpieza del código principal)
+-data_control.do: preliminary data preparation - controls (prepara las variables de control - guarda bases ""-control.dta en la carpeta data_working)
+-data_description.do: data description (genera estadística descriptiva)
+-data_home_aggregate.do: preliminary data preparation - HOME aggregates (prepara las variables de home - guarda bases ""-home_agg.dta en la carpeta data_working)
+-data_home_item.do: preliminary data preparation - HOME items (prepara las variables de home - guarda bases ""-home_item.dta en la carpeta data_working)
+-data_labor.do: preliminary data preparation - labor measures (prepara las variables de empleo de los padres - guarda bases ""-labor.dta en la carpeta data_working)
+-data_merge.do: preliminary data preparation - merge (hace merge de todas las bases - guarda bases ""-merge.dta en la carpeta data_working)
+-data_noncognitive.do: preliminary data preparation - non cognitive measures (prepara las variables no cognitivas (CBCL, Bayley, etc) - guarda bases ""-parent.dta en la carpeta data_working)
+-data_outcome.do: preliminary data preparation - outcomes (cognitive) (prepara las variables de outcome cognitivos - guarda bases ""-outcome.dta en la carpeta data_working)	
+-data_parental_info.do: preliminary data preparation - parent info (prepara las variables de cuestionarios padres (KIDI y otros) - guarda bases ""-parent.dta en la carpeta data_working)	
+-data_participation.do: preliminary data preparation - participation (prepara las variables de participación en el tratamiento - guarda bases ""-participation.dta en la carpeta data_working)	 
+-data_video.do: preliminary data preparation - video (prepara las variables de videos - guarda bases ""-video.dta en la carpeta data_working)**AH modified this**	
+
+
+/function: (funciones usadas en los graficos y tablas)
+-home_agg.do: clean code for basic pile charts and tables	
+-home_agg_graph.do: varying shapes instead of cod of colours 	 	
+-home_agg_graph_sep.do: varying shapes instead of cod of colours	 
+-home_item_early.do: clean code for basic pile charts and tables 	 	
+-home_item_graph.do: varying shapes instead of cod of colours  		
+-home_item_graph_sep.do: varying shapes instead of cod of colours		
+-home_item_later.do: clean code for basic pile charts and tables  	 
+-noncognitive_agg.do: add Bayley scales pile graphs 	
+-noncognitive_agg_graph.do: add Bayley scales pile graphs 	
+-noncognitive_agg_graph_sep.do: add Bayley scales pile graphs 	
+-noncognitive_item.do: add Bayley scales pile graphs 	
+-noncognitive_item_graph.do: add Bayley scales pile graphs 	
+-outcome.do: presentation preparation (not clean) 	
+-outcome_graph.do: varying shapes instead of cod of colours 	
+-outcome_graph_sep.do: varying shapes instead of cod of colours 	
+-significance.do: presentation preparation (not clean)
+
+/homo_subpop:  		
+-data_table_homo_subpop.do: data table - homogenisation + subpopulation (table)
+-treatment_home_aggregate_homo_subpop.do: treatment effects - population homogenisation and subpopulation (aggregate)
+-treatment_home_item_homo_subpop.do: treatment effects - population homogenisation and subpopulation (item)
+
+/homogenisation:
+-data_homo.do: data preparation - homogenisation 	 	
+-data_merge_homo.do: data - homogenisation (merge all) 	
+-data_table_homo.do: data table - homogenisation  	
+-home_comparison_aggregate.do: comparison - aggregate
+-treatment_home_aggregate_homo.do: treatment effects - population homogenisation (aggregate)	
+-treatment_home_comparison_homo.do: treatment effects - population homogenisation (comparison)	
+-treatment_home_item_homo.do: treatment effects - population homogenisation (item)	
+-treatment_table_homo.do: treatment effects - population homogenisation (table)
+
+/mediation:
+-treatment_home_outcome_interaction.do: anaalysis for interaction (IQ-HOME)
+-treatment_home_outcome_mediation.do: mediation analysis
+
+/old: old code
+
+/out: graphs and tables
+
+/pile: (construcción de pile charts)
+-data_home_aggregate_pile.do: data for aggregate pile treatment effects (usa bases ""-merge.dta, renombra variables y guarda solo las variables relevantes en nuevas bases)
+-data_home_item_pile.do: data for item pile treatment effects (usa bases ""-merge.dta, renombra variables y guarda solo las variables relevantes en nuevas bases)
+-data_noncognitive_pile.do: data for non-cognitive pile treatment effects (usa bases ""-merge.dta, renombra variables y guarda solo las variables relevantes en nuevas bases)	
+-data_parent_pile.do: data for parent pile treatment effects (usa bases ""-merge.dta, renombra variables y guarda solo las variables relevantes en nuevas bases)	
+-data_homevideos_aggregate_pile.do:**AH created this**	
+
+-treatment_home_aggregate_pile.do: graphs of treatment effects - aggregate pile	(usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_home_aggregate_substitution_pile.do: graphs of treatment effects - aggregate pile (substitution effect) (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_home_comparison_pile.do: treatment effects - pile (comparison) (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_home_item_pile.do: graphs of treatment effects - item pile (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)	
+-treatment_noncognitive_aggregate_pile.do: graphs of treatment effects - non-cognitive	(usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_noncognitive_item_pile.do: graphs of treatment effects - non-cognitive (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_outcome_pile.do: graphs of treatment effects - outcome (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_parent_item_pile.do: graphs of treatment effects - parent item pile (usa bases ""-pile-.dta, corre regresiones y arma los gráficos)
+-treatment_homevideos_aggregate_pile.do:**AH created this**	
+
+/subpopulation: 
+-data_subpop.do: data preparation - subpopulation
+-data_table_subpop.do: data table - subpopulation
+-treatment_home_aggregate_subpop.do: treatment effects - subpopulation (aggregate)
+-treatment_home_aggregate_vulnerable_subpop.do: graphs of treatment effects - aggregate pile (vulnerable population)
+-treatment_home_item_subpop.do: treatment effects - subpopulation (item)
+-treatment_outcome_vulnerable_subpop.do: graphs of treatment effects - outcome	
+
+/master.do: master do-file (do-file principal, corre todos los do-files de la carpeta y define globals)
