@@ -31,6 +31,11 @@ rename bbrs_emot2		bayley_emotion24
 rename bbrs_enga3		bayley_engagement36
 rename bbrs_emot3		bayley_emotion36
 
+factor ach_score3 bayley_engagement36 bayley_emotion36
+predict noncog3y
+keep id treat cbcl_* bayley_* noncog3y
+
+
 /*
    keep id treat cbcl_*
    tempfile tmpehs
@@ -40,7 +45,6 @@ rename bbrs_emot3		bayley_emotion36
    use "00097_Early_Head_Start_B5P_ruf.dta", clear
 */
 
-keep id treat cbcl_* bayley_*
 
 cd "$data_working"
 save ehs-noncog, replace
@@ -334,7 +338,11 @@ gen bayley24_23b = v23b_f41 == 2 | v23b_f41 == 3 | v23b_f41 == 4
 gen bayley24_20a = v20a_f41 == 3 | v20a_f41 == 4
 gen bayley24_20b = v20b_f41 == 3 | v20b_f41 == 4
 
-keep id cbcl60_* cbcl96_* bayley24_* ///
+gen noncog3y=actps_36_sumscore*-1
+sum noncog3y
+replace noncog3y=(noncog-r(mean))/r(sd)
+
+keep id cbcl60_* cbcl96_* bayley24_* noncog3y ///
 	 v11_f62 v12_f62 v13_f62 v14_f62 v15_f62 v16_f62 v17_f62 v18_f62 v19_f62 v20_f62 v21_f62 v22_f62 v23_f62
 
 * Data has a problem of string-coded missing
@@ -387,7 +395,12 @@ foreach age of numlist 24 30 36 42 48 60 72 78 96 {
 	egen bayley_engagement`age' = rowmean(bayley`age'_1 bayley`age'_5 bayley`age'_8 bayley`age'_12 bayley`age'_14 bayley`age'_18 bayley`age'_22 bayley`age'_25 bayley`age'_26)
 }
 
-keep id treat program kr_* cbcl96_* bayley_* bayley*_*
+factor carey_act2y6m carey_int2y6m carey_dist2y6m carey_per2y6m ///
+carey_thr2y6m carey_mood2y6m carey_adpt2y6m carey_app2y6m carey_rhy2y6m 
+predict noncog3y
+replace noncog3y=noncog3y*-1
+
+keep id treat program kr_* cbcl96_* bayley_* bayley*_* noncog3y
 
 cd "$data_working"
 save abc-noncog, replace

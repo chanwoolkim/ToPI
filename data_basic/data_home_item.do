@@ -559,10 +559,152 @@ foreach num of numlist 1/55 {
 	rename v`num'_f56	home36_`num'
 }
 
+*See Excel File Variable Match for these new codes
+rename 	f304_b0480a	home60_1 //books
+recode home60_1 (2 = 0)
+rename 	f304_b0480b	home60_2 //we will not use it
+replace home60_2="" if home60_2=="D"
+destring home60_2, replace
+
+rename 	f304_b0483a	home60_53
+rename 	f304_b0483b	home60_14
+rename 	f304_b0483c	home60_52
+rename 	f304_b0483d	home60_55
+rename 	f304_b0483e	home60_56
+rename 	f304_b0483f	home60_15
+rename 	f304_b0483g	home60_16
+rename 	f304_b0483h	home60_11
+foreach v of numlist 11 14 15 16 52 53 55 56{
+recode home60_`v' (2 = 1)(3 = 1)(4 = 1)(5 = 1)(6 = 0)
+}
+rename 	f304_b0482a	home60_57
+rename 	f304_b0482b	home60_58
+rename 	f304_b0482c	home60_59
+rename 	f304_b0482d	home60_60
+rename 	f304_b0482e	home60_61
+replace home60_61="" if home60_61=="?" 
+destring home60_61, replace
+foreach v of numlist 57 58 59 60 61{
+recode home60_`v' (1 = 0)(2 = 1)(3 = 1)(4 = 1)
+}
+rename 	f304_b0481a	home60_41 //we will not use them. Coding unclear.
+rename 	f304_b0481b	home60_42
+rename 	f304_b0481c	home60_43
+rename 	f304_b0481d	home60_45
+rename 	f304_b0481e	home60_46
+rename 	f304_b0481f	home60_47
+rename 	f304_b0481g	home60_48
+rename 	f304_b0481h	home60_50
+rename 	f304_b0481i	home60_51
+foreach v of numlist 41 42 43 45 46 47 48 50 51{
+recode home60_`v' (1 = 0)(2 = 1)(3 = 1)(4 = 1)
+}
+
+
+rename 	f404_c_489a	home78_1
+rename 	f404_c_489b	home78_2 //we will not use it
+rename 	f404_c_491d	home78_62
+rename 	f404_c_491j	home78_11
+rename 	f404_c_491b	home78_14
+rename 	f404_c_491h	home78_15
+rename 	f404_c_491i	home78_16
+rename 	f404_c_491e	home78_52
+rename 	f404_c_491a	home78_53
+rename 	f404_c_491c	home78_54
+rename 	f404_c_491f	home78_55
+rename 	f404_c_491g	home78_56
+rename 	f404_c_490a	home78_57
+rename 	f404_c_490b	home78_58
+rename 	f404_c_490c	home78_59
+rename 	f404_c_490d	home78_60
+rename 	f404_c_490e	home78_61
+
+foreach num of numlist 1/62 {
+capture replace home78_`num'="" if home78_`num'=="r"|home78_`num'=="d"
+capture destring home78_`num', replace
+}
+recode home78_1 (2 = 0)
+foreach v of numlist 53 14 54 62 52 55 56 15 16 11{
+recode home78_`v' (2 = 1)(3 = 1)(4 = 1)(5 = 1)(6 = 0)
+}
+foreach v of numlist 57 58 59 60 61{
+recode home78_`v' (1 = 0)(2 = 1)(3 = 1)(4 = 1)
+}
+
+rename 	f504_d_461a	home96_1
+rename 	f504_d_461b	home96_2 //how many books, we will not use it
+rename 	f504_d_461c	home96_17
+rename 	f504_d_461d	home96_18 //not use it, ok
+rename 	f504_d_461e	home96_19
+rename 	f504_d_461f	home96_20 //not use it, ok
+
+rename 	f504_d_462a	home96_21
+rename 	f504_d_462b	home96_22 //not use it
+rename 	f504_d_462c	home96_23
+rename 	f504_d_462d	home96_24 //not use it
+rename 	f504_d_462e	home96_25
+rename 	f504_d_462f	home96_26 //not use it
+
+rename 	f504_d_464a	home96_27 //who reads to the child questions...
+rename 	f504_d_464b	home96_28
+rename 	f504_d_464c	home96_29
+rename 	f504_d_464d	home96_30
+rename 	f504_d_464e	home96_31
+rename 	f504_d_464f	home96_32
+rename 	f504_d_464g	home96_33
+rename 	f504_d_464h	home96_34
+
+rename 	f504_d_470a	home96_35
+rename 	f504_d_470b	home96_36 //not use it
+rename 	f504_d_471a	home96_37
+rename 	f504_d_471b	home96_38 //not use it
+rename 	f504_d_471c	home96_39
+rename 	f504_d_471d	home96_40 //not use it
+
+rename 	f504_d_472a	home96_41 //dictionary...
+rename 	f504_d_472b	home96_42
+rename 	f504_d_472c	home96_43
+rename 	f504_d_472d	home96_44
+rename 	f504_d_472e	home96_45
+rename 	f504_d_472f	home96_46
+rename 	f504_d_472g	home96_47
+rename 	f504_d_472h	home96_48
+rename 	f504_d_472i	home96_49
+rename 	f504_d_472j	home96_50
+rename 	f504_d_472k	home96_51
+
+rename 	f504_d_474a	home96_3
+rename 	f504_d_474b	home96_4
+rename 	f504_d_474c	home96_5
+rename 	f504_d_474d	home96_6
+rename 	f504_d_474e	home96_7
+rename 	f504_d_474f	home96_8
+rename 	f504_d_474g	home96_9
+rename 	f504_d_473b	home96_10
+rename 	f504_d_473c	home96_11
+rename 	f504_d_473d	home96_12
+rename 	f504_d_473e	home96_13
+rename 	f504_d_473a	home96_52
+
+foreach num of numlist 1/52 {
+capture replace home96_`num'="" if home96_`num'=="r"|home96_`num'=="d"
+capture destring home96_`num', replace
+}
+
+foreach v of numlist 1 17 19 21 23 25 27/35 37 39 41/51{
+recode home96_`v' (2 = 0)
+}
+foreach v of numlist 3/13 52{
+recode home96_`v' (2 = 1)(3 = 1)(4 = 1)(5 = 1)(6 = 0)
+}
+
 #delimit ;
 keep id
 home12_*
 home36_*
+home60_*
+home78_*
+home96_*
 ;
 #delimit cr
 

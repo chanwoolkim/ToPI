@@ -15,6 +15,7 @@ foreach t of global ehs_type {
 	merge 1:1 id using ehs`t'-participation, nogen nolabel keep(match)
 	merge 1:1 id using ehs-control, nogen nolabel keep(match)
 	merge 1:1 id using ehs-home-agg, nogen nolabel keep(match)
+	merge 1:1 id using ehs-video, 	 nogen nolabel keep(match)
 
 	* Normalise to have in-group sample mean 0 and variance 1
 	foreach s of global home_types {
@@ -48,7 +49,6 @@ foreach t of global ehs_type {
 		}
 	}
 	
-	merge 1:1 id using ehs-video, nogen nolabel keep(match)
 
 	save ehs`t'-merge, replace
 }
@@ -64,8 +64,9 @@ merge 1:1 id using ihdp-control, nogen nolabel keep(match)
 merge 1:1 id using ihdp-home-agg, nogen nolabel keep(match)
 
 * Normalise to have in-group sample mean 0 and variance 1
+/* AH added 60 78 96 */
 foreach s of global home_types {
-	foreach m of numlist 12 36 {
+	foreach m of numlist 12 36 60 78 96{
 		capture egen norm_home_`s'`m' = std(home_`s'`m')
 	}
 }

@@ -131,6 +131,30 @@ egen home_total36 = rowmean(home36_1 home36_2 home36_3 home36_4 home36_5 home36_
 							home36_18 home36_44 home36_45 home36_46 home36_50 home36_51 ///
 							home36_17 home36_26 home36_30 home36_31 home36_32)
 
+*Will group development materials w opportunities, to avoid wasting items
+egen home_learning60=rowmean(home60_11	home60_14	home60_15	home60_16)
+*egen home_family60=rowmean(home60_41	home60_42	home60_43	home60_45	home60_46	home60_47	home60_48	home60_50	home60_51) //coding unclear
+egen home_variety60=rowmean(home60_1 home60_52	home60_53				home60_55	home60_56	home60_57	home60_58	home60_59	home60_60	home60_61)
+egen home_total60=rowmean(home60_1	 ///
+ 							home60_11	home60_14	home60_15	home60_16 ///
+							home60_52	home60_53				home60_55	home60_56	home60_57	home60_58	home60_59	home60_60	home60_61)	
+
+egen home_learning78=rowmean(home78_11	home78_14	home78_15	home78_16)
+egen home_variety78=rowmean(home78_1 home78_52	home78_53	home78_54	home78_55	home78_56	home78_57	home78_58	home78_59	home78_60	home78_61)
+*too few items egen home_warmth78=rowmean(home78_62)
+egen home_total78=rowmean(	home78_1	 ///
+							home78_11	home78_14	home78_15	home78_16 ///
+							home78_52	home78_53	home78_54	home78_55	home78_56	home78_57	home78_58	home78_59	home78_60	home78_61 ///
+							home78_62)
+
+egen home_learning96=rowmean(home96_3 home96_4 home96_5	home96_6 home96_7 home96_8 home96_9	home96_10 home96_11	home96_12 home96_13	home96_17 home96_21	home96_23 home96_25	home96_27 home96_28	home96_29	home96_30	home96_31	home96_32	home96_33	home96_34)
+egen home_family96=rowmean(home96_35	home96_37	home96_39	home96_41	home96_42	home96_43	home96_44	home96_45	home96_46	home96_47	home96_48	home96_49	home96_50	home96_51)
+egen home_variety96=rowmean(home96_1 home96_52)
+egen home_total96=rowmean(home96_1	  ///
+							 home96_3 home96_4 home96_5 home96_6 home96_7 home96_8 home96_9 home96_10 home96_11 home96_12 home96_13 home96_17 home96_21	home96_23 home96_25 home96_27 home96_28	home96_29	home96_30	home96_31	home96_32	home96_33	home96_34 ///
+							home96_35	home96_37	home96_39	home96_41	home96_42	home96_43	home96_44	home96_45	home96_46	home96_47	home96_48	home96_49	home96_50	home96_51 ///
+							home96_52)
+							
 #delimit ;
 keep id
 home_total*
@@ -234,6 +258,21 @@ egen home_total54 = rowmean(home54_1 home54_2 home54_3 home54_4 home54_5 home54_
 							home54_16 home54_18 home54_19 home54_20 home54_21 home54_69 home54_70 home54_75 home54_76 home54_77 home54_78 ///
 							home54_56 home54_65 home54_66 home54_67 home54_68)
 
+egen home_develop96=rowmean(home96_65 home96_66 home96_81 home96_82 home96_83 home96_84 home96_85 home96_40)
+egen home_family96=rowmean(home96_1  home96_2  home96_3  home96_5  home96_9  home96_27  home96_67   home96_68  home96_80  home96_18  home96_20  home96_28)	
+egen home_housing96=rowmean(home96_69  home96_70  home96_71  home96_72  home96_73  home96_74  home96_75  home96_78  home96_79 ) 
+egen home_hostility96=rowmean(home96_33 home96_52 home96_54)
+egen home_learning96=rowmean(home96_7 home96_8 home96_10 home96_11 home96_12 home96_13 home96_14 home96_16 home96_17 home96_23 home96_24 home96_26 home96_49 home96_76 home96_25 home96_31 home96_32 home96_35 home96_37 home96_41 home96_45 home96_46 home96_47 home96_48 home96_50 home96_51)
+egen home_variety96=rowmean(home96_4 home96_6 home96_15 home96_18 home96_19 home96_20 home96_21 home96_22 home96_55 home96_56 home96_57 home96_58 home96_59 home96_60 home96_61 home96_62 home96_63 home96_64 home96_34 home96_36 home96_38 home96_39 home96_43 home96_44)
+egen home_warmth96=rowmean(home96_77 home96_19 home96_29 home96_30 home96_42 home96_53)
+egen home_total96=rowmean(	home96_65 home96_66 home96_81 home96_82 home96_83 home96_84 home96_85 home96_40 ///
+							home96_1  home96_2  home96_3  home96_5  home96_9  home96_27  home96_67   home96_68  home96_80  home96_18  home96_20  home96_28 ///
+							home96_69  home96_70  home96_71  home96_72  home96_73  home96_74  home96_75  home96_78  home96_79 ///
+							home96_33 home96_52 home96_54 ///
+							home96_7 home96_8 home96_10 home96_11 home96_12 home96_13 home96_14 home96_16 home96_17 home96_23 home96_24 home96_26 home96_49 home96_76 home96_25 home96_31 home96_32 home96_35 home96_37 home96_41 home96_45 home96_46 home96_47 home96_48 home96_50 home96_51 ///
+							home96_4 home96_6 home96_15 home96_18 home96_19 home96_20 home96_21 home96_22 home96_55 home96_56 home96_57 home96_58 home96_59 home96_60 home96_61 home96_62 home96_63 home96_64 home96_34 home96_36 home96_38 home96_39 home96_43 home96_44 ///
+							home96_77 home96_19 home96_29 home96_30 home96_42 home96_53)
+				
 #delimit ;
 keep id
 home_total*
