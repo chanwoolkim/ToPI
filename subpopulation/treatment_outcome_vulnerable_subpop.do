@@ -8,7 +8,7 @@ clear all
 * ------------ *
 * Prepare matrix
 
-local nrow : list sizeof global(outcome_types)
+local nrow : list sizeof global(outcome_types2)
 
 foreach age of numlist 3 {
 	foreach p of global programs {
@@ -34,13 +34,15 @@ foreach age of numlist 3 {
 		local row_`age' = 1
 
 		* Loop over rows to fill in values into the empty matrix.
-		foreach r of global outcome_types {
+		foreach r of global outcome_types2 {
 			qui matrix `p'R_`age'[`row_`age'',1] = `row_`age''
 			qui matrix `p'D_`age'[`row_`age'',1] = `row_`age''
 
 			capture confirm variable `r'`age'y
 			if !_rc {
 				* Randomisation variable
+				sum `r'`age'y
+				replace `r'`age'y= (`r'`age'y-r(mean))/r(sd)
 				qui regress `r'`age'y R $covariates if !missing(D)
 				* r(table) stores values from regression (ex. coeff, var, CI).
 				qui matrix list r(table)
@@ -127,11 +129,11 @@ foreach age of numlist 3 {
 foreach age of numlist 3 {
 	cd "$data_analysis"
 	use outcome-pile-subpop-`age', clear
-	include "${code_path}/function/outcome"
+	include "${code_path}/function/outcome2"
 	save outcome-pile-subpop-`age', replace
 
 	use outcome-pile-D-subpop-`age', clear
-	include "${code_path}/function/outcome"
+	include "${code_path}/function/outcome2"
 	save outcome-pile-D-subpop-`age', replace
 }
 
@@ -141,21 +143,17 @@ foreach age of numlist 3 {
 foreach age of numlist 3 {
 	cd "$data_analysis"
 	use outcome-pile-subpop-`age', clear
+
 	include "${code_path}/function/significance"
-
-	include "${code_path}/function/outcome_graph"
-
 	cd "${subpop_out}/vulnerable"
+
+	include "${code_path}/function/outcome_graph2"
 	graph export "outcome_pile_R_vulnerable_subpop_`age'.pdf", replace
 
-	cd "${subpop_git_out}/vulnerable"
-	graph export "outcome_pile_R_vulnerable_subpop_`age'.png", replace
+	include "${code_path}/function/outcome_graph_care"
+	graph export "outcome_pile_R_vulnerable_subpop_`age'_care.pdf", replace
 
-	include "${code_path}/function/outcome_graph_sep"
+	include "${code_path}/function/outcome_graph_ehs"
+	graph export "outcome_pile_R_vulnerable_subpop_`age'_ehs.pdf", replace
 
-	cd "${subpop_out}/vulnerable"
-	graph export "outcome_pile_R_vulnerable_subpop_`age'_sep.pdf", replace
-
-	cd "${subpop_git_out}/vulnerable"
-	graph export "outcome_pile_R_vulnerable_subpop_`age'_sep.png", replace
 }

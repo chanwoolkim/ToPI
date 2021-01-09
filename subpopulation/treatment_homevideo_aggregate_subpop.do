@@ -15,7 +15,7 @@ local black_cond	"race_g == 0 & !missing(D)"
 local rich_cond		"poverty == 1 & !missing(D)"
 local poor_cond		"poverty == 0 & !missing(D)"
 
-local nrow : list sizeof global(home_types)
+local nrow : list sizeof global(homevideo_types)
 
 /*
    Poverty: 1 Over poverty line 0 Under poverty line
@@ -42,7 +42,9 @@ foreach age of numlist 1 3 {
 			local row_`age' = 1
 
 			* Loop over rows to fill in values into the empty matrix.
-			foreach r of global home_types {
+capture rename video_factor3y norm_home_video3y
+			
+			foreach r of global homevideo_types {
 				qui matrix `p'R`t'_`age'[`row_`age'',1] = `row_`age''
 
 				capture confirm variable norm_home_`r'`age'y
@@ -103,7 +105,7 @@ foreach age of numlist 1 3 {
 	foreach t of local subpop_types {
 		cd "$data_analysis"
 		use agg-`t'-subpop-`age', clear
-		include "${code_path}/function/home_agg"
+		include "${code_path}/function/homevideo_agg"
 		save agg-`t'-subpop-`age', replace
 	}
 }
@@ -123,13 +125,13 @@ foreach age of numlist 1 3 {
 		include "${code_path}/function/significance"
 
 		include "${code_path}/function/home_agg_graph"
-		graph export "agg_subpop_R_`t'_`age'.pdf", replace
+		graph export "video_agg_subpop_R_`t'_`age'.pdf", replace
 
 		include "${code_path}/function/home_agg_graph_sep"
-		graph export "agg_subpop_R_`t'_`age'_sep.pdf", replace
+		graph export "video_agg_subpop_R_`t'_`age'_sep.pdf", replace
 
 		include "${code_path}/function/home_agg_graph_ehs"
-		graph export "agg_subpop_R_`t'_`age'_ehs.pdf", replace
+		graph export "video_agg_subpop_R_`t'_`age'_ehs.pdf", replace
 
 		
 		}

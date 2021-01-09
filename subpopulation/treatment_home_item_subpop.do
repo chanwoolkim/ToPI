@@ -109,22 +109,21 @@ foreach age of numlist 1 3 {
 		* Make sure variable names follow the convention
 		rename *`t'_* *_*
 
+cd "$subpop_out"
+
 		include "${code_path}/function/significance"
 
 		include "${code_path}/function/home_item_graph"
-
-		cd "$subpop_out"
 		graph export "item_subpop_R_`t'_`age'.pdf", replace
 
-		cd "$subpop_git_out"
-		graph export "item_subpop_R_`t'_`age'.png", replace
+*		include "${code_path}/function/home_item_graph_sep"
+*		graph export "item_subpop_R_`t'_`age'_sep.pdf", replace
 
-		include "${code_path}/function/home_item_graph_sep"
+		include "${code_path}/function/home_item_graph_care"
+		graph export "item_subpop_R_`t'_`age'_care.pdf", replace
 
-		cd "$subpop_out"
-		graph export "item_subpop_R_`t'_`age'_sep.pdf", replace
+		include "${code_path}/function/home_item_graph_ehs"
+		graph export "item_subpop_R_`t'_`age'_ehs.pdf", replace
 
-		cd "$subpop_git_out"
-		graph export "item_subpop_R_`t'_`age'_sep.png", replace
 	}
 }
