@@ -35,10 +35,10 @@ local ihdp_labor_xlabel			xlabel(0(12)96, labsize(small))
 local abc_labor_xlabel			xlabel(0(24)252, labsize(small))
 local care_labor_xlabel			xlabel(0(12)144, labsize(small))
 
-local ehs_home_xlabel			xlabel(0(6)36, labsize(small))
-local ihdp_home_xlabel			xlabel(0(6)36, labsize(small))
-local abc_home_xlabel			xlabel(0(12)60, labsize(small))
-local care_home_xlabel			xlabel(0(12)60, labsize(small))
+local ehs_home_xlabel			xlabel(0(12)120, labsize(small)) /*AH nov18*/
+local ihdp_home_xlabel			xlabel(0(12)120, labsize(small))  /*AH nov18*/
+local abc_home_xlabel			xlabel(0(12)120, labsize(small))  /*AH nov18*/
+local care_home_xlabel			xlabel(0(12)120, labsize(small))  /*AH nov18*/
 
 local treatment					treat == 1
 local t_mean					lcol(black) mcol(black)
