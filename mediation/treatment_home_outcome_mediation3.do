@@ -27,7 +27,6 @@ set matsize $bsamples
 local program_names_rownames ""EHS(Center) - PPVT" "EHS(Home) - PPVT" "EHS(Mixed) - PPVT" "EHS(All) - PPVT" "IHDP - PPVT" "IHDP - SB" "ABC - SB" "CARE (Both) - SB" "CARE (Home) - SB" "CARE (All) - SB""
 local long_prod_colnames 	theta theta_dup R R_dup theta_R theta_R_dup
 local short_prod_colnames 	theta theta_dup R R_dup
-global mediation_out		"${main_path}/out/mediation"
 
 *Long Production Function ME
 qui matrix long_prod_ME_coef_se = J(10, 6, .)
@@ -301,7 +300,7 @@ graph twoway (bar estimate_mediation name, horizontal) ///
 	legend(order(1 "Mediation" 2 "Other" 3 "95% CI")) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
-cd "$mediation_out"
+cd "$out"
 graph export "mediation_cognitive_`error'.pdf", replace
 
 *Graph adapted
@@ -343,7 +342,7 @@ graph twoway (bar estimate_mediation newname, horizontal barw(1) ) ///
 	legend(order(1 "Mediation" 2 "Other" 3 "95% CI")) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
-cd "$mediation_out"
+cd "$out"
 graph export "mediation_cognitive_selected_`error'.pdf", replace
 
 drop newname name name_col program outcome estimate_mediation estimate_ind_outcome estimate_ind_mediator ci_lower ci_upper estimate_all
@@ -370,7 +369,7 @@ forvalues k = 1/`nrow' {
 	}
 }
 
-cd "$mediation_out"
+cd "$out"
 
 frmttable using long_prod_`error', statmat(long_prod_`error'_coef_se) substat(1) sdec(3) fragment tex replace nocenter ///
 	annotate(long_prod_`error'_stars) asymbol(*,**,***)
@@ -393,13 +392,13 @@ forvalues k = 1/`nrow' {
 	}
 }
 
-cd "$mediation_out"
+cd "$out"
 frmttable using short_prod_`error', statmat(short_prod_`error'_coef_se) substat(1) sdec(3) fragment tex replace nocenter ///
 	annotate(short_prod_ME_stars) asymbol(*,**,***)
 }
 
 * DATA CHECKS *
-asd
+
 cd "$data_working"
 use "ihdp-merge-imputations.dta", clear
 

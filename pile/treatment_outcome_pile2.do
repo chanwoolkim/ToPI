@@ -13,8 +13,8 @@ local nrow : list sizeof global(outcome_types2)
 foreach age of numlist 3 {
 	foreach p of global programs {
 
-		cd "$data_analysis"
-		use "`p'-home-agg-pile.dta", clear
+		cd "$data_working"
+		use "`p'-topi.dta", clear
 
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 		qui matrix `p'R_`age' = J(`nrow', 5, .) // for randomisation variable
@@ -78,7 +78,7 @@ foreach age of numlist 3 {
 			}
 		}
 
-		cd "$data_analysis"
+		cd "$data_working"
 
 		svmat `p'R_`age', names(col)
 		rename `p'R_`age'num row_`age'
@@ -94,7 +94,7 @@ foreach age of numlist 3 {
 		save "`p'-pile-outcome-D-`age'", replace
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 
 	* Randomisation
 
@@ -124,7 +124,7 @@ foreach age of numlist 3 {
 *Makes sense to have them in a separate function
 
 foreach age of numlist 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use outcome-pile-`age', clear
 	include "${code_path}/function/outcome2"
 	save outcome-pile-`age', replace
@@ -138,7 +138,7 @@ foreach age of numlist 3 {
 * Execution - P-value
 
 foreach age of numlist 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use outcome-pile-`age', clear
 
 	*include "${code_path}/function/significance"
@@ -152,7 +152,7 @@ foreach age of numlist 3 {
 	replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 }
 
-	cd "$pile_out"
+	cd "$out"
 
 graph dot 	ehsRinsig ehsR0_1 ehsR0_05 ///
 			ihdpRinsig ihdpR0_1 ihdpR0_05 ///

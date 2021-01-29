@@ -13,8 +13,8 @@ local nrow : list sizeof global(home_types)
 foreach age of numlist 1 3 {
 	foreach p of global programs_merge {
 		foreach t of global `p'_type {
-			cd "$data_analysis"
-			use "`p'`t'-home-agg-pile.dta", clear
+			cd "$data_working"
+			use "`p'`t'-topi.dta", clear
 
 			* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 			qui matrix `p'`t'R_`age' = J(`nrow', 5, .) // for randomisation variable
@@ -79,7 +79,7 @@ foreach age of numlist 1 3 {
 				}
 			}
 
-			cd "$data_analysis"
+			cd "$data_working"
 
 			if "`p'" == "abc" {
 				svmat `p'`t'R_6m, names(col)
@@ -98,7 +98,7 @@ foreach age of numlist 1 3 {
 	}
 }
 
-cd "$data_analysis"
+cd "$data_working"
 
 * Randomisation
 
@@ -123,7 +123,7 @@ foreach age of numlist 1 3 {
 * Questions
 
 foreach p of global programs_merge {
-	cd "$data_analysis"
+	cd "$data_working"
 
 	if "`p'" == "abc" {
 		use `p'-agg-pile-sub-6m, clear
@@ -145,7 +145,7 @@ foreach p of global programs_merge {
 	foreach age of numlist 1 3 {
 		* Randomisation
 
-		cd "$data_analysis"
+		cd "$data_working"
 		use `p'-agg-pile-sub-`age', clear
 
 		foreach t of global `p'_type {
@@ -162,7 +162,7 @@ foreach p of global programs_merge {
 	}
 }
 
-cd "$data_analysis"
+cd "$data_working"
 use abc-agg-pile-sub-6m, clear
 
 gen inv_abcRcoeff = abcR_6mcoeff * -1
@@ -177,7 +177,7 @@ save abc-agg-pile-sub-6m, replace
 
 * EHS
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use ehs-agg-pile-sub-`age', clear
 
 	graph dot ehsRinsig ehsR0_1 ehsR0_05 ///
@@ -193,16 +193,13 @@ foreach age of numlist 1 3 {
 		ylabel($sub_axis_range) ///
 		graphregion(fcolor(white))
 
-	cd "$pile_out/substitution"
+	cd "$out"
 	graph export "ehs_sub_agg_pile_R_`age'.pdf", replace
-
-	cd "$pile_git_out/substitution"
-	graph export "ehs_sub_agg_pile_R_`age'.png", replace
 }
 
 * IHDP
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use ihdp-agg-pile-sub-`age', clear
 
 	graph dot ihdpRinsig ihdpR0_1 ihdpR0_05, ///
@@ -212,16 +209,13 @@ foreach age of numlist 1 3 {
 		ylabel($sub_axis_range) ///
 		graphregion(fcolor(white))
 
-	cd "$pile_out/substitution"
+	cd "$out"
 	graph export "ihdp_sub_agg_pile_R_`age'.pdf", replace
-
-	cd "$pile_git_out/substitution"
-	graph export "ihdp_sub_agg_pile_R_`age'.png", replace
 }
 
 * ABC
 foreach age in 6m 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use abc-agg-pile-sub-`age', clear
 
 	graph dot abcRinsig abcR0_1 abcR0_05, ///
@@ -231,16 +225,13 @@ foreach age in 6m 1 3 {
 		ylabel($sub_axis_range) ///
 		graphregion(fcolor(white))
 
-	cd "$pile_out/substitution"
+	cd "$out"
 	graph export "abc_sub_agg_pile_R_`age'.pdf", replace
-
-	cd "$pile_git_out/substitution"
-	graph export "abc_sub_agg_pile_R_`age'.png", replace
 }
 
 * CARE
 foreach age in 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use care-agg-pile-sub-`age', clear
 
 	graph dot careRinsig careR0_1 careR0_05 ///
@@ -254,9 +245,6 @@ foreach age in 1 3 {
 		ylabel($sub_axis_range) ///
 		graphregion(fcolor(white))
 
-	cd "$pile_out/substitution"
+	cd "$out"
 	graph export "abc_sub_agg_pile_R_`age'.pdf", replace
-
-	cd "$pile_git_out/substitution"
-	graph export "abc_sub_agg_pile_R_`age'.png", replace
 }

@@ -13,9 +13,9 @@ local nrow : list sizeof global(homevideo_types)
 foreach age of numlist 3 {
 	foreach p of global programs {
 
-		cd "$data_analysis"
-		use "`p'-homevideo-agg-pile.dta", clear
-
+		cd "$data_working"
+*		use "`p'-homevideo-agg-pile.dta", clear
+		use "`p'-topi.dta", clear
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 		qui matrix `p'R_`age' = J(`nrow', 5, .) // for randomisation variable
 		qui matrix `p'D_`age' = J(`nrow', 5, .) // for participation variable
@@ -78,7 +78,7 @@ capture rename video_factor3y norm_home_video3y
 			}
 		}
 
-		cd "$data_analysis"
+		cd "$data_working"
 
 		svmat `p'R_`age', names(col)
 		rename `p'R_`age'num row_`age'
@@ -94,7 +94,7 @@ capture rename video_factor3y norm_home_video3y
 		save "`p'-pile-video-agg-D-`age'", replace
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 
 	* Randomisation
 
@@ -124,7 +124,7 @@ capture rename video_factor3y norm_home_video3y
 
 
 foreach age of numlist 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use agg-pile-video-`age', clear
 	include "${code_path}/function/homevideo_agg" //names home tot and video scales
 	save agg-pile-video-`age', replace
@@ -138,11 +138,11 @@ foreach age of numlist 3 {
 * Execution - P-value
 
 foreach age of numlist 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use agg-pile-video-`age', clear
 	include "${code_path}/function/significance"
 
-	cd "$pile_out"
+	cd "$out"
 	include "${code_path}/function/home_agg_graph"
 	graph export "agg_pile-video_R_`age'.pdf", replace
 

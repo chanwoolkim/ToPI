@@ -13,8 +13,8 @@ local nrow : list sizeof global(home_types)
 foreach age of numlist 1 3 {
 	foreach p of global programs {
 
-		cd "$data_analysis"
-		use "`p'-home-agg-pile.dta", clear
+		cd "$data_working"
+		use "`p'-topi.dta", clear
 
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
 		qui matrix `p'R_`age' = J(`nrow', 5, .) // for randomisation variable
@@ -76,7 +76,7 @@ foreach age of numlist 1 3 {
 			}
 		}
 
-		cd "$data_analysis"
+		cd "$data_working"
 
 		svmat `p'R_`age', names(col)
 		rename `p'R_`age'num row_`age'
@@ -92,7 +92,7 @@ foreach age of numlist 1 3 {
 		save "`p'-pile-agg-D-`age'", replace
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 
 	* Randomisation
 
@@ -121,7 +121,7 @@ foreach age of numlist 1 3 {
 * Questions
 
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use agg-pile-`age', clear
 	include "${code_path}/function/home_agg"
 	save agg-pile-`age', replace
@@ -135,23 +135,18 @@ foreach age of numlist 1 3 {
 * Execution - P-value
 
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use agg-pile-`age', clear
 	include "${code_path}/function/significance"
 
 	include "${code_path}/function/home_agg_graph"
 
-	cd "$pile_out"
+	cd "$out"
 	graph export "agg_pile_R_`age'.pdf", replace
-
-	cd "$pile_git_out"
-	graph export "agg_pile_R_`age'.png", replace
 
 	include "${code_path}/function/home_agg_graph_sep"
 
-	cd "$pile_out"
+	cd "$out"
 	graph export "agg_pile_R_`age'_sep.pdf", replace
 
-	cd "$pile_git_out"
-	graph export "agg_pile_R_`age'_sep.png", replace
 }

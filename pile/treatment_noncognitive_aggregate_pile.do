@@ -13,7 +13,7 @@ local nrow				3
 foreach age of numlist 2 3 {
 	foreach p of global programs {
 
-		cd "$data_analysis"
+		cd "$data_working"
 		use "`p'-noncog-pile.dta", clear
 
 		* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
@@ -43,7 +43,7 @@ foreach age of numlist 2 3 {
 			local row = `row' + 1
 		}
 
-		cd "$data_analysis"
+		cd "$data_working"
 
 		svmat `p'R_`age', names(col)
 		rename `p'R_`age'num row_`age'
@@ -52,7 +52,7 @@ foreach age of numlist 2 3 {
 		save "`p'-noncog-agg-`age'", replace
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 
 	use ehscenter-noncog-agg-`age', clear
 
@@ -68,7 +68,7 @@ foreach age of numlist 2 3 {
 * Questions
 
 foreach age of numlist 2 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use noncog-pile-agg-`age', clear
 	include "${code_path}/function/noncognitive_agg"
 	save noncog-pile-agg-`age', replace
@@ -78,23 +78,17 @@ foreach age of numlist 2 3 {
 * Execution - P-value
 
 foreach age of numlist 2 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use noncog-pile-agg-`age', clear
 	include "${code_path}/function/significance"
 
 	include "${code_path}/function/noncognitive_agg_graph"
 
-	cd "$pile_out"
+	cd "$out"
 	graph export "noncognitive_pile_R_agg_`age'.pdf", replace
-
-	cd "$pile_git_out"
-	graph export "noncognitive_pile_R_agg_`age'.png", replace
 
 	include "${code_path}/function/noncognitive_agg_graph_sep"
 
-	cd "$pile_out"
+	cd "$out"
 	graph export "noncognitive_pile_R_agg_`age'_sep.pdf", replace
-
-	cd "$pile_git_out"
-	graph export "noncognitive_pile_R_agg_`age'_sep.png", replace
 }

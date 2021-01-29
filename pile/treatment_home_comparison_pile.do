@@ -18,7 +18,7 @@ local ncol_scale : list sizeof global(home_types)
 
 * By program
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use agg-pile-`age', clear
 
 	qui matrix by_program_`age' = J(`nrow', 4*`ncol_program', .)
@@ -74,7 +74,7 @@ foreach age of numlist 1 3 {
 		local col = `col' + 1
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 	use item-pile-`age', clear
 
 	qui matrix by_program_item_`age' = J(`nrow', 4*`ncol_program', .)
@@ -132,15 +132,12 @@ foreach age of numlist 1 3 {
 
 	qui matrix rownames by_program_merge_`age' = `p_row_names'
 
-	cd "$pile_out"
-	frmttable using by_program_`age', statmat(by_program_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
-
-	cd "$pile_git_out"
+	cd "$out"
 	frmttable using by_program_`age', statmat(by_program_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
 }
 
 * By scale
-cd "$data_analysis"
+cd "$data_working"
 
 foreach age of numlist 1 3 {
 	use agg-pile-`age', clear
@@ -174,7 +171,7 @@ foreach age of numlist 1 3 {
 }
 
 foreach age of numlist 1 3 {
-	cd "$data_analysis"
+	cd "$data_working"
 	use count-agg-pile-`age', clear
 
 	qui matrix by_scale_`age' = J(`nrow', 4*`ncol_scale', .)
@@ -229,7 +226,7 @@ foreach age of numlist 1 3 {
 		local col = `col' + 1
 	}
 
-	cd "$data_analysis"
+	cd "$data_working"
 	use item-pile-`age', clear
 
 	foreach p of global programs {
@@ -321,9 +318,6 @@ foreach age of numlist 1 3 {
 
 	qui matrix rownames by_scale_merge_`age' = `p_row_names'
 
-	cd "$pile_out"
-	frmttable using by_scale_`age', statmat(by_scale_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
-
-	cd "$pile_git_out"
+	cd "$out"
 	frmttable using by_scale_`age', statmat(by_scale_merge_`age') substat(1) sdec(0) fragment tex replace nocenter
 }
