@@ -4,25 +4,12 @@
 
 clear all
 set more off
-global code_path 			"/Users/andres/Dropbox/TOPI/do"
 global master_path			"/Users/andres/Dropbox/TOPI"
+global code_path 			"${master_path}/do"
 global data_raw		        "${master_path}/Original datasets"
-
-*Change:
-global main_path			"${master_path}/treatment_effect"
-*global data_ehs_harvard		"${main_path}/data/Harvard Dataverse Sensitive Original Data/parent_interview"
 global data_working			"${master_path}/working"
-*global data_analysis		"${main_path}/working/analysis" //data-->working
-*global data_out				"${master_path}/working/"
-
-global out					"${master_path}/../TOPI_out"
-
-*Eliminate:
-global pile_out				"${main_path}/out/pile"
-global mediation_out		"${main_path}/out/mediation"
-global data_git_out			"${code_path}/out/data_basic"
-global pile_git_out			"${code_path}/out/pile"
-global mediation_git_out	"${code_path}/out/mediation"
+global out					"${master_path}/../Apps/Overleaf/ToPI/Results"
+global git_out				"${code_path}/output_backup"
 
 global covariates			m_age m_edu sibling m_iq race sex gestage mf
 global programs				ehs ehscenter ehshome ehsmixed ihdp abc care careboth carehome
@@ -35,8 +22,8 @@ global ihdp_type			""high" "low" """
 global abc_type				""""
 global care_type			""both" "home" """
 
-global outcome_types		ppvt sb /*AH modified this*/
-global outcome_types2		ppvt sb noncog /*AH modified this*/
+global outcome_types		ppvt sb
+global outcome_types2		ppvt sb noncog
 global noncog_types			bayley /*cbcl*/
 global bayley_types			attention emotion engagement
 global cbcl_types			aggressive attention anxious external internal rule somatic social thought withdrawn
@@ -58,18 +45,15 @@ set seed 2018
 * -------------- * Data Preparation * -------------- *
 cd "${code_path}/data_basic" 	//Creates controls. starts with std-ehs, base-ihdp, append-abccare. Renames.
 	include "data1_control" 		//Imputes covariates. CARE: treat=random!=0. AH added Homo Poverty.
-	cd "${code_path}/data_basic"
+cd "${code_path}/data_basic"
 	include "data2_participation"
-	
 cd "${code_path}/data_basic"
 	include "data3_outcome"
 cd "${code_path}/data_basic"
 	include "data4_labor"
-	
 cd "${code_path}/data_basic"
-	include "data5_home_item"	/*AH modified this to include later ages*/
-	
-	cd "${code_path}/data_basic"
+	include "data5_home_item"	/*AH modified this to include later ages*/	
+cd "${code_path}/data_basic"
 	include "data6_home_aggregate"
 cd "${code_path}/data_basic"
 	include "data7_parental_info"
@@ -83,20 +67,47 @@ cd "${code_path}/data_basic"
 	include "data11_rename_standardize" //uses the -merge data
 cd "${code_path}/data_basic"
 	include "data12_rename_items" //data creation. From mo to yr.
-
-* -------- * Charts * -------- *
-cd "${code_path}/pile"				//uses the -topi data
-	include "pile_prog_var_method" /*AH: original was treatment_outcome_pile */
-
-asd	
 	
+cd "${code_path}/data_basic"
+	include "data13_descriptive_stats" //Creates HS and Educ Weights CHANGE
+cd "${code_path}/data_basic"
+	include "data14_keep" //Creates HS and Educ Weights CHANGE
+
+cd "${code_path}/data_basic"
+	include "exploring_home" //Creates HS and Educ Weights CHANGE
+cd "${code_path}/pile"			
+	include "pile_homevariants_prog_method"
+	
+	
+	asd
+	
+* -------- * Charts * -------- *
+cd "${code_path}/pile"			
+	include "pile_prog_CI_chop"
+cd "${code_path}/pile"
+	include "pile_prog_chop_educ"
+cd "${code_path}/pile"
+	include "pile_prog_chop_poor"
+cd "${code_path}/pile"
+	include "pile_prog_educ"
+cd "${code_path}/pile"
+	include "pile_prog_poor"
+
+asd
+
+
+
+cd "${code_path}/pile"				//uses the -topi data
+	include "pile_prog_var_method" /*AH: original was treatment_outcome_pile */		
+cd "${code_path}/pile"
+	include "pile_prog_var_educ"
 cd "${code_path}/pile"
 	include "treatment_outcome_pile2" /*AH: original was treatment_outcome_pile */
 cd "${code_path}/pile"
 	include "treatment_homevideo_aggregate_pile" /*AH created this*/
 cd "${code_path}/pile"
 	include "treatment_home_aggregate_pile"	
-	
+
 *AH JAN cd "${code_path}/pile"
 *AH JAN 	include "treatment_home_aggregate_substitution_pile" 
 	

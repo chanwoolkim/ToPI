@@ -40,6 +40,12 @@ rename POV4 poverty
 label var poverty "Income Above Poverty line (original data from EHS)"
 label val poverty pov
 
+rename TOTHRSW hours_worked
+rename WORKQ8 	m_work1
+rename EVERWORK m_work2
+
+rename home_total3 home3y_original 
+
 #delimit ;
 keep id
 treat
@@ -55,6 +61,10 @@ gestage
 mf
 bw
 poverty
+hours_worked
+m_work1
+m_work2
+home3y_original 
 ;
 #delimit cr
 
@@ -66,8 +76,6 @@ save ehs-control, replace
 
 cd "$data_raw"
 use "base-ihdp.dta", clear
-
-drop if missing(pag)
 
 rename admin_treat	treat
 rename ihdp			id
@@ -118,6 +126,10 @@ replace bwg = 0 if bwg_sumscore == "L"
 
 rename m_age_base m_age
 rename birth_mdeg m_edu
+*AH: this is from the original .do files creating IHDP-base...
+recode m_edu (1=1) (2=1) (3=2) (4=3) (5=3)
+label define m_edu 1 "< 12th Grade" 2 "High School Graduate" 3 "Some College or more"
+label values m_edu m_edu
 rename hh_sibs0y sibling
 rename m_iq0y m_iq
 
@@ -141,6 +153,8 @@ replace mf = 1 if birth_mlivs == 1
 replace mf = 0 if !missing(birth_mlivs) & birth_mlivs != 1
 label var mf "Mother lives with father of infant or a boyfriend"
 
+rename homto_36_sumscore home3y_original 
+
 #delimit ;
 keep id
 treat
@@ -158,6 +172,10 @@ mf
 bw
 state
 poverty
+twin
+pag
+m_work3y
+home3y_original 
 ;
 #delimit cr
 
@@ -189,6 +207,8 @@ gen bw = birthweight * 453.592
 rename hh_num0y6m hh_num
 gen hh_child = hh_sibs_base + 1
 
+rename home3y6m home3y6m_original
+
 #delimit ;
 keep id
 treat
@@ -210,6 +230,7 @@ hh_num
 f_home
 income
 income_c
+home3y6m_original
 ;
 #delimit cr
 

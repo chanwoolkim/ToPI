@@ -154,6 +154,11 @@ egen home_total96=rowmean(home96_1	  ///
 							 home96_3 home96_4 home96_5 home96_6 home96_7 home96_8 home96_9 home96_10 home96_11 home96_12 home96_13 home96_17 home96_21	home96_23 home96_25 home96_27 home96_28	home96_29	home96_30	home96_31	home96_32	home96_33	home96_34 ///
 							home96_35	home96_37	home96_39	home96_41	home96_42	home96_43	home96_44	home96_45	home96_46	home96_47	home96_48	home96_49	home96_50	home96_51 ///
 							home96_52)
+
+
+egen home_jbg_learning = rowmean(home36_1 home36_2 home36_3 home36_43 home36_4 home36_5 home36_12 home36_6 home36_33 home36_11 home36_34 home36_35 home36_36 home36_37)					
+
+							
 							
 #delimit ;
 keep id
@@ -165,6 +170,7 @@ home_hostility*
 home_learning*
 home_variety*
 home_warmth*
+home_jbg_learning
 ;
 #delimit cr
 
@@ -272,7 +278,9 @@ egen home_total96=rowmean(	home96_65 home96_66 home96_81 home96_82 home96_83 hom
 							home96_7 home96_8 home96_10 home96_11 home96_12 home96_13 home96_14 home96_16 home96_17 home96_23 home96_24 home96_26 home96_49 home96_76 home96_25 home96_31 home96_32 home96_35 home96_37 home96_41 home96_45 home96_46 home96_47 home96_48 home96_50 home96_51 ///
 							home96_4 home96_6 home96_15 home96_18 home96_19 home96_20 home96_21 home96_22 home96_55 home96_56 home96_57 home96_58 home96_59 home96_60 home96_61 home96_62 home96_63 home96_64 home96_34 home96_36 home96_38 home96_39 home96_43 home96_44 ///
 							home96_77 home96_19 home96_29 home96_30 home96_42 home96_53)
-				
+							
+egen home_jbg_learning = rowmean(home42_1 home42_2 home42_3 home42_43 home42_4 home42_5 home42_12 home42_6 home42_33 home42_11 home42_34 home42_35 home42_36 home42_37)					
+														
 #delimit ;
 keep id
 home_total*
@@ -283,6 +291,7 @@ home_hostility*
 home_learning*
 home_variety*
 home_warmth*
+home_jbg_learning
 ;
 #delimit cr
 

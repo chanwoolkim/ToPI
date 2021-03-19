@@ -83,9 +83,6 @@ foreach t of global ehs_type {
 
 	drop home1_i* home3_i*
 
-	keep id R D home1_* home3_* norm_home_* video* ppvt* $covariates bw poverty ///
-	norm_kidi_* norm_bayley_* norm_cbcl_*  black
-	
 	save ehs`t'-topi, replace
 }
 
@@ -95,9 +92,6 @@ use "ihdp-topi.dta", clear
 
 rename home12_* home1_*
 rename home36_* home3_*
-
-keep id R D home1_* home3_* norm_home_* ppvt* video* sb* $covariates bw bwg  ///
-norm_kidi_* kidi* norm_sameroff* norm_bayley_* cbcl*  poverty black
 
 save ihdp-topi, replace
 
@@ -167,9 +161,6 @@ rename home3_i51 home3_55
 
 drop home3_i*
 
-keep id R D home1_* home3_* norm_home_* video* sb* $covariates ///
-bw  norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black
-
 save abc-topi, replace
 
 * CARE (by home visit & both)
@@ -238,8 +229,6 @@ rename home3_i48 home3_54
 rename home3_i51 home3_55
 
 drop home3_i*
-
-keep id R D home1_* home3_* norm_home_* sb* $covariates bw  norm_bayley_* cbcl*  poverty black
 
 save care`t'-topi, replace
 }

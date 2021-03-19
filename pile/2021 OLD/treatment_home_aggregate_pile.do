@@ -141,12 +141,16 @@ foreach age of numlist 1 3 {
 
 	include "${code_path}/function/home_agg_graph"
 
-	cd "$out"
+cd "$out"
+	graph export "agg_pile_R_`age'.pdf", replace
+cd "$git_out"
 	graph export "agg_pile_R_`age'.pdf", replace
 
 	include "${code_path}/function/home_agg_graph_sep"
 
-	cd "$out"
+cd "$out"
+	graph export "agg_pile_R_`age'_sep.pdf", replace
+cd "$git_out"
 	graph export "agg_pile_R_`age'_sep.pdf", replace
 
 }

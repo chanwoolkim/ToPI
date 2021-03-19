@@ -152,7 +152,6 @@ foreach age of numlist 3 {
 	replace `p'R0_05 = `p'R_`age'coeff if `p'R_`age'pval <= 0.05
 }
 
-	cd "$out"
 
 graph dot 	ehsRinsig ehsR0_1 ehsR0_05 ///
 			ihdpRinsig ihdpR0_1 ihdpR0_05 ///
@@ -167,8 +166,11 @@ graph dot 	ehsRinsig ehsR0_1 ehsR0_05 ///
 	ylabel($outcome_axis_range2) ysize(1) xsize(2) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
+cd "$out"
 	graph export "outcome2_pile_R_`age'.pdf", replace
-	
+cd "$git_out"
+	graph export "outcome2_pile_R_`age'.pdf", replace
+
 graph dot 	ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 			ehshomeRinsig ehshomeR0_1 ehshomeR0_05 ///
 			ehsmixedRinsig ehsmixedR0_1 ehsmixedR0_05, ///
@@ -180,7 +182,12 @@ graph dot 	ehscenterRinsig ehscenterR0_1 ehscenterR0_05 ///
 	ylabel($outcome_axis_range2) ysize(1) xsize(2) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
+cd "$out"
 	graph export "outcome2_pile_R_`age'_ehs.pdf", replace
+cd "$git_out"
+	graph export "outcome2_pile_R_`age'_ehs.pdf", replace
+
+
 
 graph dot 	carebothRinsig carebothR0_1 carebothR0_05 ///
 			carehomeRinsig carehomeR0_1 carehomeR0_05, ///
@@ -191,6 +198,9 @@ graph dot 	carebothRinsig carebothR0_1 carebothR0_05 ///
 	ylabel($outcome_axis_range2) ysize(1) xsize(2) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
+cd "$out"
+	graph export "outcome2_pile_R_`age'_sep.pdf", replace
+cd "$git_out"
 	graph export "outcome2_pile_R_`age'_sep.pdf", replace
 
 graph dot 	ehscenterRinsig ehscenterR0_1 ehscenterR0_05 	///
@@ -208,7 +218,11 @@ graph dot 	ehscenterRinsig ehscenterR0_1 ehscenterR0_05 	///
 	ylabel($outcome_axis_range2) ysize(1) xsize(2) ///
 	graphregion(fcolor(white)) bgcolor(white)
 
+cd "$out"
 	graph export "outcome2_pile_R_`age'_mode.pdf", replace
+cd "$git_out"
+	graph export "outcome2_pile_R_`age'_mode.pdf", replace
+
 
 	}
 cap drop scale

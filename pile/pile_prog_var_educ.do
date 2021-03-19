@@ -109,99 +109,61 @@ cd "$data_working"
 
 local row = 1
 	* Create an empty matrix that stores ages, coefficients, p-values, lower CIs, and upper CIs.
-	matrix R = J(`rows', 5, .)
-		matrix colnames R = numR coeffR lowerR upperR pvalR
-	matrix D = J(`rows', 5, .)
-		matrix colnames D = numD coeffD lowerD upperD pvalD
-	matrix S = J(`rows', 5, .)
-		matrix colnames S = numS coeffS lowerS upperS pvalSD	
+
+forv d=1/3{	
+	matrix D`d' = J(`rows', 5, .)
+		matrix colnames D`d' = numD`d' coeffD`d' lowerD`d' upperD`d' pvalD`d'
+}	
 
 	* Loop over rows/outcomes to fill in values into the empty matrix.
 	forv p =1/`rows' {
 		use "`prog`p''-topi.dta", clear
 
-	* ITT
-	di `"ITT: `prog`p'' ``prog`p''_`out`p''' "'
-		regress ``prog`p''_`out`p''' R $covariates if !missing(D)
-				* r(table) stores values from regression (ex. coeff, var, CI).
-				qui matrix list r(table)
-				qui matrix r = r(table)
-				qui matrix R[`row',1] = `row'
-				qui matrix R[`row',2] = r[1,1]
-				qui matrix R[`row',3] = r[5,1]
-				qui matrix R[`row',4] = r[6,1]
-				qui matrix R[`row',5] = r[4,1]
-
+forv d=1/3{			
 	* IV
-	di `"IV: `prog`p'' ``prog`p''_`out`p''' "'
+	di `"IV: `prog`p'' ``prog`p''_`out`p''' Education:`d' "'
 		* We only want to do IV regression only if there is significant variability (> 1%)
-				qui count if !missing(``prog`p''_`out`p''') & !missing(D)
+				qui count if !missing(``prog`p''_`out`p''') & !missing(D) & m_ed==`d'
 			    local nobs = r(N)
-				qui count if R != D & !missing(``prog`p''_`out`p''') & !missing(D)
+				qui count if R != D & !missing(``prog`p''_`out`p''') & !missing(D) & m_ed==`d'
 				local ndiff = r(N)
 				local nprop = `ndiff'/`nobs'
 				di " program: ``prog`p''  nprop: `nprop' "
 				if `nprop' < 0.01 | `ndiff' < 2 {
 					di "Not much variability"
-					regress ``prog`p''_`out`p''' R $covariates if !missing(D)
+					regress ``prog`p''_`out`p''' R $covariates if !missing(D) & m_ed==`d'
 					}
 				else {
-					ivregress 2sls ``prog`p''_`out`p''' (D = R) $covariates if !missing(D)
+					ivregress 2sls ``prog`p''_`out`p''' (D = R) $covariates if !missing(D) & m_ed==`d'
 					}
 				* r(table) stores values from regression (ex. coeff, var, CI).
 				qui matrix list r(table)
 				qui matrix r = r(table)
-				qui matrix D[`row',2] = r[1,1]
-				qui matrix D[`row',3] = r[5,1]
-				qui matrix D[`row',4] = r[6,1]
-				qui matrix D[`row',5] = r[4,1]
-
-	* IV + SUBPOP
-	di `"Subpop: `prog`p'' ``prog`p''_`out`p''' "'
-		* We only want to do IV regression only if there is significant variability (> 1%)
-				qui count if !missing(``prog`p''_`out`p''') & !missing(D) & black==1 & poverty==0 & bw>2000
-			    local nobs = r(N)
-				qui count if R != D & !missing(``prog`p''_`out`p''') & !missing(D) & black==1 & poverty==0 & bw>2000
-				local ndiff = r(N)
-				local nprop = `ndiff'/`nobs'
-				di " program: ``prog`p''  nprop: `nprop' "
-				if `nprop' < 0.01 | `ndiff' < 2 {
-					di "Not much variability"
-					regress ``prog`p''_`out`p''' R $covariates if !missing(D) & black==1 & poverty==0 & bw>2000
-					}
-				else {
-					ivregress 2sls ``prog`p''_`out`p''' (D = R) $covariates if !missing(D) & black==1 & poverty==0 & bw>2000
-					}
-				qui matrix r = r(table)
-				qui matrix S[`row',2] = r[1,1]
-				qui matrix S[`row',3] = r[5,1]
-				qui matrix S[`row',4] = r[6,1]
-				qui matrix S[`row',5] = r[4,1]
+				qui matrix D`d'[`row',1] = `row'
+				qui matrix D`d'[`row',2] = r[1,1]
+				qui matrix D`d'[`row',3] = r[5,1]
+				qui matrix D`d'[`row',4] = r[6,1]
+				qui matrix D`d'[`row',5] = r[4,1]
+}
 				
-* BW:
-*				ihdp 	bw>2000 (678/1090 in ihdp)
-*				abc		bw>2000 (4/126 in abc)
-*				ehs		bw>2000 (73/2694 in ehs)
-*				care	bw>2000 (2/66 in care)
-
 				local row = `row' + 1
 		}
 
-		matrix RDS=R,D,S
-		svmat RDS, names(col)
-		keep numR coeffR lowerR upperR pvalR coeffD lowerD upperD pvalD coeffS lowerS upperS pvalS
-		keep if numR != .
+		matrix DDD=D1,D2,D3
+		svmat DDD, names(col)
+		keep numD1 coeffD1 lowerD1 upperD1 pvalD1 coeffD2 lowerD2 upperD2 pvalD2 coeffD3 lowerD3 upperD3 pvalD3
+		keep if numD1 != .
 
 * ----------------- *
 * Execution - P-value
 
-	foreach m in R D S{
-	gen `m'insig = .
-	gen `m'0_1 = .
-	gen `m'0_05 = .
-	replace `m'insig =	coeff`m' 	if pval`m' > 0.1
-	replace `m'0_1 = 	coeff`m' 	if pval`m' <= 0.1 & pval`m' > 0.05
-	replace `m'0_05 = 	coeff`m' 	if pval`m' <= 0.05
+	foreach D in D1 D2 D3{
+	gen `D'_insig = .
+	gen `D'_01 = .
+	gen `D'_005 = .
+	replace `D'_insig =	coeff`D' 	if pval`D' > 0.1
+	replace `D'_01 = 	coeff`D' 	if pval`D' <= 0.1 & pval`D' > 0.05
+	replace `D'_005 = 	coeff`D' 	if pval`D' <= 0.05
 }
 
 label define Outcomes	///
@@ -223,14 +185,13 @@ label define Outcomes	///
 16 "IHDP Noncog Age 3"	///
 17 "ABC Noncog Age 3"	///
 18 "CARE Noncog Age 3"
-label values numR Outcomes
+label values numD1 Outcomes
 
 *One variable per each horizontal category and for significance levels
 *One row (obs) per vertical category
-cd "$out"
-graph dot 	Rinsig R0_1 R0_05 	///
-			Dinsig D0_1 D0_05  	///
-			Sinsig S0_1 S0_05,  ///
+graph dot 	D1_insig D1_01 D1_005 	///
+			D2_insig D2_01 D2_005  	///
+			D3_insig D3_01 D3_005,  ///
 	marker(1,msize(large) msymbol(D) mlc(navy) mfc(navy*0) mlw(thick)) ///
 	marker(2,msize(large) msymbol(D) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
 	marker(3,msize(large) msymbol(D) mlc(navy) mfc(navy) mlw(thick)) ///
@@ -240,19 +201,22 @@ graph dot 	Rinsig R0_1 R0_05 	///
 	marker(7,msize(large) msymbol(T) mlc(navy) mfc(navy*0) mlw(thick)) ///
 	marker(8,msize(large) msymbol(T) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
 	marker(9,msize(large) msymbol(T) mlc(navy) mfc(navy) mlw(thick)) ///
-	over(numR, gap(0.5) label(labsize(small)) sort(scale_row) ) ///
-	legend (order (1 "ITT" 4 "IV" 7 "Subpop") size(medsmall) cols(3) ) yline(0) /*ylabel(, labsize(tiny))*/ ///
-	/*ylabel(-0.2)*/ ysize(1) xsize(2)   ///
+	over(numD1, gap(0.5) label(labsize(small)) sort(scale_row) ) ///
+	legend (order (1 "Less than HS" 4 "HS" 7 "More than HS") size(medsmall) cols(3) ) yline(0) ///
+	ysize(1) xsize(2)   ///
 	graphregion(fcolor(white)) bgcolor(white) aspect(1.5)	
-	graph export "all_outcomes.pdf", replace
+	
+cd "$out"
+	graph export "all_outcomes_by_educ.pdf", replace
+cd "$git_out"
+	graph export "all_outcomes_by_educ.pdf", replace
 
-
-matrix rownames RDS = ehs_ppvt ihdp_sb ihdp_ppvt abc_sb ///
+matrix rownames DDD = ehs_ppvt ihdp_sb ihdp_ppvt abc_sb ///
 care_sb ehs_kidi ihdp_kidi ehs_home ///
 ihdp_home abc_home care_home ehs_video ///
 ihdp_video abc_video ehs_noncog ihdp_noncog ///
 abc_noncog care_noncog
 	
-matrix list RDS
+matrix list DDD
 
 * asd for EHS:

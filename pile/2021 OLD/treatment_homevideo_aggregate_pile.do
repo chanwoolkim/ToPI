@@ -142,14 +142,21 @@ foreach age of numlist 3 {
 	use agg-pile-video-`age', clear
 	include "${code_path}/function/significance"
 
-	cd "$out"
 	include "${code_path}/function/home_agg_graph"
+cd "$out"
+	graph export "agg_pile-video_R_`age'.pdf", replace
+cd "$git_out"
 	graph export "agg_pile-video_R_`age'.pdf", replace
 
 	include "${code_path}/function/home_agg_graph_sep"
+cd "$out"
+	graph export "agg_pile-video_R_`age'_sep.pdf", replace
+cd "$git_out"
 	graph export "agg_pile-video_R_`age'_sep.pdf", replace
 
 	include "${code_path}/function/home_agg_graph_ehs"
+cd "$out"
 	graph export "agg_pile-video_R_`age'_ehs.pdf", replace
-
+cd "$git_out"
+	graph export "agg_pile-video_R_`age'_ehs.pdf", replace
 }

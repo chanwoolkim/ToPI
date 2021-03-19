@@ -28,9 +28,6 @@ foreach t of global ehs_type {
 	rename norm_bayley_*36	norm_bayley_*3y
 	rename norm_cbcl_*120 	norm_cbcl_*10y
 	
-	keep id R D norm_home_* video* ppvt* $covariates poverty bw ///
-		home14_* home36_* norm_kidi_* norm_bayley_* norm_cbcl_* black
-
 	foreach var of varlist video* ppvt*  {
 	sum `var'
 	replace `var'= (`var'-r(mean))/r(sd)
@@ -67,9 +64,6 @@ rename norm_bayley_*24	norm_bayley_*2y
 
 rename cbcl60_* cbcl5y_*
 rename cbcl96_* cbcl8y_*
-
-keep id R D norm_home_* ppvt* video* sb* $covariates bw bwg home12_* home36_* ///
-norm_kidi_* kidi* norm_sameroff* norm_bayley_* cbcl*  poverty black
 
 foreach var of varlist ppvt* video* sb* kidi* cbcl* {
 sum `var'
@@ -108,9 +102,6 @@ rename norm_bayley_*36	norm_bayley_*3y
 
 rename cbcl96_*	cbcl8y_*
 
-keep id R D norm_home_* video* sb* $covariates ///
-bw home18_* home42_* norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black
-
 foreach var of varlist video* sb* cbcl* {
 sum `var'
 replace `var'= (`var'-r(mean))/r(sd)
@@ -132,8 +123,6 @@ foreach t of global care_type {
 	rename norm_bayley_*36	norm_bayley_*3y
 
 	rename cbcl96_*	cbcl8y_*
-
-	keep id R D norm_home_* sb* $covariates bw home18_* home42_* norm_bayley_* cbcl* poverty black
 
 	foreach var of varlist sb* cbcl* {
 	sum `var'

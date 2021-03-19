@@ -195,7 +195,7 @@ cd "$data_working"
 save ihdp-parent, replace
 
 * ------ *
-* ABC/CARE
+* ABC
 
 cd "$data_raw"
 use "append-abccare.dta", clear

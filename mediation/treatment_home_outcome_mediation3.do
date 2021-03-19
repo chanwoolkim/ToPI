@@ -398,7 +398,7 @@ frmttable using short_prod_`error', statmat(short_prod_`error'_coef_se) substat(
 }
 
 * DATA CHECKS *
-
+asd
 cd "$data_working"
 use "ihdp-merge-imputations.dta", clear
 
