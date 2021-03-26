@@ -12,6 +12,7 @@ hours_worked m_work1 m_work2 ///
 hs H twin ww home3y_original
 
 save ehscenter-topi, replace
+outsheet using ehscenter-topi.csv, comma nolabel replace
 
 * IHDP
 use "ihdp-topi.dta", clear
@@ -22,6 +23,7 @@ m_work3y ///
 hs H twin ww home3y_original home_jbg_learning
 
 save ihdp-topi, replace
+outsheet using ihdp-topi.csv, comma nolabel replace
 
 * ABC
 use "abc-topi.dta", clear
@@ -31,6 +33,7 @@ bw  norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black ///
 hs H twin ww home3y6m_original home_jbg_learning
 
 save abc-topi, replace
+outsheet using abc-topi.csv, comma nolabel replace
 
 * CARE (by home visit & both)
 *foreach t of global care_type {

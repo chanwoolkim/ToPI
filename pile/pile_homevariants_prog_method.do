@@ -70,7 +70,7 @@ local out11 home_jbg_learn
 
 local abc_home_our_learn		norm_home_learning3y
 local abc_home_our_total		norm_home_total3y
-local abc_home_original			home3y_original	
+local abc_home_original			home3y6m_original	
 local abc_home_jbg_learn		home_jbg_learning
 
 local rows=11
@@ -260,3 +260,39 @@ cd "$out"
 	graph export "pile_homevariants_all_methods.pdf", replace
 cd "$git_out"
 	graph export "pile_homevariants_all_methods.pdf", replace
+
+
+asd
+	
+* ------------ *	
+* Adding Athey causal forest implementation
+* Prepare matrix
+
+cd "$code_path/pile"
+rcall: source("causal_forest.R")
+
+cd "$data_working"
+import delimited "causal_forest_edit.csv", clear
+
+*----------------------------------*
+* Simple CI Graphs with One Method *
+*----------------------------------*
+keep numcf coeffcf lowercf uppercf
+keep if numcf != .
+	
+* Prepare Graph *
+label define Outcomes	///
+1 "EHS CENTER PPVT Age 3"		///
+2 "IHDP SB Age 3"		///
+3 "IHDP PPVT Age 3"		///
+4 "ABC SB Age 3"		
+label values numcf Outcomes
+
+twoway (scatter numcf coeffcf,ylabel(,val angle(360))) ///
+	   (rcap lowercf uppercf numcf, horizontal) ///
+		,graphregion(fcolor(white)) legend(off) ytitle("")
+	
+cd "$out"
+graph export "pile_cog6_CF.pdf", replace
+cd "$git_out"
+graph export "pile_cog6_CF.pdf", replace

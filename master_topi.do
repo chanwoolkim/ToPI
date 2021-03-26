@@ -11,7 +11,7 @@ global data_working			"${master_path}/working"
 global out					"${master_path}/../Apps/Overleaf/ToPI/Results"
 global git_out				"${code_path}/output_backup"
 
-global covariates			m_age m_edu sibling m_iq race sex gestage mf
+global covariates			m_age m_edu sibling m_iq black sex gestage mf
 global programs				ehs ehscenter ehshome ehsmixed ihdp abc care careboth carehome
 global program_name			""EHS" "EHS-Center" "EHS-Home" "EHS-Mixed" "IHDP" "ABC" "CARE" "CARE-Both" "CARE-Home""
 global programs_merge		ehs ihdp abc care
@@ -41,6 +41,9 @@ global item_axis_range		-0.5(0.25)0.5
 global parent_axis_range	-1.5(0.5)1.5
 
 set seed 2018
+
+net install github, from("https://haghish.github.io/github/")
+github install haghish/rcall, stable
 
 * -------------- * Data Preparation * -------------- *
 cd "${code_path}/data_basic" 	//Creates controls. starts with std-ehs, base-ihdp, append-abccare. Renames.
