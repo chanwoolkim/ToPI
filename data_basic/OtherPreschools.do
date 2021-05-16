@@ -213,7 +213,16 @@ sum ehs_months if ehs_months>0
 sum alt_months
 sum alt_months if alt_months>0
 
+tab ehs treat
+
+gen alt=.
+replace alt=0 if center!=.
+replace alt=1 if center==1 & ehs==0
+
+
 asd id center ehs center_ehs ehs_months alt_months
+
+
 
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
