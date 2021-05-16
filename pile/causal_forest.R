@@ -1,7 +1,61 @@
 library(tidyverse)
 library(grf)
+library(DiagrammeR)
 
-data_dir <- "C:/Users/56±³À°/Dropbox/Research/TOPI/working/"
+data_dir <- "C:/Users/Unit 9657/Dropbox/Research/TOPI/working/"
+set.seed(9657)
+
+
+# Function that traverses the tree and fill in
+traverse_tree <- function(tree) {
+  arr <- c(1)
+  while (length(arr)!=0) {
+    node_num <- arr[1]
+    arr <- arr[-1]
+    
+    if (!(tree$nodes[[node_num]]$is_leaf)) {
+      arr <- c(arr, tree$nodes[[node_num]]$left_child)
+      arr <- c(arr, tree$nodes[[node_num]]$right_child)
+    }
+    else {
+      tree$nodes[[node_num]]$count <- 0
+    }
+  }
+  return(tree)
+}
+
+fill_tree <- function(df, tree) {
+  df <- df %>%
+    select(X.1=bw,
+           X.2=twin,
+           X.3=m_age,
+           X.4=m_edu,
+           X.5=sibling,
+           X.6=m_iq,
+           X.7=black,
+           X.8=sex,
+           X.9=gestage,
+           X.10=mf)
+  
+  n <- nrow(df)
+  
+  for (i in 1:n) {
+    node_num <- 1
+    while (!(tree$nodes[[node_num]]$is_leaf)) {
+      split_var <- df[i, tree$nodes[[node_num]]$split_variable]
+      split_val <- tree$nodes[[node_num]]$split_value
+      if(split_var <= split_val) {
+        node_num <- tree$nodes[[node_num]]$left_child
+      }
+      else {
+        node_num <- tree$nodes[[node_num]]$right_child
+      }
+    }
+    tree$nodes[[node_num]]$count = tree$nodes[[node_num]]$count + 1/n
+  }
+  return(tree)
+}
+
 
 # Function to create data frame for causal forest estimates
 causal_matrix <- function(df, output_var, program) {
@@ -23,7 +77,8 @@ causal_matrix <- function(df, output_var, program) {
   W <- df$R
   Y <- df %>% pull(output_var)
   
-  c.forest <- causal_forest(X, Y, W)
+  c.forest <- causal_forest(X, Y, W, honesty=FALSE)
+  c.tree <- get_tree(c.forest, 1)
   c.ate <- average_treatment_effect(c.forest)
   c.vi <- variable_importance(c.forest)
   
