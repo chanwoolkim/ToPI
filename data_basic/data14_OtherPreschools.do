@@ -220,9 +220,9 @@ replace alt=0 if center!=.
 replace alt=1 if center==1 & ehs==0
 
 
-asd id center ehs center_ehs ehs_months alt_months
-
-
+keep id center ehs center_ehs ehs_months alt_months
+cd "$data_working"
+save "ehs-participation.dta", replace
 
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
@@ -292,7 +292,11 @@ label define part 1 "IHDP" 2 "Other" 3 "None"
 label values part part 
 tab part
 
-keep id center part D ihdp_months alt_months
+rename D center_ihdp
+
+keep id center part center_ihdp ihdp_months alt_months
+cd "$data_working"
+save "ihdp-participation.dta", replace
 
 *--------*
 * IV ABC *
@@ -310,14 +314,19 @@ replace part=2 if D==0 & P==1
 replace part=3 if D==0 & P==0
 tab part, mi
 
-drop alt_months
+*drop alt_months
 gen abc_months=dc_fpg1+dc_fpg2+dc_fpg3
 gen alt_months=dc_alt1+dc_alt2+dc_alt3
 tabstat abc_months alt_months, by(R)
 
 rename P center
 
-keep id center part D abc_months alt_months
+rename D center_abc
+
+keep id center part center_abc abc_months alt_months
+cd "$data_working"
+save "abc-participation.dta", replace
+
 
 
 /*EXPLORING PARTICIPATION IN EHS

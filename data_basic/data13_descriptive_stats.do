@@ -9,16 +9,32 @@ tab poverty // 492/71 (poverty=1-->nonpoor)
 tab m_ed     // 241 161 150
 		gen hs=.
 		replace hs=1 if m_ed==1|m_ed==2
-		replace hs=2 if m_ed==3
-		
+		replace hs=2 if m_ed==3		
 gen H=.
 replace H = 4140/6000 if D==1
 replace H=0 if D==0
 *https://eclkc.ohs.acf.hhs.gov/programs/article/early-head-start-program-options
-
 gen twin=0
-
 save, replace
+
+
+use "ehsmixed-topi.dta", clear
+tab poverty
+tab m_ed
+		gen hs=.
+		replace hs=1 if m_ed==1|m_ed==2
+		replace hs=2 if m_ed==3		
+gen H=.
+replace H = 4140/6000 if D==1
+replace H=0 if D==0
+*https://eclkc.ohs.acf.hhs.gov/programs/article/early-head-start-program-options
+gen twin=0
+save, replace
+
+
+
+
+
 
 use "ihdp-topi.dta", clear
 tab poverty // 401 527 (poverty=1-->nonpoor)

@@ -42,8 +42,9 @@ global parent_axis_range	-1.5(0.5)1.5
 
 set seed 2018
 
-net install github, from("https://haghish.github.io/github/")
-github install haghish/rcall, stable
+*[UNMUTE THIS IF YOU DONT HAVE THE PROGRAM]
+*net install github, from("https://haghish.github.io/github/")
+*github install haghish/rcall, stable
 
 * -------------- * Data Preparation * -------------- *
 cd "${code_path}/data_basic" 	//Creates controls. starts with std-ehs, base-ihdp, append-abccare. Renames.
@@ -73,16 +74,27 @@ cd "${code_path}/data_basic"
 	
 cd "${code_path}/data_basic"
 	include "data13_descriptive_stats" //Creates HS and Educ Weights CHANGE
-cd "${code_path}/data_basic"
-	include "data14_keep" //Creates HS and Educ Weights CHANGE
 
 cd "${code_path}/data_basic"
-	include "exploring_home" //Creates HS and Educ Weights CHANGE
+	include "data14_OtherPreschools"
+
+cd "${code_path}/data_basic"
+	include "data15_keep" //Creates HS and Educ Weights CHANGE
+*cd "${code_path}/data_basic"
+*	include "data16_exploring_participation" //Creates HS and Educ Weights CHANGE
+
+*cd "${code_path}/data_basic"
+*	include "exploring_home" //Creates HS and Educ Weights CHANGE
+
+*AH May 18 2021 working on this:	
 cd "${code_path}/pile"			
+	include "pile_cog_prog_method"
+	
+asd	
+	
+	
+	cd "${code_path}/pile"			
 	include "pile_homevariants_prog_method"
-	
-	
-	asd
 	
 * -------- * Charts * -------- *
 cd "${code_path}/pile"			
