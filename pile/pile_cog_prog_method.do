@@ -70,8 +70,12 @@ local row = 1
 		matrix colnames REW = numREW coeffREW lowerREW upperREW pvalREW	
 	matrix IV = J(`rows', 5, .)
 		matrix colnames IV = numIV coeffIV lowerIV upperIV pvalIV	
+	matrix IV2 = J(`rows', 5, .)
+		matrix colnames IV2 = numIV2 coeffIV2 lowerIV2 upperIV2 pvalIV2	
 	matrix INT = J(`rows', 5, .)
 		matrix colnames INT = numINT coeffINT lowerINT upperINT pvalINT	
+	matrix INT2 = J(`rows', 5, .)
+		matrix colnames INT2 = numINT2 coeffINT2 lowerINT2 upperINT2 pvalINT2	
 
 	* Loop over rows/outcomes to fill in values into the empty matrix.
 	forv p =1/`rows' {
@@ -124,7 +128,16 @@ local row = 1
 				qui matrix IV[`row',4] = r[6,1]
 				qui matrix IV[`row',5] = r[4,1]
 
-				
+	* NEW IV
+	di `"IV: `prog`p'' ``prog`p''_`out`p''' "'
+			ivregress 2sls ``prog`p''_`out`p''' (center_`prog`p'' = R) if bw>2000 & black==1 & twin==0  [weight=ww]
+				qui matrix r = r(table)
+				qui matrix IV2[`row',1] = `row'
+				qui matrix IV2[`row',2] = r[1,1]
+				qui matrix IV2[`row',3] = r[5,1]
+				qui matrix IV2[`row',4] = r[6,1]
+				qui matrix IV2[`row',5] = r[4,1]
+
 	* INTENSITY
 	di `"INTENSITY: `prog`p'' ``prog`p''_`out`p''' "'
 			ivregress 2sls ``prog`p''_`out`p''' (H = R) if bw>2000 & black==1 & twin==0  [weight=ww]
@@ -135,6 +148,16 @@ local row = 1
 				qui matrix INT[`row',4] = r[6,1]
 				qui matrix INT[`row',5] = r[4,1]
 
+	* NEW INTENSITY
+	di `"INTENSITY: `prog`p'' ``prog`p''_`out`p''' "'
+			ivregress 2sls ``prog`p''_`out`p''' (`prog`p''_months = R) if bw>2000 & black==1 & twin==0  [weight=ww]
+				qui matrix r = r(table)
+				qui matrix INT2[`row',1] = `row'
+				qui matrix INT2[`row',2] = r[1,1]*29
+				qui matrix INT2[`row',3] = r[5,1]
+				qui matrix INT2[`row',4] = r[6,1]
+				qui matrix INT2[`row',5] = r[4,1]
+
 				
 		local row = `row' + 1
 		}
@@ -142,6 +165,7 @@ local row = 1
 *----------------------------------*
 * Simple CI Graphs with One Method *
 *----------------------------------*
+/*
 local num=1
 foreach M in ITT CHOP REW IV INT{
 preserve
@@ -167,20 +191,20 @@ preserve
 restore
 local num=`num'+1
 }
-
+*/
 *--------------------------------*
 * General Graph with All Methods *
 *--------------------------------*		
 		
-matrix ALL=ITT,CHOP,REW,IV,INT
+matrix ALL=ITT,CHOP,REW,IV,IV2,INT,INT2
 svmat ALL, names(col)
-keep numITT coeffITT pvalITT coeffCHOP pvalCHOP coeffREW pvalREW coeffIV pvalIV coeffINT pvalINT		 
+keep numITT coeffITT pvalITT coeffCHOP pvalCHOP coeffREW pvalREW coeffIV pvalIV coeffIV2 pvalIV2 coeffINT pvalINT coeffINT2 pvalINT2		 		 
 keep if numITT != .
 
 * ----------------- *
 * Execution - P-value
 
-	foreach m in ITT CHOP REW IV INT{
+	foreach m in ITT CHOP REW IV IV2 INT INT2{
 	gen `m'insig = .
 	gen `m'0_1 = .
 	gen `m'0_05 = .
@@ -202,7 +226,9 @@ graph dot 	ITTinsig ITT0_1 ITT0_05 	///
 			CHOPinsig CHOP0_1 CHOP0_05  	///
 			REWinsig REW0_1 REW0_05  ///
 			IVinsig IV0_1 IV0_05 ///
+			IV2insig IV20_1 IV20_05 ///
 			INTinsig INT0_1 INT0_05 ///
+			INT2insig INT20_1 INT20_05 ///
    ,marker(1,msize(large) msymbol(D) mlc(navy) mfc(navy*0) mlw(thick)) ///
 	marker(2,msize(large) msymbol(D) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
 	marker(3,msize(large) msymbol(D) mlc(navy) mfc(navy) mlw(thick)) ///
@@ -212,14 +238,20 @@ graph dot 	ITTinsig ITT0_1 ITT0_05 	///
 	marker(7,msize(large) msymbol(T) mlc(navy) mfc(navy*0) mlw(thick)) ///
 	marker(8,msize(large) msymbol(T) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
 	marker(9,msize(large) msymbol(T) mlc(navy) mfc(navy) mlw(thick)) ///
-	marker(10,msize(large) msymbol(S) mlc(navy) mfc(navy*0) mlw(thick)) ///
-	marker(11,msize(large) msymbol(S) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
-	marker(12,msize(large) msymbol(S) mlc(navy) mfc(navy) mlw(thick)) ///
-	marker(13,msize(large) msymbol(D) mlc(red) mfc(red*0) mlw(thick)) ///
-	marker(14,msize(large) msymbol(D) mlc(red) mfc(red*0.45) mlw(thick)) ///
-	marker(15,msize(large) msymbol(D) mlc(red) mfc(red) mlw(thick)) ///
+	marker(10,msize(large) msymbol(S) mlc(green) mfc(green*0) mlw(thick)) ///
+	marker(11,msize(large) msymbol(S) mlc(green) mfc(green*0.45) mlw(thick)) ///
+	marker(12,msize(large) msymbol(S) mlc(green) mfc(green) mlw(thick)) ///
+	marker(13,msize(large) msymbol(S) mlc(red) mfc(red*0) mlw(thick)) ///
+	marker(14,msize(large) msymbol(S) mlc(red) mfc(red*0.45) mlw(thick)) ///
+	marker(15,msize(large) msymbol(S) mlc(red) mfc(red) mlw(thick)) ///
+	marker(16,msize(large) msymbol(D) mlc(green) mfc(green*0) mlw(thick)) ///
+	marker(17,msize(large) msymbol(D) mlc(green) mfc(green*0.45) mlw(thick)) ///
+	marker(18,msize(large) msymbol(D) mlc(green) mfc(green) mlw(thick)) ///
+	marker(19,msize(large) msymbol(D) mlc(red) mfc(red*0) mlw(thick)) ///
+	marker(20,msize(large) msymbol(D) mlc(red) mfc(red*0.45) mlw(thick)) ///
+	marker(21,msize(large) msymbol(D) mlc(red) mfc(red) mlw(thick)) ///
 	over(numITT, gap(0.5) label(labsize(small)) sort(scale_row) ) ///
-	legend (order (1 "ITT" 4 "CHOP" 7 "REW" 10 "IV" 13 "Hours") size(medsmall) cols(5) ) yline(0)  ///
+	legend (order (1 "ITT" 4 "CHOP" 7 "REW" 10 "IV" 13 "NEW IV" 16 "Hours" 19 "New Hours") size(medsmall) cols(5) ) yline(0)  ///
 	ysize(1) xsize(2)   ///
 	graphregion(fcolor(white)) bgcolor(white) aspect(1)	
 cd "$out"
