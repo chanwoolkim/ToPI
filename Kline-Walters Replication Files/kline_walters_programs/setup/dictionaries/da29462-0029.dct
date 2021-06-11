@@ -1,0 +1,14 @@
+
+dictionary using da29462-0029.txt {
+
+	_column(1)	
+		double hsis_childid %6f "Random Assignment Child ID"
+	_column(8)
+		double childbasewt %9f "Overall Child Base Weight"
+	_column(703)
+		double finalwt %9f "Final Child Weight for Child Assessment"
+	
+}
+
+
+
