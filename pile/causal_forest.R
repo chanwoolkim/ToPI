@@ -2,63 +2,13 @@ library(tidyverse)
 library(grf)
 library(DiagrammeR)
 
-data_dir <- "C:/Users/Unit 9657/Dropbox/Research/TOPI/working/"
-set.seed(9657)
-
-
-# Function that traverses the tree and fill in
-traverse_tree <- function(tree) {
-  arr <- c(1)
-  while (length(arr)!=0) {
-    node_num <- arr[1]
-    arr <- arr[-1]
-    
-    if (!(tree$nodes[[node_num]]$is_leaf)) {
-      arr <- c(arr, tree$nodes[[node_num]]$left_child)
-      arr <- c(arr, tree$nodes[[node_num]]$right_child)
-    }
-    else {
-      tree$nodes[[node_num]]$count <- 0
-    }
-  }
-  return(tree)
-}
-
-fill_tree <- function(df, tree) {
-  df <- df %>%
-    select(X.1=bw,
-           X.2=twin,
-           X.3=m_age,
-           X.4=m_edu,
-           X.5=sibling,
-           X.6=m_iq,
-           X.7=black,
-           X.8=sex,
-           X.9=gestage,
-           X.10=mf)
-  
-  n <- nrow(df)
-  
-  for (i in 1:n) {
-    node_num <- 1
-    while (!(tree$nodes[[node_num]]$is_leaf)) {
-      split_var <- df[i, tree$nodes[[node_num]]$split_variable]
-      split_val <- tree$nodes[[node_num]]$split_value
-      if(split_var <= split_val) {
-        node_num <- tree$nodes[[node_num]]$left_child
-      }
-      else {
-        node_num <- tree$nodes[[node_num]]$right_child
-      }
-    }
-    tree$nodes[[node_num]]$count = tree$nodes[[node_num]]$count + 1/n
-  }
-  return(tree)
-}
+data_dir <- "C:/Users/CKIRUser/Downloads/"
+seed <- 9657
 
 
 # Function to create data frame for causal forest estimates
 causal_matrix <- function(df, output_var, program) {
+  # Input for the program of interest
   df <- df %>%
     filter(!is.na(!!(sym(output_var))))
   
@@ -77,25 +27,91 @@ causal_matrix <- function(df, output_var, program) {
   W <- df$R
   Y <- df %>% pull(output_var)
   
-  c.forest <- causal_forest(X, Y, W, honesty=FALSE)
-  c.tree <- get_tree(c.forest, 1)
-  c.ate <- average_treatment_effect(c.forest)
-  c.vi <- variable_importance(c.forest)
+  # Fit the causal forest on the program of interest
+  c_forest <- causal_forest(X, Y, W, honesty=FALSE, seed=seed)
   
+  # Now create input for ABC
+  # Pull out SB even when the program of interest has PPVT
+  if (output_var %in% c("sb3y", "ppvt3y")) {
+    df_abc <- abc %>%
+      filter(!is.na(sb3y))
+  } else {
+    df_abc <- abc %>%
+      filter(!is.na(!!(sym(output_var))))
+  }
+  
+  n <- nrow(df_abc)
+  p <- 10
+  X_abc <- matrix(c(df_abc$bw,
+                    df_abc$twin,
+                    df_abc$m_age,
+                    df_abc$m_edu,
+                    df_abc$sibling,
+                    df_abc$m_iq,
+                    df_abc$black,
+                    df_abc$sex,
+                    df_abc$gestage,
+                    df_abc$mf), n, p)
+  
+  # Use ABC original Y and W
+  W_abc <- df_abc$R
+  
+  if (output_var %in% c("sb3y", "ppvt3y")) {
+    Y_abc <- df_abc %>% pull(sb3y)
+  } else {
+    Y_abc <- df_abc %>% pull(output_var)
+  }
+  
+  args_orthog <- list(X=X_abc,
+                      num.trees=max(50, 2000/4),
+                      sample.weights=NULL,
+                      clusters=NULL,
+                      equalize.cluster.weights=FALSE,
+                      sample.fraction=0.5,
+                      mtry=min(ceiling(sqrt(ncol(X_abc))+20), ncol(X_abc)),
+                      min.node.size=5,
+                      honesty=TRUE,
+                      honesty.fraction=0.5,
+                      honesty.prune.leaves=TRUE,
+                      alpha=0.05,
+                      imbalance.penalty=0,
+                      ci.group.size=1,
+                      tune.parameters="none",
+                      num.threads=NULL,
+                      seed=seed)
+  
+  # Find predicted values for Y and W for ABC
+  forest_Y <- do.call(regression_forest, c(Y=list(Y_abc), args_orthog))
+  Y_hat <- predict(forest_Y)$predictions
+  
+  forest_W <- do.call(regression_forest, c(Y=list(W_abc), args_orthog))
+  W_hat <- predict(forest_W)$predictions
+  
+  # Find estimates and standard errors for ATE using ABC weights
+  debiasing_weights <- (W_abc-W_hat)/(W_hat*(1-W_hat))
+  tau_hat_pointwise <- predict(c_forest, X_abc)$predictions
+  Y_residual <- Y_abc-(Y_hat+tau_hat_pointwise*(W_abc-W_hat))
+  scores <- tau_hat_pointwise+debiasing_weights*Y_residual
+  
+  clusters <- 1:NROW(Y_abc)
+  raw_weights <- rep(1, NROW(Y_abc))
+  observation_weight <- raw_weights/sum(raw_weights)
+  
+  .sigma2.hat <- function(DR_scores, tau_hat) {
+    correction_clust <- Matrix::sparse.model.matrix(~factor(clusters)+0, transpose=TRUE) %*%
+      (sweep(as.matrix(DR_scores), 2, tau_hat, "-")*observation_weight)
+    
+    Matrix::colSums(correction_clust^2)/sum(observation_weight)^2*
+      nrow(correction_clust)/(nrow(correction_clust)-1)
+  }
+  
+  tau_hat <- weighted.mean(scores, observation_weight)
+  sigma2_hat <- .sigma2.hat(scores, tau_hat)
+
   output <- data.frame(program=program,
                        output_var=output_var,
-                       ate=c.ate[[1]],
-                       ate_error=c.ate[[2]],
-                       vi_bw=c.vi[[1]],
-                       vi_twin=c.vi[[2]],
-                       vi_m_age=c.vi[[3]],
-                       vi_m_edu=c.vi[[4]],
-                       vi_sibling=c.vi[[5]],
-                       vi_m_iq=c.vi[[6]],
-                       vi_black=c.vi[[7]],
-                       vi_sex=c.vi[[8]],
-                       vi_gestage=c.vi[[9]],
-                       vi_mf=c.vi[[10]])
+                       estimate=tau_hat,
+                       std_error=sqrt(sigma2_hat))
   
   return(output)
 }
@@ -106,50 +122,20 @@ ihdp <- read.csv(paste0(data_dir,"ihdp-topi.csv"))
 abc <- read.csv(paste0(data_dir,"abc-topi.csv"))
 
 output <- data.frame(program=NULL,
-                     ate=NULL,
-                     ate_error=NULL,
-                     vi_bw=NULL,
-                     vi_twin=NULL,
-                     vi_m_age=NULL,
-                     vi_m_edu=NULL,
-                     vi_sibling=NULL,
-                     vi_m_iq=NULL,
-                     vi_black=NULL,
-                     vi_sex=NULL,
-                     vi_gestage=NULL,
-                     vi_mf=NULL)
+                     output_var=NULL,
+                     estimate=NULL,
+                     std_error=NULL)
 
-ehscenter_output <- c("norm_home_learning3y", "norm_home_total3y", "home3y_original")
-ihdp_output <- c("norm_home_learning3y", "norm_home_total3y", "home3y_original", "home_jbg_learning")
-abc_output <- c("norm_home_learning3y", "norm_home_total3y", "home3y6m_original", "home_jbg_learning")
+ehscenter_output <- c("norm_home_learning3y", "norm_home_total3y", "ppvt3y") #, "home3y_original")
+ihdp_output <- c("norm_home_learning3y", "norm_home_total3y", "home_jbg_learning", "ppvt3y", "sb3y") #, "home3y_original")
+abc_output <- c("norm_home_learning3y", "norm_home_total3y", "home_jbg_learning", "sb3y") #, "home3y_original")
 
 for (v in ehscenter_output) {
-  output <- rbind(output,
-                  causal_matrix(ehscenter, v, "ehscenter"))
+  output <- rbind(output, causal_matrix(ehscenter, v, "ehscenter"))
 }
 
 for (v in ihdp_output) {
-  output <- rbind(output,
-                  causal_matrix(ihdp, v, "ihdp"))
+  output <- rbind(output, causal_matrix(ihdp, v, "ihdp"))
 }
-
-for (v in abc_output) {
-  output <- rbind(output,
-                  causal_matrix(abc, v, "abc"))
-}
-
-output <- output %>%
-  mutate(lower_ci=ate-qnorm(0.975)*ate_error,
-         upper_ci=ate+qnorm(0.975)*ate_error)
 
 write.csv(output, paste0(data_dir, "causal_forest.csv"), row.names=FALSE)
-
-output_edit <- output %>%
-  mutate(numCF=1:11) %>%
-  select(numCF,
-         coeffCF=ate,
-         lowerCF=lower_ci,
-         upperCF=upper_ci)
-
-write.csv(output_edit, paste0(data_dir, "causal_forest_edit.csv"), row.names=FALSE)
-
