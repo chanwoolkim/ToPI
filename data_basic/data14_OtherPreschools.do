@@ -27,7 +27,7 @@ IHDP:
 *-----------------------*
 
 * HARVARD DATA, FAITHFUL TO QUESTIONNAIRE *
-use "/Users/andres/Dropbox/TOPI/Original datasets/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B3P_ruf.dta", clear
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B3P_ruf.dta", clear
 gen center_PI=0
 replace center_PI=1 if b3p405a1==6
 replace center_PI=1 if b3p405a2==6
@@ -62,7 +62,7 @@ keep id center_PI mo_center
 tempfile ehs_PI3
 save `ehs_PI3'
 
-use "/Users/andres/Dropbox/TOPI/Original datasets/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B2P_ruf.dta", clear
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B2P_ruf.dta", clear
 merge 1:1 id using `ehs_PI3'
 
 gen center_extra=0
@@ -104,7 +104,7 @@ keep id center_PI mo_center
 tempfile ehs_PI2
 save `ehs_PI2'
 
-use "/Users/andres/Dropbox/TOPI/Original datasets/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B1P_ruf.dta", clear
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B1P_ruf.dta", clear
 merge 1:1 id using `ehs_PI2'
 
 gen center_extra=0
