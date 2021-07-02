@@ -7,12 +7,10 @@ clear all
 
 * -------------- *
 * Early Head Start
-
-foreach t of global ehs_type {
 	cd "$data_working"
 	use "ehs-outcome.dta", clear
 
-	merge 1:1 id using ehs`t'-participation, nogen nolabel keep(match)
+	merge 1:1 id using ehs-participation, nogen nolabel keep(match)
 	merge 1:1 id using ehs-control, nogen nolabel keep(match)
 	merge 1:1 id using ehs-home-agg, nogen nolabel keep(match)
 	merge 1:1 id using ehs-video, 	 nogen nolabel keep(match)
@@ -50,8 +48,7 @@ foreach t of global ehs_type {
 	}
 	
 
-	save ehs`t'-merge, replace
-}
+	save ehs-merge, replace
 
 * ----------------------------------- *
 * Infant Health and Development Program

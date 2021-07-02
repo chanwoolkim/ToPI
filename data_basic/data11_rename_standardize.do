@@ -7,9 +7,8 @@ clear all
 
 * EHS (by program type)
 
-foreach t of global ehs_type {
 	cd "$data_working"
-	use "ehs`t'-merge.dta", clear
+	use "ehs-merge.dta", clear
 
 	*Black already exists (race==2)
 	*bw already exists (in grams)
@@ -35,8 +34,7 @@ foreach t of global ehs_type {
 
 	
 *	save ehs`t'-homevideo-agg-pile, replace
-	save ehs`t'-topi, replace								//attempt to use a single dataset
-}
+	save ehs-renamed, replace								//attempt to use a single dataset
 
 * IHDP
 
@@ -71,7 +69,7 @@ replace `var'= (`var'-r(mean))/r(sd)
 }
 
 *save ihdp-homevideo-agg-pile, replace
-save ihdp-topi, replace										//attempt to use a single dataset
+save ihdp-renamed, replace										//attempt to use a single dataset
 
 *keep if bwg == 0
 *save ihdplow-homevideo-agg-pile, replace
@@ -108,7 +106,7 @@ replace `var'= (`var'-r(mean))/r(sd)
 }
 
 *save abc-homevideo-agg-pile, replace
-save abc-topi, replace										//attempt to use a single dataset
+save abc-renamed, replace										//attempt to use a single dataset
 
 * CARE (by home visit & both)
 
@@ -130,5 +128,5 @@ foreach t of global care_type {
 	}
 	
 *	save care`t'-homevideo-agg-pile, replace
-	save care`t'-topi, replace
+	save care`t'-renamed, replace
 }

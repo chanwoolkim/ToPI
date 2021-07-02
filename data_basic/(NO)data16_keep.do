@@ -10,18 +10,24 @@ norm_kidi_* norm_bayley_* norm_cbcl_*  black ///
 hours_worked m_work1 m_work2 program_type ///
 hs H twin ww home3y_original
 
-merge 1:1 id using "ehs-participation.dta"
+*Participation
+merge 1:1 id using "ehs-preschools.dta"
 rename center_ehs center_ehscenter
 rename ehs_months ehscenter_months
 di "DONE"
 drop _merge
+
+*SITEnum
 merge 1:1 id using "${master_path}/Original datasets/Harvard Dataverse Sensitive Original Data/baseline/00097_Early_Head_Start_ehs_sites.dta"
 keep if program_type==1
-*SITEnum
+
+*Instruments
+merge 1:1 using ehs-instruments
+drop _merge
 save ehscenter-topi, replace
+keep 
 
 outsheet using ehscenter-topi.csv, comma nolabel replace
-asd here
 
 **Adding Mixed
 use "ehsmixed-topi.dta", clear
@@ -30,24 +36,16 @@ norm_kidi_* norm_bayley_* norm_cbcl_*  black ///
 hours_worked m_work1 m_work2 program_type ///
 hs H twin /*ww*/ home3y_original
 
-merge 1:1 id using "ehs-participation.dta"
+merge 1:1 id using "ehs-preschools.dta"
 rename center_ehs center_ehsmixed
 rename ehs_months ehsmixed_months
 di "DONE"
 drop _merge
+
+*SITEnum
 merge 1:1 id using "${master_path}/Original datasets/Harvard Dataverse Sensitive Original Data/baseline/00097_Early_Head_Start_ehs_sites.dta"
 keep if program_type==3
-*SITEnum
 save ehsmixed-topi, replace
-
-
-
-
-
-
-
-
-
 
 
 
@@ -60,7 +58,7 @@ norm_kidi_* kidi* norm_sameroff* norm_bayley_* cbcl*  poverty black twin pag ///
 m_work3y ///
 hs H twin ww home3y_original home_jbg_learning
 
-merge 1:1 id using "ihdp-participation.dta"
+merge 1:1 id using "ihdp-preshools.dta"
 
 save ihdp-topi, replace
 outsheet using ihdp-topi.csv, comma nolabel replace
@@ -72,7 +70,7 @@ keep id R D home1_* home3_* norm_home_* video* sb* $covariates ///
 bw  norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black ///
 hs H twin ww /*home3y6m_original*/ home_jbg_learning
 
-merge 1:1 id using "abc-participation.dta"
+merge 1:1 id using "abc-preschools.dta"
 
 save abc-topi, replace
 outsheet using abc-topi.csv, comma nolabel replace

@@ -222,7 +222,7 @@ replace alt=1 if center==1 & ehs==0
 
 keep id center ehs center_ehs ehs_months alt_months
 cd "$data_working"
-save "ehs-participation.dta", replace
+save "ehs-preschools.dta", replace
 
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
@@ -296,7 +296,7 @@ rename D center_ihdp
 
 keep id center part center_ihdp ihdp_months alt_months
 cd "$data_working"
-save "ihdp-participation.dta", replace
+save "ihdp-preschools.dta", replace
 
 *--------*
 * IV ABC *
@@ -325,7 +325,7 @@ rename D center_abc
 
 keep id center part center_abc abc_months alt_months
 cd "$data_working"
-save "abc-participation.dta", replace
+save "abc-preschools.dta", replace
 
 
 

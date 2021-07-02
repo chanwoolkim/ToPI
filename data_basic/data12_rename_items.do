@@ -7,9 +7,8 @@ clear all
 
 * EHS (by participation status)
 
-foreach t of global ehs_type {
 	cd "$data_working"
-	use "ehs`t'-topi.dta", clear
+	use "ehs-renamed.dta", clear
 
 	rename home14_* home1_i*
 	rename home36_* home3_i*
@@ -83,21 +82,21 @@ foreach t of global ehs_type {
 
 	drop home1_i* home3_i*
 
-	save ehs`t'-topi, replace
-}
+	save ehs-renamed-items, replace
+
 
 * IHDP
 
-use "ihdp-topi.dta", clear
+use "ihdp-renamed.dta", clear
 
 rename home12_* home1_*
 rename home36_* home3_*
 
-save ihdp-topi, replace
+save ihdp-renamed-items, replace
 
 * ABC
 
-use "abc-topi.dta", clear
+use "abc-renamed.dta", clear
 
 rename home18_* home1_*
 rename home42_* home3_i*
@@ -161,12 +160,12 @@ rename home3_i51 home3_55
 
 drop home3_i*
 
-save abc-topi, replace
+save abc-renamed-items, replace
 
 * CARE (by home visit & both)
 
 foreach t of global care_type {
-use "care`t'-topi.dta", clear
+use "care`t'-renamed.dta", clear
 
 rename home18_* home1_*
 rename home42_* home3_i*
@@ -230,5 +229,5 @@ rename home3_i51 home3_55
 
 drop home3_i*
 
-save care`t'-topi, replace
+save care`t'-renamed-items, replace
 }

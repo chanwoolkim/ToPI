@@ -27,19 +27,6 @@ keep id program_type R D
 cd "$data_working"
 save ehs-participation, replace
 
-use ehs-participation, clear
-
-keep if program_type == 1
-save ehscenter-participation, replace
-
-use ehs-participation, clear
-keep if program_type == 2
-save ehshome-participation, replace
-
-use ehs-participation, clear
-keep if program_type == 3
-save ehsmixed-participation, replace
-
 * ----------------------------------- *
 * Infant Health and Development Program
 

@@ -72,14 +72,14 @@ cd "${code_path}/data_basic"
 cd "${code_path}/data_basic"
 	include "data12_rename_items" //data creation. From mo to yr.
 	
-cd "${code_path}/data_basic"
-	include "data13_descriptive_stats" //Creates HS and Educ Weights CHANGE
-
+*cd "${code_path}/data_basic"
+*	include "data13_descriptive_stats" //Creates HS and Educ Weights CHANGE
 cd "${code_path}/data_basic"
 	include "data14_OtherPreschools"
-
 cd "${code_path}/data_basic"
-	include "data15_keep" //Creates HS and Educ Weights CHANGE
+	include "data15_instruments"
+cd "${code_path}/data_basic"
+	include "data16_keep" //Creates HS and Educ Weights CHANGE
 *cd "${code_path}/data_basic"
 *	include "data16_exploring_participation" //Creates HS and Educ Weights CHANGE
 
