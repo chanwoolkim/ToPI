@@ -1,9 +1,13 @@
 clear all
 *use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs.dta"
- use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta"
+*use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta"
+*use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs.dta"
+ use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs_mixed_center.dta"
 
+
+ 
 * Basic Data Clean-Up
-keep id ppvt3y R sitenum m_edu m_iq m_age black sex ehs alt
+keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative
 
 drop if  ppvt3y == .
 drop if       R == .
@@ -11,28 +15,35 @@ drop if   m_edu == .
 drop if   m_age == .
 drop if    m_iq == .
 drop if     sex == .
-drop if     ehs == .
+drop if       D == .
 drop if sitenum == .
 drop if   black == .
-*drop if      bw == .
+drop if      bw == .
 drop if     alt == .
+drop if caregiver_home == . 
+drop if    cc_payments == . 
+drop if    income_site == . 
+drop if  cc_price_relative == .
 
 drop if m_edu!=1 & m_edu!=2 & m_edu!=3
 
-rename R       Z
+rename R       Z_h
 rename ppvt3y  Y
 rename id      hhid
 gen     treat_choice = .
-replace treat_choice = 1 if ehs==1
+replace treat_choice = 1 if D==1
 replace treat_choice = 2 if alt==1
-replace treat_choice = 3 if alt==0 & ehs==0
+replace treat_choice = 3 if alt==0 & D==0
 
 gen site_06 = (sitenum==6)
 gen site_09 = (sitenum==9)
 gen site_11 = (sitenum==11)
 gen site_14 = (sitenum==14)
 
-drop ehs alt sitenum
+rename caregiver_home Z_n
+rename cc_payments    Z_c
+
+drop D alt sitenum
 
 *replace m_edu = 0 if m_edu==1|m_edu==2
 *replace m_edu = 1 if m_edu==3
@@ -41,17 +52,30 @@ gen m_edu_lessHS = (m_edu == 1)
 gen m_edu_HS     = (m_edu == 2)
 gen m_edu_moreHS = (m_edu == 3)
 
-local covariates "m_iq black m_edu_moreHS sex"
+
+gen nonblack = 1-black
+
+
  
-*local covariates "                 black    site_09 site_11 site_14"
-*local covariates "m_iq       m_age       bw                        "
+*local covariates " m_iq nonblack       m_edu_moreHS sex bw m_age                " NO
+*local covariates " m_iq                                                         " NO
+ local covariates " m_iq black                                                   " 
+*local covariates " m_iq black                    sex                            " NO
+*local covariates " m_iq black       m_edu_moreHS sex                            " NO
+*local covariates " m_iq black       m_edu_moreHS sex bw                         " NO 
+*local covariates " m_iq black       m_edu_moreHS sex bw m_age                   " NO
+*local covariates "      black                                                   " NO
+*local covariates "      black       m_edu_moreHS                                " NO
+*local covariates "      black                    sex                            " NO
+*local covariates "      black       m_edu_moreHS                                " NO
+                    
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
-*  foreach x of local covariates{
-*     egen mean_`x' = mean (`x')
-*	  replace  `x' = `x' - mean_`x'
-* }
+foreach x of local covariates { 
+     egen mean_`x' = mean (`x')
+	  replace  `x' = `x' - mean_`x'
+}
 
 * Recode treat_choice so that category are such that category 1 which will be assigned as baseline category is the "None" alternative (currently "None" is given code 3) Category 2 which  will be assigned as scale alternative is the "IHDP" alternative (currently IHDP is give code 2) and Category 3 which is the "Other" alternative (Currently "Other" is given code 2)
 
@@ -64,17 +88,20 @@ replace treat_choice = 3 if treat_choice_old==2
 label define lbltreatchoice 1 "None" 2 "EHS" 3 "Other"
 label values treat_choice lbltreatchoice
 
-keep hhid Y Z treat_choice `covariates'
+*keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
+*keep hhid Y Z_h Z_c     treat_choice `covariates'
+ keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
+
 sort hhid
 save ehs_data.dta, replace
 
 * Create Interactions of Instruments and Covariates.
 
 foreach x of local covariates {
-	gen Z_`x'   = Z*`x'
+	gen Z_h_`x'   = Z_h*`x'
+    gen Z_c_`x'   = Z_c*`x'
+    gen Z_n_`x'   = Z_n*`x'
 }
-
-*gen Z_m_edu_moreHS   = Z*m_edu_moreHS
 
 * Prepare Data for Multinomial Probit
 
@@ -83,13 +110,27 @@ by hhid, sort: gen treat_options = _n
 gen choice = (treat_options == treat_choice)
 sort hhid treat_options
 
-* Set up to zero the IHDP offer Z and its interactions with covariates Z*X in the utility equations for the non-IHDP choices.
+* Set up to zero the ECE offer Z and its interactions with covariates Z*X in the utility equations for the non-ECE choices.
 
-replace Z           = 0 if treat_options == 1|treat_options == 3
+replace Z_h           = 0 if treat_options == 1|treat_options == 3
 foreach x of local covariates {
-    replace Z_`x'   = 0 if treat_options == 1|treat_options == 3
+    replace Z_h_`x'   = 0 if treat_options == 1|treat_options == 3
 }
-*replace Z_m_edu_moreHS = 0 if treat_options == 1|treat_options == 3
+
+replace Z_c           = 0 if treat_options == 1|treat_options == 2
+foreach x of local covariates {
+    replace Z_c_`x'   = 0 if treat_options == 1|treat_options == 2
+}
+
+*replace Z_n           = 0 if treat_options == 2|treat_options == 3
+*foreach x of local covariates {
+*    replace Z_n_`x'   = 0 if treat_options == 2|treat_options == 3
+*}
+
+replace Z_n           = 0 if treat_options == 1
+foreach x of local covariates {
+    replace Z_n_`x'   = 0 if treat_options == 1
+}
 
 
 * Set up the data as needed using "cmset" for multinomial probit command.
@@ -102,7 +143,9 @@ matrix stdpat = J(3, 1, sqrt(0.5))
 
 * First Step Estimate multinomial probit model: using non-participation (j=1) as base alternative and IHDP (j=2) as scale alternative
 
-cmmprobit choice Z Z_*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
+ cmmprobit choice Z_n* Z_h* Z_c*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
+*cmmprobit choice      Z_h* Z_c*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
+*cmmprobit choice Z_n* Z_h* , casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
 
 predict psi_hat, xb
 predict pr_hat, pr
@@ -121,7 +164,10 @@ scalar rho = Sigma[2,1]
 
 * Second Step: Construct the 6 Bivariate Mills Ratios
 
-drop Z Z_* choice `covariates' Y treat_choice
+  drop Z_n Z_n* Z_h Z_h* Z_c Z_c* choice `covariates' Y treat_choice
+* drop          Z_h Z_h* Z_c Z_c* choice `covariates' Y treat_choice
+* drop Z_n Z_n* Z_h Z_h*          choice `covariates' Y treat_choice 
+  
 reshape wide psi_hat pr_hat, i( hhid ) j( treat_options )
 sort hhid
 merge 1:1 hhid using ehs_data.dta
@@ -200,10 +246,10 @@ replace  lambda_h_D = lambda_h_c if D_c == 1
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
-  foreach x of local covariates{
-     su `x' 
-	 replace  `x' = `x' - r(mean)
- }
+*  foreach x of local covariates{
+*     su `x' 
+*	 replace  `x' = `x' - r(mean)
+* }
 
  
 foreach x of local covariates {
@@ -217,20 +263,7 @@ gen D_c_lambda_c_c = D_c * lambda_c_c
 gen D_h_lambda_h_h = D_h * lambda_h_h
 gen D_h_lambda_c_h = D_h * lambda_c_h
 
-reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_* D_h D_h_* , robust
+ reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_*       D_h D_h_*       , robust
 
 *reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_lambda* D_h D_h_lambda* , robust
-
-
-*n --> -.2655901
-*h -->  .1389282
-*c -->  .8344734
-
-* E[y(h)-y(n)] =  .1389282 - (-.2655901) =  .4045183
-* E[y(c)-y(n)] =  .8344734 - (-.2655901) = 1.1000635
-
-
-
-
-
 
