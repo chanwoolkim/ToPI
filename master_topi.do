@@ -77,7 +77,7 @@ cd "${code_path}/data_basic"
 cd "${code_path}/data_basic"
 	include "data14_OtherPreschools"
 cd "${code_path}/data_basic"
-	include "data15_instruments"
+	include "data15_instruments3"
 cd "${code_path}/data_basic"
 	include "data16_keep" //Creates HS and Educ Weights CHANGE
 *cd "${code_path}/data_basic"

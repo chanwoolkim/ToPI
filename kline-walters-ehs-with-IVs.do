@@ -59,7 +59,8 @@ gen nonblack = 1-black
  
 *local covariates " m_iq nonblack       m_edu_moreHS sex bw m_age                " NO
 *local covariates " m_iq                                                         " NO
- local covariates " m_iq black                                                   " 
+ local covariates "      black                                                   " 
+*local covariates " m_iq black                                                   " 
 *local covariates " m_iq black                    sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex bw                         " NO 
@@ -72,10 +73,10 @@ gen nonblack = 1-black
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
-foreach x of local covariates { 
-     egen mean_`x' = mean (`x')
-	  replace  `x' = `x' - mean_`x'
-}
+*foreach x of local covariates { 
+*     egen mean_`x' = mean (`x')
+*	  replace  `x' = `x' - mean_`x'
+*}
 
 * Recode treat_choice so that category are such that category 1 which will be assigned as baseline category is the "None" alternative (currently "None" is given code 3) Category 2 which  will be assigned as scale alternative is the "IHDP" alternative (currently IHDP is give code 2) and Category 3 which is the "Other" alternative (Currently "Other" is given code 2)
 
@@ -147,8 +148,52 @@ matrix stdpat = J(3, 1, sqrt(0.5))
 *cmmprobit choice      Z_h* Z_c*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
 *cmmprobit choice Z_n* Z_h* , casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
 
-predict psi_hat, xb
 predict pr_hat, pr
+predict psi_hat, xb
+
+gen psi_h_Zi       =  0
+gen psi_h_Zi_Zhi_0 =  0
+gen psi_h_Zi_Zhi_1 =  0
+
+local Zs "Z_n Z_n_black Z_h Z_h_black Z_c Z_c_black"
+local col = 1 
+
+foreach var of local Zs {
+	
+	if "`var'" == "Z_h" | "`var'"=="Z_h_black" {
+	
+		if "`var'" == "Z_h" {
+			replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * Z_h
+			replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * 0
+			replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * 1
+		}
+		
+		if "`var'" == "Z_h_black" {			
+			replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * Z_h_black
+			replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * 0 * black
+			replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * 1 * black
+		}
+	}
+		
+	else {
+		replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * `var'
+		replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * `var'
+		replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * `var'
+	}
+	
+	local col = `col' + 1
+	di `col'	
+}
+
+replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
+replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
+replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
+
+gen psi_hat_Zhi_0 = psi_h_Zi_Zhi_0
+gen psi_hat_Zhi_1 = psi_h_Zi_Zhi_1
+
+replace psi_hat_Zhi_0 = -999 if treat_options == 1 | treat_options == 3
+replace psi_hat_Zhi_1 = -999 if treat_options == 1 | treat_options == 3
 
 * Structural Representation of Var-Cov "Omega"
 
@@ -164,17 +209,23 @@ scalar rho = Sigma[2,1]
 
 * Second Step: Construct the 6 Bivariate Mills Ratios
 
-  drop Z_n Z_n* Z_h Z_h* Z_c Z_c* choice `covariates' Y treat_choice
+  drop Z_n Z_n* Z_h Z_h* Z_c Z_c* choice `covariates' Y treat_choice psi_h_Zi psi_h_Zi_Zhi_0 psi_h_Zi_Zhi_1
 * drop          Z_h Z_h* Z_c Z_c* choice `covariates' Y treat_choice
 * drop Z_n Z_n* Z_h Z_h*          choice `covariates' Y treat_choice 
   
-reshape wide psi_hat pr_hat, i( hhid ) j( treat_options )
+reshape wide psi_hat pr_hat psi_hat_Zhi_0 psi_hat_Zhi_1, i( hhid ) j( treat_options )
+
 sort hhid
 merge 1:1 hhid using ehs_data.dta
 drop   psi_hat1
+drop psi_hat_Zhi_01 psi_hat_Zhi_03
+drop psi_hat_Zhi_11 psi_hat_Zhi_13
 rename psi_hat2 psi_h
 rename psi_hat3 psi_c
+rename psi_hat_Zhi_02 psi_h_Zhi0
+rename psi_hat_Zhi_12 psi_h_Zhi1
 drop _merge
+
 
 * lambda_h(.,.,h)
 gen a = psi_h
@@ -224,7 +275,7 @@ gen lambda_c_n = (-1)*( ( normalden(a)*normal( (b-ksi*(a)) / sqrt(1-(ksi)^2) )  
 
 scalar drop ksi
 drop a b 
-drop psi_c psi_h
+drop psi_h
 
 * Third Step: OLS controlling for bi-variate mills ratios.
 
@@ -242,15 +293,16 @@ replace  lambda_h_D = lambda_h_n if D_n == 1
 replace  lambda_h_D = lambda_h_h if D_h == 1
 replace  lambda_h_D = lambda_h_c if D_c == 1
 
-* Generate D_c and D_h interactions with covariates X
+
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
-*  foreach x of local covariates{
-*     su `x' 
-*	 replace  `x' = `x' - r(mean)
-* }
+  foreach x of local covariates{
+     su `x' 
+	 replace  `x' = `x' - r(mean)
+ }
 
+* Generate D_c and D_h interactions with covariates X
  
 foreach x of local covariates {
 	gen D_c_`x'   = D_c * `x'
@@ -265,5 +317,108 @@ gen D_h_lambda_c_h = D_h * lambda_c_h
 
  reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_*       D_h D_h_*       , robust
 
+scalar gamma_nh_hat = _b[lambda_h_D]
+scalar gamma_nc_hat = _b[lambda_c_D]
+scalar gamma_hh_hat = _b[D_h_lambda_h_h] + gamma_nh_hat
+scalar gamma_hc_hat = _b[D_h_lambda_c_h] + gamma_nc_hat
+
+
 *reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_lambda* D_h D_h_lambda* , robust
+ 
+quietly{
+noi di as text "Estimated theta_c0-theta_n0 = E[Yc-Yn]: = " _b[D_c]
+noi di as text "Estimated theta_c0-theta_n0 = E[Yh-Yn]: = " _b[D_h]
+}
+
+scalar theta_c0_theta_n0_hat = _b[D_c]
+scalar theta_h0_theta_n0_hat = _b[D_h]
+scalar          theta_n0_hat = _b[_cons]
+scalar          theta_h0_hat = theta_h0_theta_n0_hat + theta_n0_hat
+
+* SubLATE E[Yh-Yn|n-to-h complier]
+* ================================
+
+gen X_theta_hx_hat = 0
+gen X_theta_nx_hat = 0
+
+foreach x of local covariates {
+	scalar          theta_nx_hat_`x' = _b[`x']
+	scalar theta_cx_theta_nx_hat_`x' = _b[D_c_`x']
+	scalar theta_hx_theta_nx_hat_`x' = _b[D_h_`x']
+	scalar          theta_hx_hat_`x' = theta_hx_theta_nx_hat_`x' - theta_nx_hat_`x'
+	replace X_theta_hx_hat = X_theta_hx_hat + `x' * theta_hx_hat_`x'
+    replace X_theta_nx_hat = X_theta_nx_hat + `x' * theta_nx_hat_`x'
+}
+
+
+gen a1 = -psi_h_Zhi0
+gen b1 = -psi_c
+gen a2 = -psi_h_Zhi1
+gen b2 = -psi_c
+
+gen   omega_nh_hat = binormal(a1,b1,rho) - binormal(a2,b2,rho)
+total omega_nh_hat
+scalar sum_omega_nh_hat = e(b)[1,1]
+gen weight_nh = omega_nh_hat / sum_omega_nh_hat
+
+drop a1 b1 a2 b2
+
+* Lambda0_hh
+gen a0 = -psi_h_Zhi1
+gen a1 = -psi_h_Zhi0
+gen b0 = -1000000
+gen b1 = -psi_c
+scalar ksi = rho
+
+gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0,b1,ksi) + 2*binormal(a0,b0,ksi)
+gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
+gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
+
+gen Lambda0_hh_FIRST   =  FIRST_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hh_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hh         = Lambda0_hh_FIRST + Lambda0_hh_SECOND
+
+drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
+scalar drop ksi
+
+* Lambda0_hc
+gen a0 = -1000000
+gen a1 = -psi_c
+gen b0 = -psi_h_Zhi1
+gen b1 = -psi_h_Zhi0
+scalar ksi = rho
+
+gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0,b1,ksi) + 2*binormal(a0,b0,ksi)
+gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
+gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
+
+gen Lambda0_hc_FIRST   = FIRST_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hc_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hc = Lambda0_hc_FIRST + Lambda0_hc_SECOND
+
+drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
+scalar drop ksi
+
+* Lambda0_nh
+gen Lambda0_nh = Lambda0_hh
+
+* Lambda0_nc
+gen Lambda0_nc = Lambda0_hc
+
+gen mu_hat_nh_h_X = theta_h0_hat + X_theta_hx_hat + gamma_hh_hat * Lambda0_hh + gamma_hc_hat * Lambda0_hc
+gen mu_hat_nh_n_X = theta_n0_hat + X_theta_nx_hat + gamma_nh_hat * Lambda0_nh + gamma_nc_hat * Lambda0_nc
+
+gen mu_hat_nh_h_X_weight_nh = mu_hat_nh_h_X * weight_nh
+total mu_hat_nh_h_X_weight_nh
+scalar mu_hat_nh_h = e(b)[1,1]
+
+gen mu_hat_nh_n_X_weight_nh = mu_hat_nh_n_X * weight_nh
+total mu_hat_nh_n_X_weight_nh
+scalar mu_hat_nh_n = e(b)[1,1]
+
+scalar subLATE_nh = mu_hat_nh_h - mu_hat_nh_n
+
+quietly{
+noi di as text "Estimated E[Yh-Yn|n-to-h complier]: =" subLATE_nh
+}
 
