@@ -41,20 +41,59 @@ gen cc_price_relative=cc_payments_site*4.2/(income_site/12)
 label var cc_payments_site 	"Z_p Mean Price of Alternative childcare"
 label var cc_price_relative "Z_p Price of Alternative childcare Relative to Mean Income"
 label var income_site		"Z_ph Mean income in area (proxy of wages)"
-label var caregiver_home	"Z_n Potential Caregiver Available at Home"
+label var caregiver_ever 	"Z_n Potential Caregiver Available at Home"
+label var caregiver_n 		"Z_n N Potential Caregivers Available "
 
 gen alt=.
 replace alt=0 if center!=.
-replace alt=1 if center==1 & D==0
+replace alt=1 if center==1 & D==0 // D==0 is equivalent to doing center_ehs==0
+
+gen n=alt==0 & D==0
+
+*Check the coding of Caregiver, which should definitely impact n and it is not impacting anything
+*Check why alt is not affeced by price, wtf
+
+*reg ever_center R caregiver_ever		cc_price_relative 	//very significant**
+*reg main_center R caregiver_ever		cc_price_relative 	//very significant**
+*reg center_ehs	R caregiver_ever		cc_price_relative	//R, price very significant
+*reg center		R caregiver_ever		cc_price_relative	//R, price very significant
+*reg D			R caregiver_ever		cc_price_relative	//R, price very significant
+*reg alt		R caregiver_ever		cc_price_relative	//R, but not price
+*reg n			R caregiver_ever		cc_price_relative	//R, price very significant
+
+*Caregiver does not do anything, so we move to this-->
+*reg center_ehs	R 	cc_price_relative	//R, price very significant
+*reg center		R 	cc_price_relative	//R, price very significant
+reg D			R 	cc_price_relative	//R, price very significant
+reg alt			R 	cc_price_relative	//R, but not price
+reg n			R 	cc_price_relative	//R, price very significant
+
+
+/*trying different specification of alt centers to see if it works
+gen private_center=.
+replace private_center=0 if ever_center!=. & D!=.
+replace private_center=1 if ever_center==1 & D==0
+reg private_center R caregiver_ever cc_price_relative //NOP
+*/
+
+/*trying different specification of EHS centers to see if it works
+gen ehs_center=.
+replace ehs_center=0 if ever_center!=. & D!=.
+replace ehs_center=1 if ever_center==1 & D==1
+reg ehs_center R caregiver_ever cc_price_relative //super influenced by the prices!!
+*/
+
 
 *Create Minimal Datasets
 keep id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_home cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months
 
 order id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_home cc_payments_site income_site cc_price_relative ppvt3y
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y
+
+
 
 preserve
 keep if program_type==1
@@ -80,6 +119,7 @@ preserve
 keep if program_type==3|program_type==1
 *gen center_ehsmmixed=center_ehs 							//to work on the pile code
 *gen ehsmixed_months=ehs_months 								//to work on the pile code 
+outsheet using ehsmixed_center-topi.csv, comma nolabel replace		//for Chanwool/Athey
 save ehs_mixed_center-topi, replace
 restore
 
@@ -106,6 +146,8 @@ drop _merge
 *Instruments
 merge 1:1 id using ihdp-instruments
 drop _merge
+rename caregiver_three caregiver_home
+
 
 *Create instruments
 egen cc_payments_site =mean(weekly_cc_pay),by(site)
@@ -126,19 +168,17 @@ replace alt=0 if center!=.
 replace alt=1 if center==1 & D==0
 
 keep id R D alt site pag ///
-m_iq m_age sex poverty m_edu bw black mf sibling twin  ///
+m_iq m_age sex poverty m_edu bw black mf gestage sibling twin  ///
 caregiver_home cc_payments_site income_site cc_price_relative ppvt3y  sb3y 
 
 order id R D alt site pag ///
-m_iq m_age sex poverty m_edu bw black mf sibling twin  ///
+m_iq m_age sex poverty m_edu bw black mf gestage sibling twin  ///
 caregiver_home cc_payments_site income_site cc_price_relative ppvt3y  sb3y 
 
 outsheet using ihdp-topi.csv, comma nolabel replace			//for Chanwool/Athey
 save ihdp-juan, replace								//for Juan: few variables
 save ihdp-topi, replace
 
-
-asdsd
 
 /*NEEDS FIXING:
 use "abc-topi.dta", clear
@@ -201,7 +241,7 @@ use "abc-renamed-items.dta", clear
 
 keep id R D home1_* home3_* norm_home_* video* sb* $covariates ///
 bw  norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black ///
-hs H twin ww /*home3y6m_original*/ home_jbg_learning
+/*hs0 H twin ww home3y6m_original*/ home_jbg_learning
 
 merge 1:1 id using "abc-preschools.dta"
 
