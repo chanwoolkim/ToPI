@@ -155,4 +155,4 @@ output <- output %>%
 print(xtable(output,digits=c(0, 0, 0, 3, 3, 3)),
       include.rownames=FALSE,
       comment=FALSE,
-      file=paste0(output_dir,"causal_forest_output.tex"))
+      file=paste0(output_dir,"causal_tree_output.tex"))

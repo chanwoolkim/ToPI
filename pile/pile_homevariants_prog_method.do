@@ -269,10 +269,16 @@ asd
 * Prepare matrix
 
 cd "$code_path/pile"
+rcall: source("causal_tree.R")
+
+cd "$data_working"
+import delimited "causal_tree_output.csv", clear
+
+cd "$code_path/pile"
 rcall: source("causal_forest.R")
 
 cd "$data_working"
-import delimited "causal_forest_edit.csv", clear
+import delimited "causal_forest.csv", clear
 
 *----------------------------------*
 * Simple CI Graphs with One Method *
