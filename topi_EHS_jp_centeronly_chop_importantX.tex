@@ -1,0 +1,36 @@
+{
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\begin{tabular}{l*{8}{c}}
+\hline\hline
+                    &\multicolumn{1}{c}{(1)}&\multicolumn{1}{c}{(2)}&\multicolumn{1}{c}{(3)}&\multicolumn{1}{c}{(4)}&\multicolumn{1}{c}{(5)}&\multicolumn{1}{c}{(6)}&\multicolumn{1}{c}{(7)}&\multicolumn{1}{c}{(8)}\\
+                    &\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{2SLS}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{OLS}&\multicolumn{1}{c}{2SLS}&\multicolumn{1}{c}{OLS}\\
+\hline
+Received EHS Offer  &        0.45\sym{*}  &                     &                     &                     &        0.41\sym{*}  &                     &                     &                     \\
+                    &      (0.24)         &                     &                     &                     &      (0.24)         &                     &                     &                     \\
+[1em]
+Participated in EHS &                     &        0.58\sym{***}&        0.79\sym{*}  &                     &                     &        0.54\sym{***}&        0.74\sym{*}  &                     \\
+                    &                     &      (0.20)         &      (0.41)         &                     &                     &      (0.20)         &      (0.42)         &                     \\
+[1em]
+EHS                 &                     &                     &                     &        0.75\sym{**} &                     &                     &                     &        0.72\sym{**} \\
+                    &                     &                     &                     &      (0.30)         &                     &                     &                     &      (0.30)         \\
+[1em]
+Other               &                     &                     &                     &        0.25         &                     &                     &                     &        0.25         \\
+                    &                     &                     &                     &      (0.32)         &                     &                     &                     &      (0.32)         \\
+[1em]
+Mother's IQ         &        0.02         &        0.02         &        0.02         &        0.01         &        0.02         &        0.02         &        0.02         &        0.01         \\
+                    &      (0.02)         &      (0.02)         &      (0.01)         &      (0.02)         &      (0.02)         &      (0.02)         &      (0.01)         &      (0.01)         \\
+[1em]
+Mother's Age        &        0.02         &        0.01         &        0.00         &        0.01         &        0.02         &        0.01         &        0.00         &        0.01         \\
+                    &      (0.02)         &      (0.02)         &      (0.02)         &      (0.02)         &      (0.02)         &      (0.02)         &      (0.02)         &      (0.02)         \\
+[1em]
+Birth Weight        &                     &                     &                     &                     &        0.00         &        0.00         &        0.00         &        0.00         \\
+                    &                     &                     &                     &                     &      (0.00)         &      (0.00)         &      (0.00)         &      (0.00)         \\
+[1em]
+Constant            &       -3.09\sym{*}  &       -2.49         &       -2.51\sym{*}  &       -2.31         &       -3.47\sym{**} &       -2.89\sym{*}  &       -2.87\sym{**} &       -2.71\sym{*}  \\
+                    &      (1.62)         &      (1.50)         &      (1.43)         &      (1.47)         &      (1.60)         &      (1.50)         &      (1.41)         &      (1.46)         \\
+\hline
+Observations        &          67         &          67         &          67         &          67         &          67         &          67         &          67         &          67         \\
+MeanDepVarControl   &       -0.16         &       -0.23         &       -0.23         &       -0.41         &       -0.16         &       -0.23         &       -0.23         &       -0.41         \\
+\hline\hline
+\end{tabular}
+}

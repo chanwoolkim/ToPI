@@ -83,15 +83,14 @@ replace ehs_center=1 if ever_center==1 & D==1
 reg ehs_center R caregiver_ever cc_price_relative //super influenced by the prices!!
 */
 
-
 *Create Minimal Datasets
 keep id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months hs H
 
 order id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y hs H
 
 
 
@@ -117,6 +116,7 @@ restore
 
 preserve
 keep if program_type==3|program_type==1
+gen ehs_mixed_center_months=ehs_months
 *gen center_ehsmmixed=center_ehs 							//to work on the pile code
 *gen ehsmixed_months=ehs_months 								//to work on the pile code 
 outsheet using ehsmixed_center-topi.csv, comma nolabel replace		//for Chanwool/Athey
@@ -148,7 +148,6 @@ merge 1:1 id using ihdp-instruments
 drop _merge
 rename caregiver_three caregiver_home
 
-
 *Create instruments
 egen cc_payments_site =mean(weekly_cc_pay),by(site)
 
@@ -169,19 +168,24 @@ replace alt=1 if center==1 & D==0
 
 keep id R D alt site pag ///
 m_iq m_age sex poverty m_edu bw black mf gestage sibling twin  ///
-caregiver_home cc_payments_site income_site cc_price_relative ppvt3y  sb3y 
+caregiver_home cc_payments_site income_site cc_price_relative ppvt3y sb3y hs H center_ihdp ihdp_months
 
 order id R D alt site pag ///
 m_iq m_age sex poverty m_edu bw black mf gestage sibling twin  ///
-caregiver_home cc_payments_site income_site cc_price_relative ppvt3y  sb3y 
+caregiver_home cc_payments_site income_site cc_price_relative ppvt3y sb3y hs H center_ihdp ihdp_months
 
 outsheet using ihdp-topi.csv, comma nolabel replace			//for Chanwool/Athey
 save ihdp-juan, replace								//for Juan: few variables
 save ihdp-topi, replace
 
 
-/*NEEDS FIXING:
+
 use "abc-topi.dta", clear
+cap drop hs
+cap drop H
+cap drop twin
+cap drop ww
+
 tab poverty // 102 12 (poverty=1-->nonpoor)
 tab m_ed     // 77 35 4
 		gen hs=.
@@ -201,35 +205,35 @@ use "abc-topi.dta", clear
 gen ww=1
 save,replace
 
-*Counts in ABC		
+*Counts in ABC
 count if hs==1 & bw>2000 & black==1
 local hs1_abc=r(N)
-count if hs==0 & bw>2000 & black==1
-local hs0_abc=r(N)
-local hs1_rate_abc= `hs1_abc'/(`hs1_abc' + `hs0_abc')
-local hs0_rate_abc= `hs0_abc'/(`hs1_abc' + `hs0_abc')
+count if hs==2 & bw>2000 & black==1
+local hs2_abc=r(N)
+local hs1_rate_abc= `hs1_abc'/(`hs1_abc' + `hs2_abc')
+local hs2_rate_abc= `hs2_abc'/(`hs1_abc' + `hs2_abc')
 di "Proportion of Families with HS completed in ABC: `hs1_rate_abc'"
 
-foreach data in ihdp ehscenter{
+foreach data in ihdp ehscenter ehs_mixed_center{
 use "`data'-topi.dta", clear
 if "`data'"=="ihdp" drop if missing(pag)
 if "`data'"=="ihdp" drop if twin==1
 if "`data'"=="ihdp" drop if pag==0  //drops the second twin
 count if hs==1 & bw>2000 & black==1
 local hs1_`data'=r(N)
-count if hs==0 & bw>2000 & black==1
-local hs0_`data'=r(N)
-local hs1_rate_`data'= `hs1_`data''/(`hs1_`data'' + `hs0_`data'')
-local hs0_rate_`data'= `hs0_`data''/(`hs1_`data'' + `hs0_`data'')
+count if hs==2 & bw>2000 & black==1
+local hs2_`data'=r(N)
+local hs1_rate_`data'= `hs1_`data''/(`hs1_`data'' + `hs2_`data'')
+local hs2_rate_`data'= `hs2_`data''/(`hs1_`data'' + `hs2_`data'')
 di "Proportion of Families with HS completed in `data': `hs1_rate_`data''"
 
 gen ww=.
 replace ww= `hs1_rate_abc'/`hs1_rate_`data'' if hs==1
-replace ww= `hs0_rate_abc'/`hs0_rate_`data'' if hs==0
+replace ww= `hs2_rate_abc'/`hs2_rate_`data'' if hs==2
 
 save, replace
 }
-*/
+asd
 
 
 
