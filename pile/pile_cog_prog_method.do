@@ -32,21 +32,24 @@
 clear all
 
 local prog1 ehscenter
-local prog2 ihdp
+local prog2 ehs_mixed_center
 local prog3 ihdp
-local prog4 abc
+local prog4 ihdp
+local prog5 abc
 
 local out1 ppvt
-local out2 sb
-local out3 ppvt
-local out4 sb
+local out2 ppvt
+local out3 sb
+local out4 ppvt
+local out5 sb
 
-local ehscenter_ppvt	ppvt3y
-local ihdp_sb			sb3y	
-local ihdp_ppvt			ppvt3y
-local abc_sb 			sb3y
+local ehscenter_ppvt		ppvt3y
+local ehs_mixed_center_ppvt	ppvt3y
+local ihdp_sb				sb3y	
+local ihdp_ppvt				ppvt3y
+local abc_sb 				sb3y
 
-local rows=4
+local rows=5
 
 * ------------ *
 * Prepare matrix
@@ -81,7 +84,7 @@ local row = 1
 	forv p =1/`rows' {
 		use "`prog`p''-topi.dta", clear
 		di "`prog`p''"
-
+		
 	* ITT
 	di `"ITT: `prog`p'' ``prog`p''_`out`p''' "'
 	regress ``prog`p''_`out`p''' R
@@ -117,7 +120,7 @@ local row = 1
 				qui matrix REW[`row',3] = r[5,1]
 				qui matrix REW[`row',4] = r[6,1] 
 				qui matrix REW[`row',5] = r[4,1]			
-
+/*
 	* IV
 	di `"IV: `prog`p'' ``prog`p''_`out`p''' "'
 			ivregress 2sls ``prog`p''_`out`p''' (D = R) if bw>2000 & black==1 & twin==0  [weight=ww]
@@ -127,17 +130,17 @@ local row = 1
 				qui matrix IV[`row',3] = r[5,1]
 				qui matrix IV[`row',4] = r[6,1]
 				qui matrix IV[`row',5] = r[4,1]
-
+*/
 	* NEW IV
 	di `"IV: `prog`p'' ``prog`p''_`out`p''' "'
-			ivregress 2sls ``prog`p''_`out`p''' (center_`prog`p'' = R) if bw>2000 & black==1 & twin==0  [weight=ww]
+			ivregress 2sls ``prog`p''_`out`p''' (D = R) if bw>2000 & black==1 & twin==0  [weight=ww]
 				qui matrix r = r(table)
 				qui matrix IV2[`row',1] = `row'
 				qui matrix IV2[`row',2] = r[1,1]
 				qui matrix IV2[`row',3] = r[5,1]
 				qui matrix IV2[`row',4] = r[6,1]
 				qui matrix IV2[`row',5] = r[4,1]
-
+/*
 	* INTENSITY
 	di `"INTENSITY: `prog`p'' ``prog`p''_`out`p''' "'
 			ivregress 2sls ``prog`p''_`out`p''' (H = R) if bw>2000 & black==1 & twin==0  [weight=ww]
@@ -147,7 +150,7 @@ local row = 1
 				qui matrix INT[`row',3] = r[5,1]
 				qui matrix INT[`row',4] = r[6,1]
 				qui matrix INT[`row',5] = r[4,1]
-
+*/
 	* NEW INTENSITY
 	di `"INTENSITY: `prog`p'' ``prog`p''_`out`p''' "'
 			ivregress 2sls ``prog`p''_`out`p''' (`prog`p''_months = R) if bw>2000 & black==1 & twin==0  [weight=ww]
@@ -196,15 +199,15 @@ local num=`num'+1
 * General Graph with All Methods *
 *--------------------------------*		
 		
-matrix ALL=ITT,CHOP,REW,IV,IV2,INT,INT2
+matrix ALL=ITT,CHOP,REW,IV2,INT2 //ALL=ITT,CHOP,REW,IV,IV2,INT,INT2
 svmat ALL, names(col)
-keep numITT coeffITT pvalITT coeffCHOP pvalCHOP coeffREW pvalREW coeffIV pvalIV coeffIV2 pvalIV2 coeffINT pvalINT coeffINT2 pvalINT2		 		 
+keep numITT coeffITT pvalITT coeffCHOP pvalCHOP coeffREW pvalREW /*coeffIV pvalIV*/ coeffIV2 pvalIV2 /*coeffINT pvalINT*/ coeffINT2 pvalINT2		 		 
 keep if numITT != .
 
 * ----------------- *
 * Execution - P-value
 
-	foreach m in ITT CHOP REW IV IV2 INT INT2{
+	foreach m in ITT CHOP REW /*IV*/ IV2 /*INT*/ INT2{
 	gen `m'insig = .
 	gen `m'0_1 = .
 	gen `m'0_05 = .
@@ -215,13 +218,43 @@ keep if numITT != .
 
 label define Outcomes	///
 1 "EHS CENTER PPVT Age 3"		///
-2 "IHDP SB Age 3"		///
-3 "IHDP PPVT Age 3"		///
-4 "ABC SB Age 3"
+2 "EHS CENTER + MIXED PPVT Age 3"		///
+3 "IHDP SB Age 3"		///
+4 "IHDP PPVT Age 3"		///
+5 "ABC SB Age 3"
 label values numITT Outcomes
 
 *One variable per each horizontal category and for significance levels
 *One row (obs) per vertical category
+graph dot 	ITTinsig ITT0_1 ITT0_05 	///
+			CHOPinsig CHOP0_1 CHOP0_05  	///
+			REWinsig REW0_1 REW0_05  ///
+			IV2insig IV20_1 IV20_05 ///
+			INT2insig INT20_1 INT20_05 ///
+   ,marker(1,msize(large) msymbol(D) mlc(navy) mfc(navy*0) mlw(thick)) ///
+	marker(2,msize(large) msymbol(D) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
+	marker(3,msize(large) msymbol(D) mlc(navy) mfc(navy) mlw(thick)) ///
+	marker(4,msize(large) msymbol(O) mlc(navy) mfc(navy*0) mlw(thick)) ///
+	marker(5,msize(large) msymbol(O) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
+	marker(6,msize(large) msymbol(O) mlc(navy) mfc(navy) mlw(thick)) ///
+	marker(7,msize(large) msymbol(T) mlc(navy) mfc(navy*0) mlw(thick)) ///
+	marker(8,msize(large) msymbol(T) mlc(navy) mfc(navy*0.45) mlw(thick)) ///
+	marker(9,msize(large) msymbol(T) mlc(navy) mfc(navy) mlw(thick)) ///
+	marker(10,msize(large) msymbol(S) mlc(green) mfc(green*0) mlw(thick)) ///
+	marker(11,msize(large) msymbol(S) mlc(green) mfc(green*0.45) mlw(thick)) ///
+	marker(12,msize(large) msymbol(S) mlc(green) mfc(green) mlw(thick)) ///
+	marker(13,msize(large) msymbol(S) mlc(red) mfc(red*0) mlw(thick)) ///
+	marker(14,msize(large) msymbol(S) mlc(red) mfc(red*0.45) mlw(thick)) ///
+	marker(15,msize(large) msymbol(S) mlc(red) mfc(red) mlw(thick)) ///
+	over(numITT, gap(0.5) label(labsize(small)) sort(scale_row) ) ///
+	legend (order (1 "ITT" 4 "CHOP" 7 "REW" 10 "IV" 13 "Hours" ) size(medsmall) cols(5) ) yline(0)  ///
+	ysize(1) xsize(2)   ///
+	graphregion(fcolor(white)) bgcolor(white) aspect(1)	
+cd "$out"
+	graph export "pile_cog_all_methods.pdf", replace
+cd "$git_out"
+	graph export "pile_cog_all_methods.pdf", replace
+/*
 graph dot 	ITTinsig ITT0_1 ITT0_05 	///
 			CHOPinsig CHOP0_1 CHOP0_05  	///
 			REWinsig REW0_1 REW0_05  ///
@@ -258,3 +291,4 @@ cd "$out"
 	graph export "pile_cog_all_methods.pdf", replace
 cd "$git_out"
 	graph export "pile_cog_all_methods.pdf", replace
+	

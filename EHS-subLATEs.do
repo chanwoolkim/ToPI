@@ -1,4 +1,7 @@
 clear all
+
+cd "C:\Users\jpanta\Dropbox\TOPI\do-ToPI"
+
 *use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs.dta"
 *use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta"
 *use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs.dta"
@@ -7,27 +10,37 @@ clear all
 
  
 * Basic Data Clean-Up
-keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type twin bw
+keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type bw
 su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
 drop if  ppvt3y == .
 su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
 
+drop if       D == .
+drop if     alt == .
+drop if   black == .
+drop if caregiver_home == . 
+
+* N=728
+
 drop if       R == .
-*drop if   m_edu == .
-*drop if   m_age == .
 drop if    m_iq == .
 drop if     sex == .
-drop if       D == .
-*drop if sitenum == .
-drop if   black == .
-*drop if      bw == .
-drop if     alt == .
-drop if caregiver_home == . 
 drop if    cc_payments == . 
+drop if sitenum == .
+drop if   m_age == .
+drop if   m_edu == .
+
+* N=728
+drop if m_edu!=1 & m_edu!=2 & m_edu!=3
+* N=716
+
+drop if      bw == . 
+*N=598
+
 *drop if    income_site == . 
 *drop if  cc_price_relative == .
 
-*drop if m_edu!=1 & m_edu!=2 & m_edu!=3
+
 
 rename R       Z_h
 rename ppvt3y  Y
@@ -57,12 +70,11 @@ gen m_edu_moreHS = (m_edu == 3)
 
 gen nonblack = 1-black
 
-
  
 *local covariates " m_iq nonblack       m_edu_moreHS sex bw m_age                " NO
 *local covariates " m_iq                                                         " NO
- local covariates "      black                                                   " 
-*local covariates " m_iq black sex                                               " 
+*local covariates "      black                                                   " 
+ local covariates " m_iq black sex m_age m_edu_HS m_edu_moreHS                   " 
 *local covariates " m_iq black                    sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex bw                         " NO 
@@ -71,7 +83,9 @@ gen nonblack = 1-black
 *local covariates "      black       m_edu_moreHS                                " NO
 *local covariates "      black                    sex                            " NO
 *local covariates "      black       m_edu_moreHS                                " NO
-                    
+local important_covs "m_iq m_age"                    
+
+local chop "black==1 & (m_edu_HS==1|m_edu_moreHS==1)"
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
@@ -94,18 +108,44 @@ label values treat_choice lbltreatchoice
 
 *keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
 *keep hhid Y Z_h Z_c     treat_choice `covariates'
- keep hhid Y Z_h Z_c Z_n treat_choice `covariates' program_type twin bw
+ keep hhid Y Z_h Z_c Z_n treat_choice `covariates' bw program_type
 
 gen D =(treat_choice==2)
 label var Z_h "Received EHS Offer"
 label var D   "Participated in EHS"
 label var black "Black"
-*label var m_iq "Mother's IQ"
-*label var sex "Male" 
- 
+label var m_iq "Mother's IQ"
+label var sex "Male" 
+label var bw "Birth Weight"
+label var m_edu_HS "MomEdu = HS" 
+label var m_edu_moreHS "MomEdu More Than HS"
+label var m_age "Mother's Age"
+
 sort hhid
+
+* Chopping Line
+* keep if bw>2000 & bw !=.
+
 save ehs_data.dta, replace
 
+* Types
+gen None = (treat_choice==1)
+gen EHS = (treat_choice==2)
+gen Other = (treat_choice==3)
+
+su None if Z_h==1
+scalar p_nn = r(mean)
+su Other if Z_h==1
+scalar p_cc = r(mean)
+su EHS if Z_h==0
+scalar p_hh = r(mean)
+su None if Z_h==0
+scalar p_nh = r(mean)-p_nn
+su Other if Z_h==0
+scalar p_ch = r(mean)-p_cc
+
+* Full Sample - Center Only + Mixed
+* ---------------------------------
 
 reg Y Z_h              `covariates', robust
 su Y if e(Sample) & Z_h==0
@@ -125,11 +165,32 @@ eststo EHS_2sls_D
 reg Y i.treat_choice `covariates', robust
 su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice
+eststo EHS_ols_trchoice
 
-esttab EHS_ols_Zh EHS_ols_D EHS_2sls_D EHS_ols_treat_choice using topi_EHS_jp.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
+reg Y Z_h              `covariates' bw, robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_bw
 
-local chop "black==1 & twin==0 & bw>2000"
+reg Y D              `covariates' bw, robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_bw
+
+ivregress 2sls Y (D=Z_h) `covariates' bw, first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_bw
+
+reg Y i.treat_choice `covariates' bw, robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_bw
+
+esttab EHS_ols_Zh EHS_ols_D EHS_2sls_D EHS_ols_trchoice EHS_ols_Zh_bw EHS_ols_D_bw EHS_2sls_D_bw EHS_ols_trchoice_bw using topi_EHS_jp.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice)
+
+* Chopped Sample - Center Only + Mixed
+* ---------------------------------
 
 reg Y Z_h              `covariates' if `chop', robust
 su Y if e(Sample) & Z_h==0
@@ -149,12 +210,83 @@ eststo EHS_2sls_D_chop
 reg Y i.treat_choice `covariates' if `chop', robust
 su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice_chop
+eststo EHS_ols_trchoice_chop
 
-esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_treat_choice_chop using topi_EHS_jp_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
+
+reg Y Z_h              `covariates' bw if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_chop_bw
+
+reg Y D              `covariates' bw if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_chop_bw
+
+ivregress 2sls Y (D=Z_h) `covariates' bw if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_chop_bw
+
+reg Y i.treat_choice `covariates' bw if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_chop_bw
+
+esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_trchoice_chop EHS_ols_Zh_chop_bw EHS_ols_D_chop_bw EHS_2sls_D_chop_bw EHS_ols_trchoice_chop_bw using topi_EHS_jp_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black m_edu_moreHS)
+
+* Chopped Sample - Center Only + Mixed - Important Covariates
+* -----------------------------------------------------------
+
+reg Y Z_h              `important_covs' if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_chop
+
+reg Y D              `important_covs' if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_chop
+
+ivregress 2sls Y (D=Z_h) `important_covs' if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_chop
+
+reg Y i.treat_choice `important_covs' if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_chop
+
+
+reg Y Z_h              `important_covs' bw if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_chop_bw
+
+reg Y D              `important_covs' bw if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_chop_bw
+
+ivregress 2sls Y (D=Z_h) `important_covs' bw if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_chop_bw
+
+reg Y i.treat_choice `important_covs' bw if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_chop_bw
+
+esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_trchoice_chop EHS_ols_Zh_chop_bw EHS_ols_D_chop_bw EHS_2sls_D_chop_bw EHS_ols_trchoice_chop_bw using topi_EHS_jp_chop_importantX.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `important_covs' bw) drop(1.treat_choice)
+
 
 preserve
 keep if program_type==1
+
+* Full Sample - Center Only
+* -------------------------
 
 reg Y Z_h              `covariates', robust
 su Y if e(Sample) & Z_h==0
@@ -174,9 +306,35 @@ eststo EHS_2sls_D_ctr
 reg Y i.treat_choice `covariates', robust
 su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice_ctr
+eststo EHS_ols_trchoice_ctr
 
-esttab EHS_ols_Zh_ctr EHS_ols_D_ctr EHS_2sls_D_ctr EHS_ols_treat_choice_ctr using topi_EHS_jp_centeronly.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
+
+reg Y Z_h              `covariates' bw, robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_ctr_bw
+
+reg Y D              `covariates' bw, robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_ctr_bw
+
+ivregress 2sls Y (D=Z_h) `covariates' bw, first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_ctr_bw
+
+reg Y i.treat_choice `covariates' bw, robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_ctr_bw
+
+
+esttab EHS_ols_Zh_ctr EHS_ols_D_ctr EHS_2sls_D_ctr EHS_ols_trchoice_ctr EHS_ols_Zh_ctr_bw EHS_ols_D_ctr_bw EHS_2sls_D_ctr_bw EHS_ols_trchoice_ctr_bw using topi_EHS_jp_centeronly.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice)
+
+
+* Chopped Sample - Center Only
+* ----------------------------
 
 reg Y Z_h              `covariates' if `chop', robust
 su Y if e(Sample) & Z_h==0
@@ -196,15 +354,80 @@ eststo EHS_2sls_D_ctr_chop
 reg Y i.treat_choice `covariates' if `chop', robust
 su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treatchoice_ctr_chp
+eststo EHS_ols_trchoice_ctr_chp
 
-esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_treatchoice_ctr_chp using topi_EHS_jp_centeronly_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
+reg Y Z_h              `covariates' bw if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_ctr_chop_bw
+
+reg Y D              `covariates' bw if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_ctr_chop_bw
+
+ivregress 2sls Y (D=Z_h) `covariates' bw if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_ctr_chop_bw
+
+reg Y i.treat_choice `covariates' bw if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_ctr_chp_bw
+
+esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoice_ctr_chp EHS_ols_Zh_ctr_chop_bw EHS_ols_D_ctr_chop_bw EHS_2sls_D_ctr_chop_bw EHS_ols_trchoice_ctr_chp_bw using topi_EHS_jp_centeronly_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black m_edu_moreHS)
+
+* Chopped Sample - Center Only - Important Covariates
+* ---------------------------------------------------
+
+reg Y Z_h              `important_covs' if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_ctr_chop
+
+reg Y D              `important_covs' if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_ctr_chop
+
+ivregress 2sls Y (D=Z_h) `important_covs' if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_ctr_chop
+
+reg Y i.treat_choice `important_covs' if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_ctr_chp
+
+reg Y Z_h              `important_covs' bw if `chop', robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_ctr_chop_bw
+
+reg Y D              `important_covs' bw if `chop', robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_ctr_chop_bw
+
+ivregress 2sls Y (D=Z_h) `important_covs' bw if `chop', first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_ctr_chop_bw
+
+reg Y i.treat_choice `important_covs' bw if `chop', robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_ctr_chp_bw
+
+esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoice_ctr_chp EHS_ols_Zh_ctr_chop_bw EHS_ols_D_ctr_chop_bw EHS_2sls_D_ctr_chop_bw EHS_ols_trchoice_ctr_chp_bw using topi_EHS_jp_centeronly_chop_importantX.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `important_covs' bw) drop(1.treat_choice)
 
 
 
 restore
 
-
+local covariates "black"
 
 * Create Interactions of Instruments and Covariates.
 
@@ -221,7 +444,9 @@ by hhid, sort: gen treat_options = _n
 gen choice = (treat_options == treat_choice)
 sort hhid treat_options
 
+
 * Set up to zero the ECE offer Z and its interactions with covariates Z*X in the utility equations for the non-ECE choices.
+* (treat options 1=NONE, 2=EHS, 3=OTHER)
 
 replace Z_h           = 0 if treat_options == 1|treat_options == 3
 foreach x of local covariates {
@@ -256,7 +481,7 @@ matrix stdpat = J(3, 1, sqrt(0.5))
 
  cmmprobit choice Z_n* Z_h* Z_c*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
 *cmmprobit choice      Z_h* Z_c*, casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
-*cmmprobit choice Z_n* Z_h* , casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
+*cmmprobit choice Z_n* Z_h*     , casevars(`covariates') basealternative(1) scalealternative(2) stddev(fixed stdpat)
 
 predict pr_hat, pr
 predict psi_hat, xb
@@ -625,15 +850,25 @@ scalar subLATE_nh = mu_hat_nh_h - mu_hat_nh_n
 scalar subLATE_ch = mu_hat_ch_h - mu_hat_ch_c
 *--------------------------------------------
 
-scalar percent_nh = 0.5
-scalar percent_ch = 0.5
-scalar LATE_allcompliers = percent_nh * subLATE_nh + percent_ch * subLATE_ch
+quietly{
+noi di as text "Estimated Pr[n always-taker]   =" p_nn
+noi di as text "Estimated Pr[h always-taker]   =" p_hh
+noi di as text "Estimated Pr[c always-taker]   =" p_cc
+noi di as text "Estimated Pr[n-to-h complier]  =" p_nh
+noi di as text "Estimated Pr[c-to-h complier]  =" p_ch
+}
+
+
+scalar rel_percent_nh = p_nh/(p_nh+p_ch)
+scalar rel_percent_ch = p_ch/(p_nh+p_ch)
+scalar LATE_allcompliers = rel_percent_nh * subLATE_nh + rel_percent_ch * subLATE_ch
+
 
 quietly{
-noi di as text "Estimated E[Yh-Yn|n-to-h complier] =" subLATE_nh
-noi di as text "Estimated E[Yh-Yc|c-to-h complier] =" subLATE_ch
-noi di as text "Estimated % of n-to-h compliers    =" percent_nh
-noi di as text "Estimated % of c-to-h compliers    =" percent_ch
-noi di as text "Estimated E[Yh-Yc|complier]        =" LATE_allcompliers
+noi di as text "Estimated E[Y(h)-Y(n)|n-to-h complier]               =" subLATE_nh
+noi di as text "Estimated E[Y(h)-Y(c)|c-to-h complier]               =" subLATE_ch
+noi di as text "Estimated n-to-h compliers as % of all compliers =" rel_percent_nh
+noi di as text "Estimated c-to-h compliers as % of all compliers =" rel_percent_ch
+noi di as text "Estimated E[Y(h)-Y(not h)|complier]                  =" LATE_allcompliers
 }
 

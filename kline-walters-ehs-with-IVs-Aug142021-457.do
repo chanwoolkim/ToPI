@@ -7,27 +7,25 @@ clear all
 
  
 * Basic Data Clean-Up
-keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type twin bw
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
-drop if  ppvt3y == .
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
+keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative
 
+drop if  ppvt3y == .
 drop if       R == .
-*drop if   m_edu == .
-*drop if   m_age == .
+drop if   m_edu == .
+drop if   m_age == .
 drop if    m_iq == .
 drop if     sex == .
 drop if       D == .
-*drop if sitenum == .
+drop if sitenum == .
 drop if   black == .
-*drop if      bw == .
+drop if      bw == .
 drop if     alt == .
 drop if caregiver_home == . 
 drop if    cc_payments == . 
-*drop if    income_site == . 
-*drop if  cc_price_relative == .
+drop if    income_site == . 
+drop if  cc_price_relative == .
 
-*drop if m_edu!=1 & m_edu!=2 & m_edu!=3
+drop if m_edu!=1 & m_edu!=2 & m_edu!=3
 
 rename R       Z_h
 rename ppvt3y  Y
@@ -62,7 +60,7 @@ gen nonblack = 1-black
 *local covariates " m_iq nonblack       m_edu_moreHS sex bw m_age                " NO
 *local covariates " m_iq                                                         " NO
  local covariates "      black                                                   " 
-*local covariates " m_iq black sex                                               " 
+*local covariates " m_iq black                                                   " 
 *local covariates " m_iq black                    sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex bw                         " NO 
@@ -91,120 +89,12 @@ replace treat_choice = 3 if treat_choice_old==2
 label define lbltreatchoice 1 "None" 2 "EHS" 3 "Other"
 label values treat_choice lbltreatchoice
 
-
 *keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
 *keep hhid Y Z_h Z_c     treat_choice `covariates'
- keep hhid Y Z_h Z_c Z_n treat_choice `covariates' program_type twin bw
+ keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
 
-gen D =(treat_choice==2)
-label var Z_h "Received EHS Offer"
-label var D   "Participated in EHS"
-label var black "Black"
-*label var m_iq "Mother's IQ"
-*label var sex "Male" 
- 
 sort hhid
 save ehs_data.dta, replace
-
-
-reg Y Z_h              `covariates', robust
-su Y if e(Sample) & Z_h==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_Zh
-
-reg Y D              `covariates', robust
-su Y if e(Sample) & D==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_D
-
-ivregress 2sls Y (D=Z_h) `covariates', first robust
-su Y if e(Sample) & D==0  /*here compute complier control mean*/
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_2sls_D
-
-reg Y i.treat_choice `covariates', robust
-su Y if e(Sample) & treat_choice==1
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice
-
-esttab EHS_ols_Zh EHS_ols_D EHS_2sls_D EHS_ols_treat_choice using topi_EHS_jp.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
-
-local chop "black==1 & twin==0 & bw>2000"
-
-reg Y Z_h              `covariates' if `chop', robust
-su Y if e(Sample) & Z_h==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_Zh_chop
-
-reg Y D              `covariates' if `chop', robust
-su Y if e(Sample) & D==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_D_chop
-
-ivregress 2sls Y (D=Z_h) `covariates' if `chop', first robust
-su Y if e(Sample) & D==0  /*here compute complier control mean*/
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_2sls_D_chop
-
-reg Y i.treat_choice `covariates' if `chop', robust
-su Y if e(Sample) & treat_choice==1
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice_chop
-
-esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_treat_choice_chop using topi_EHS_jp_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
-
-preserve
-keep if program_type==1
-
-reg Y Z_h              `covariates', robust
-su Y if e(Sample) & Z_h==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_Zh_ctr
-
-reg Y D              `covariates', robust
-su Y if e(Sample) & D==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_D_ctr
-
-ivregress 2sls Y (D=Z_h) `covariates', first robust
-su Y if e(Sample) & D==0  /*here compute complier control mean*/
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_2sls_D_ctr
-
-reg Y i.treat_choice `covariates', robust
-su Y if e(Sample) & treat_choice==1
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treat_choice_ctr
-
-esttab EHS_ols_Zh_ctr EHS_ols_D_ctr EHS_2sls_D_ctr EHS_ols_treat_choice_ctr using topi_EHS_jp_centeronly.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
-
-reg Y Z_h              `covariates' if `chop', robust
-su Y if e(Sample) & Z_h==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_Zh_ctr_chop
-
-reg Y D              `covariates' if `chop', robust
-su Y if e(Sample) & D==0
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_D_ctr_chop
-
-ivregress 2sls Y (D=Z_h) `covariates' if `chop', first robust
-su Y if e(Sample) & D==0  /*here compute complier control mean*/
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_2sls_D_ctr_chop
-
-reg Y i.treat_choice `covariates' if `chop', robust
-su Y if e(Sample) & treat_choice==1
-estadd scalar MeanDepVarControl = r(mean)
-eststo EHS_ols_treatchoice_ctr_chp
-
-esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_treatchoice_ctr_chp using topi_EHS_jp_centeronly_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black sex m_iq) drop(1.treat_choice)
-
-
-
-restore
-
-
 
 * Create Interactions of Instruments and Covariates.
 
@@ -431,8 +321,7 @@ scalar gamma_nh_hat = _b[lambda_h_D]
 scalar gamma_nc_hat = _b[lambda_c_D]
 scalar gamma_hh_hat = _b[D_h_lambda_h_h] + gamma_nh_hat
 scalar gamma_hc_hat = _b[D_h_lambda_c_h] + gamma_nc_hat
-scalar gamma_ch_hat = _b[D_c_lambda_h_c] + gamma_nh_hat
-scalar gamma_cc_hat = _b[D_c_lambda_c_c] + gamma_nc_hat
+
 
 *reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_lambda* D_h D_h_lambda* , robust
  
@@ -445,69 +334,36 @@ scalar theta_c0_theta_n0_hat = _b[D_c]
 scalar theta_h0_theta_n0_hat = _b[D_h]
 scalar          theta_n0_hat = _b[_cons]
 scalar          theta_h0_hat = theta_h0_theta_n0_hat + theta_n0_hat
-scalar          theta_c0_hat = theta_c0_theta_n0_hat + theta_n0_hat
 
-* ================================
 * SubLATE E[Yh-Yn|n-to-h complier]
-* SubLATE E[Yh-Yc|c-to-h complier]
 * ================================
 
 gen X_theta_hx_hat = 0
-gen X_theta_cx_hat = 0
 gen X_theta_nx_hat = 0
 
-
 foreach x of local covariates {
-	
 	scalar          theta_nx_hat_`x' = _b[`x']
 	scalar theta_cx_theta_nx_hat_`x' = _b[D_c_`x']
 	scalar theta_hx_theta_nx_hat_`x' = _b[D_h_`x']
-	scalar          theta_cx_hat_`x' = theta_cx_theta_nx_hat_`x' - theta_nx_hat_`x'
 	scalar          theta_hx_hat_`x' = theta_hx_theta_nx_hat_`x' - theta_nx_hat_`x'
-
 	replace X_theta_hx_hat = X_theta_hx_hat + `x' * theta_hx_hat_`x'
-	replace X_theta_cx_hat = X_theta_cx_hat + `x' * theta_cx_hat_`x'
-	replace X_theta_nx_hat = X_theta_nx_hat + `x' * theta_nx_hat_`x'
+    replace X_theta_nx_hat = X_theta_nx_hat + `x' * theta_nx_hat_`x'
 }
 
-* ---------------------------------------------
-* Complier Type Probabilities
-* ---------------------------------------------
-
-* Let omega_nh_hat be an estimate of the probability that individual i is a nh-complier conditional on his or her covariates:
 
 gen a1 = -psi_h_Zhi0
 gen b1 = -psi_c
 gen a2 = -psi_h_Zhi1
 gen b2 = -psi_c
+
 gen   omega_nh_hat = binormal(a1,b1,rho) - binormal(a2,b2,rho)
 total omega_nh_hat
 scalar sum_omega_nh_hat = e(b)[1,1]
 gen weight_nh = omega_nh_hat / sum_omega_nh_hat
+
 drop a1 b1 a2 b2
 
-
-* Let omega_ch_hat be an estimate of the probability that individual i is a ch-complier conditional on his or her covariates:
-
-gen a1 = ( psi_c - psi_h_Zhi0 ) / sqrt(2*(1-rho))
-gen b1 = psi_c
-gen a2 = ( psi_c - psi_h_Zhi1 ) / sqrt(2*(1-rho))
-gen b2 = psi_c
-scalar corr_hminusc_c = sqrt((1-rho)/2)
-gen   omega_ch_hat = binormal(a1,b1,corr_hminusc_c) - binormal(a2,b2,corr_hminusc_c)
-total omega_ch_hat
-scalar sum_omega_ch_hat = e(b)[1,1]
-gen weight_ch = omega_ch_hat / sum_omega_ch_hat
-drop a1 b1 a2 b2
-
-* ----------------------------------------------------------------
-* Means of Bivariate Standard Normals with 2-Sided Truncated Means.
-* ----------------------------------------------------------------
-
-*For nh-compliers
-*----------------
-
-* Lambda0_h_nh
+* Lambda0_hh
 gen a0 = -psi_h_Zhi1
 gen a1 = -psi_h_Zhi0
 gen b0 = -1000000
@@ -518,15 +374,14 @@ gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0
 gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
 gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
 
-gen Lambda0_h_nh_FIRST   =  FIRST_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_h_nh_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_h_nh         = Lambda0_h_nh_FIRST + Lambda0_h_nh_SECOND
+gen Lambda0_hh_FIRST   =  FIRST_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hh_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hh         = Lambda0_hh_FIRST + Lambda0_hh_SECOND
 
 drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
 scalar drop ksi
 
-* Lambda0_c_nh
-
+* Lambda0_hc
 gen a0 = -1000000
 gen a1 = -psi_c
 gen b0 = -psi_h_Zhi1
@@ -537,62 +392,21 @@ gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0
 gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
 gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
 
-gen Lambda0_c_nh_FIRST   = FIRST_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_c_nh_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_c_nh         = Lambda0_c_nh_FIRST + Lambda0_c_nh_SECOND
+gen Lambda0_hc_FIRST   = FIRST_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hc_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
+gen Lambda0_hc = Lambda0_hc_FIRST + Lambda0_hc_SECOND
 
 drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
 scalar drop ksi
 
-* ------------------------------------------------------
+* Lambda0_nh
+gen Lambda0_nh = Lambda0_hh
 
-*For ch-compliers
-*----------------
+* Lambda0_nc
+gen Lambda0_nc = Lambda0_hc
 
-* Lambda0_hminusc_ch
-
-gen a0 = -1000000
-gen a1 =  psi_c
-gen b0 = (psi_c - psi_h_Zhi1) / sqrt(2*(1-rho))
-gen b1 = (psi_c - psi_h_Zhi0) / sqrt(2*(1-rho))
-scalar ksi = sqrt((1-rho)/2)
-
-gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0,b1,ksi) + 2*binormal(a0,b0,ksi)
-gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
-gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
-
-gen Lambda0_hminusc_ch_FIRST   =  FIRST_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_hminusc_ch_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_hminusc_ch         = Lambda0_hminusc_ch_FIRST + Lambda0_hminusc_ch_SECOND
-
-drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
-scalar drop ksi
-
-* Lambda0_c_ch
-
-gen a0 = (psi_c - psi_h_Zhi1) / sqrt(2*(1-rho))
-gen a1 = (psi_c - psi_h_Zhi0) / sqrt(2*(1-rho))
-gen b0 = -1000000
-gen b1 = psi_c
-scalar ksi = sqrt((1-rho)/2)
-
-gen COMMON_DENOMINATOR = binormal(a1,b1,ksi) - binormal(a1,b0,rho) - binormal(a0,b1,ksi) + 2*binormal(a0,b0,ksi)
-gen  FIRST_NUMERATOR   =     normalden(a0)*(normal((b1-ksi*a0) / sqrt(1-(ksi)^2) ) - normal( (1-ksi)*a0  / sqrt(1-(ksi)^2))) -     normalden(a1)*(normal( (b1-ksi*a1) / sqrt(1-(ksi)^2) ) - normal( (b0-ksi*a1) / sqrt(1-(ksi)^2) ) ) 
-gen SECOND_NUMERATOR   = ksi*normalden(b0)*(normal((a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b0) / sqrt(1-(ksi)^2))) - ksi*normalden(b1)*(normal( (a1-ksi*b1) / sqrt(1-(ksi)^2) ) - normal( (a0-ksi*b1) / sqrt(1-(ksi)^2) ) )
-
-gen Lambda0_c_ch_FIRST   = FIRST_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_c_ch_SECOND  = SECOND_NUMERATOR / COMMON_DENOMINATOR
-gen Lambda0_c_ch = Lambda0_c_ch_FIRST + Lambda0_c_ch_SECOND
-
-drop a0 a1 b0 b1 FIRST_NUMERATOR SECOND_NUMERATOR COMMON_DENOMINATOR
-scalar drop ksi
-
-*--------------n-to-h compliers------------------------------
-
-gen mu_hat_nh_h_X = theta_h0_hat + X_theta_hx_hat + gamma_hh_hat * Lambda0_h_nh + gamma_hc_hat * Lambda0_c_nh
-gen mu_hat_nh_n_X = theta_n0_hat + X_theta_nx_hat + gamma_nh_hat * Lambda0_h_nh + gamma_nc_hat * Lambda0_c_nh
-
-* To obtain unconditional estimates, we integrate over the distribution of Xi for nh-compliers
+gen mu_hat_nh_h_X = theta_h0_hat + X_theta_hx_hat + gamma_hh_hat * Lambda0_hh + gamma_hc_hat * Lambda0_hc
+gen mu_hat_nh_n_X = theta_n0_hat + X_theta_nx_hat + gamma_nh_hat * Lambda0_nh + gamma_nc_hat * Lambda0_nc
 
 gen mu_hat_nh_h_X_weight_nh = mu_hat_nh_h_X * weight_nh
 total mu_hat_nh_h_X_weight_nh
@@ -602,38 +416,9 @@ gen mu_hat_nh_n_X_weight_nh = mu_hat_nh_n_X * weight_nh
 total mu_hat_nh_n_X_weight_nh
 scalar mu_hat_nh_n = e(b)[1,1]
 
-*-------------c-to-h compliers-------------------------------
-
-gen E_vc_ch_complier = (-1) * Lambda0_c_ch
-gen E_vh_ch_complier = Lambda0_hminusc_ch * (2*(1-rho))^(0.5) + E_vc_ch_complier
-
-gen mu_hat_ch_h_X = theta_h0_hat + X_theta_hx_hat + gamma_hh_hat * E_vh_ch_complier + gamma_hc_hat * E_vc_ch_complier
-gen mu_hat_ch_c_X = theta_c0_hat + X_theta_cx_hat + gamma_ch_hat * E_vh_ch_complier + gamma_cc_hat * E_vc_ch_complier
-
-* To obtain unconditional estimates, we integrate over the distribution of Xi for ch-compliers
-
-gen mu_hat_ch_h_X_weight_ch = mu_hat_ch_h_X * weight_ch
-total mu_hat_ch_h_X_weight_ch
-scalar mu_hat_ch_h = e(b)[1,1]
-
-gen mu_hat_ch_c_X_weight_ch = mu_hat_ch_c_X * weight_ch
-total mu_hat_ch_c_X_weight_ch
-scalar mu_hat_ch_c = e(b)[1,1]
-
-*--------------------------------------------
 scalar subLATE_nh = mu_hat_nh_h - mu_hat_nh_n
-scalar subLATE_ch = mu_hat_ch_h - mu_hat_ch_c
-*--------------------------------------------
-
-scalar percent_nh = 0.5
-scalar percent_ch = 0.5
-scalar LATE_allcompliers = percent_nh * subLATE_nh + percent_ch * subLATE_ch
 
 quietly{
-noi di as text "Estimated E[Yh-Yn|n-to-h complier] =" subLATE_nh
-noi di as text "Estimated E[Yh-Yc|c-to-h complier] =" subLATE_ch
-noi di as text "Estimated % of n-to-h compliers    =" percent_nh
-noi di as text "Estimated % of c-to-h compliers    =" percent_ch
-noi di as text "Estimated E[Yh-Yc|complier]        =" LATE_allcompliers
+noi di as text "Estimated E[Yh-Yn|n-to-h complier]: =" subLATE_nh
 }
 
