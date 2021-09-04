@@ -1,0 +1,22 @@
+
+dictionary using da29462-0001.txt {
+
+	*ADMIN VARIABLES:
+	_column(8)	
+		double hsis_childid %6f "Child ID"
+	_column(59)
+		double d_cd_competition %1f "Competition from other preschools"
+		double d_cd_competition_rev %1f "Competition from other preschools (v2)"
+	_column(64)	
+		double d_childstaffratio %7f "Child-staff ratio"
+	_column(88)	
+		double d_focarr1 %1f "Childcare arrangement"
+	_column(120)
+		double d_vl3_cda %1f "Teacher has CDA"
+		double d_vl3_degaa %1f "Teacher has AA degree"
+		double d_vl3_degba %1f "Teacher has BA degree"
+	
+		
+}
+
+

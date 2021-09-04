@@ -1,0 +1,33 @@
+
+dictionary using da29462-0016.txt {
+
+	_column(1)	
+		double hsis_raprogid %3f "Random Assignment Program ID"
+		double hsis_racntrid %4f "Random Assignment Center ID"
+		double hsis_childid %6f "Random Assignment Child ID"
+		double childcohort %1f "Child Cohort"
+		double childresultgroup %1f "Treatment/Control Assignment"
+		double crossover %1f "Assigned control, attended HS"
+		double noshow %1f "Assigned treatment, did not attend HS"
+	_column(28)
+		str11 period %11s "Data collection period"
+	_column(96)
+		double d_tcr_aspi_aggr %2f "ASPI Aggressive Adjustment Problems"
+		double d_tcr_aspi_inatten %2f "ASPI Inattentive/hyperative adjustment problems"
+		double d_tcr_aspi_lowener %2f "ASPI Withdrawn/low energy adjustment problems"
+		double d_tcr_aspi_oppos %2f "ASPI Oppositional Adjustment Problems"
+		double d_tcr_aspi_peerint %3f "ASPI Problems with peer interactions"
+		double d_tcr_aspi_shy %2f "ASPI Socially Reticent adjustment problems"
+		double d_tcr_aspi_struclearn %3f "ASPI Problems with Structured Learning"
+	_column(114)
+		double d_tcr_aspi_teachint %3f "ASPI Problems with Teacher Interactions"
+	_column(131)
+		double d_tcr_pianta_close %2f "Pianta scale:  Closeness"
+		double d_tcr_pianta_conflict %2f "Pianta scale:  Conflict"
+		double d_tcr_pianta_positiverel %2f "Pianta scale:  Positive relationship"
+
+}
+
+
+
+
