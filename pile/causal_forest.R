@@ -23,6 +23,7 @@ causal_matrix <- function(df, output_var, program, method="ATE") {
            !is.na(D),
            !is.na(black),
            !is.na(caregiver_home),
+           !is.na(bw),
            m_edu %in% c(1, 2, 3))
   
   # Now create input for ABC
