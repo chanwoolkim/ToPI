@@ -7,11 +7,12 @@ library(grf)
 library(tidyverse)
 library(xtable)
 
-data_dir <- "C:/Users/561CO/Downloads/"
-output_dir <- "C:/Users/561CO/Downloads/"
+data_dir <- "C:/Users/561CO/Dropbox/Research/TOPI/working/"
+output_dir <- "C:/Users/561CO/Dropbox/Research/TOPI/do-ToPI/output_backup/"
+output_overleaf <- "C:/Users/561CO/Dropbox/Apps/Overleaf/ToPI/Results/"
 seed <- 9657
 
-covariate_names <- c("bw", "twin", "m_age", "m_edu_2", "m_edu_3", "sibling", "m_iq", "black", "sex", "gestage", "mf")
+covariate_names <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "bw")
 
 
 # Function to create data frame for causal forest estimates ####
@@ -19,7 +20,10 @@ causal_matrix <- function(df, output_var, program, method="ATE") {
   # Input for the program of interest
   df <- df %>%
     filter(!is.na(!!(sym(output_var))),
-           !is.na(D))
+           !is.na(D),
+           !is.na(black),
+           !is.na(caregiver_home),
+           m_edu %in% c(1, 2, 3))
   
   # Now create input for ABC
   # Pull out SB even when the program of interest has PPVT
@@ -43,9 +47,9 @@ causal_matrix <- function(df, output_var, program, method="ATE") {
   
   # Fit the causal/instrumental forest on the program of interest
   if (method=="ATE") {
-    forest <- causal_forest(X, Y, W, honesty=FALSE, seed=seed)
+    forest <- causal_forest(X, Y, W, honesty=FALSE, min.node.size=20, seed=seed)
   } else if (method=="LATE") {
-    forest <- instrumental_forest(X, Y, W, Z, honesty=FALSE, seed=seed)
+    forest <- instrumental_forest(X, Y, W, Z, honesty=FALSE, min.node.size=20, seed=seed)
   }
   
   var_importance <- variable_importance(forest)
@@ -60,9 +64,9 @@ causal_matrix <- function(df, output_var, program, method="ATE") {
     
     # Fit the causal/instrumental forest on the program of interest
     if (method=="ATE") {
-      forest <- causal_forest(X, Y, W, honesty=FALSE, seed=seed)
+      forest <- causal_forest(X, Y, W, honesty=FALSE, min.node.size=20, seed=seed)
     } else if (method=="LATE") {
-      forest <- instrumental_forest(X, Y, W, Z, honesty=FALSE, seed=seed)
+      forest <- instrumental_forest(X, Y, W, Z, honesty=FALSE, min.node.size=20, seed=seed)
     }
     
     pre_estimate <- mean(forest$predictions)
@@ -88,23 +92,19 @@ causal_matrix <- function(df, output_var, program, method="ATE") {
                        pre_dr_se=output_estimates$t0[3],
                        abc_estimate=output_estimates$t0[4],
                        abc_se=sd(output_estimates$t[,4]),
-                       bw_importance=var_importance[1],
-                       twin_importance=var_importance[2],
-                       m_age_importance=var_importance[3],
-                       m_edu_2_importance=var_importance[4],
-                       m_edu_3_importance=var_importance[5],
-                       sibling_importance=var_importance[6],
-                       m_iq_importance=var_importance[7],
-                       black_importance=var_importance[8],
-                       sex_importance=var_importance[9],
-                       gestage_importance=var_importance[10],
-                       mf_importance=var_importance[11])
+                       m_iq_importance=var_importance[1],
+                       black_importance=var_importance[2],
+                       sex_importance=var_importance[3],
+                       m_age_importance=var_importance[4],
+                       m_edu_2_importance=var_importance[5],
+                       m_edu_3_importance=var_importance[6],
+                       bw_importance=var_importance[7])
   return(output)
 }
 
 
 # Execute! ####
-programs <- c("ehscenter", "ehsmixed_center", "ehsmixed", "ihdp")
+programs <- c("ehscenter", "ehsmixed_center", "ihdp")
 
 for (p in programs) {
   assign(p, read.csv(paste0(data_dir, p, "-topi.csv")) %>%
@@ -117,11 +117,10 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
          m_edu_2=m_edu==2,
          m_edu_3=m_edu==3)
 
-ehscenter_output <- c("ppvt3y") #, "norm_home_learning3y", "norm_home_total3y", "home3y_original")
-ehsmixed_center_output <- c("ppvt3y") #, "norm_home_learning3y", "norm_home_total3y", "home3y_original")
-ehsmixed_output <- c("ppvt3y") #, "norm_home_learning3y", "norm_home_total3y", "home3y_original")
-ihdp_output <- c("ppvt3y", "sb3y") #, "norm_home_learning3y", "norm_home_total3y", "home_jbg_learning", "home3y_original")
-abc_output <- c("sb3y") #, "norm_home_learning3y", "norm_home_total3y", "home_jbg_learning", "home3y_original")
+ehscenter_output <- c("ppvt3y")
+ehsmixed_center_output <- c("ppvt3y")
+ihdp_output <- c("ppvt3y", "sb3y")
+abc_output <- c("sb3y")
 
 causal_output <- data.frame(program=NULL,
                             output_var=NULL,
@@ -130,17 +129,13 @@ causal_output <- data.frame(program=NULL,
                             pre_dr_se=NULL,
                             abc_estimate=NULL,
                             abc_se=NULL,
-                            bw_importance=NULL,
-                            twin_importance=NULL,
-                            m_age_importance=NULL,
-                            m_edu_2_importance=NULL,
-                            m_edu_3_importance=NULL,
-                            sibling_importance=NULL,
                             m_iq_importance=NULL,
                             black_importance=NULL,
                             sex_importance=NULL,
-                            gestage_importance=NULL,
-                            mf_importance=NULL)
+                            m_age_importance=NULL,
+                            m_edu_2_importance=NULL,
+                            m_edu_3_importance=NULL,
+                            bw_importance=NULL)
 
 for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
@@ -149,7 +144,7 @@ for (p in programs) {
   }
 }
 
-write.csv(causal_output, paste0(output_dir, "causal_forest.csv"), row.names=FALSE)
+write.csv(causal_output, paste0(data_dir, "causal_forest.csv"), row.names=FALSE)
 
 causal_output_main <- causal_output %>%
   select('Program'=program,
@@ -166,26 +161,34 @@ print(xtable(causal_output_main,
       comment=FALSE,
       file=paste0(output_dir,"causal_forest_output.tex"))
 
+print(xtable(causal_output_main,
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3)),
+      include.rownames=FALSE,
+      comment=FALSE,
+      file=paste0(output_overleaf,"causal_forest_output.tex"))
+
 causal_output_importance <- causal_output %>%
   select('Program'=program,
          'Outcome'=output_var,
-         'Birth Weight'=bw_importance,
-         'Twin'=twin_importance,
-         'Mother Age'=m_age_importance,
-         'Mother Edu_2'=m_edu_2_importance,
-         'Mother Edu_3'=m_edu_3_importance,
-         'Sibling'=sibling_importance,
          'Mother IQ'=m_iq_importance,
          'Black'=black_importance,
          'Sex'=sex_importance,
-         'Gestational Age'=gestage_importance,
-         'Father Home'=mf_importance)
+         'Mother Age'=m_age_importance,
+         'Mother Edu_2'=m_edu_2_importance,
+         'Mother Edu_3'=m_edu_3_importance,
+         'Birth Weight'=bw_importance)
 
 print(xtable(causal_output_importance,
-             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)),
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3)),
       include.rownames=FALSE,
       comment=FALSE,
       file=paste0(output_dir,"causal_forest_importance_output.tex"))
+
+print(xtable(causal_output_importance,
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3)),
+      include.rownames=FALSE,
+      comment=FALSE,
+      file=paste0(output_overleaf,"causal_forest_importance_output.tex"))
 
 instrumental_output <- data.frame(program=NULL,
                                   output_var=NULL,
@@ -194,17 +197,13 @@ instrumental_output <- data.frame(program=NULL,
                                   pre_dr_se=NULL,
                                   abc_estimate=NULL,
                                   abc_se=NULL,
-                                  bw_importance=NULL,
-                                  twin_importance=NULL,
-                                  m_age_importance=NULL,
-                                  m_edu_2_importance=NULL,
-                                  m_edu_3_importance=NULL,
-                                  sibling_importance=NULL,
                                   m_iq_importance=NULL,
                                   black_importance=NULL,
                                   sex_importance=NULL,
-                                  gestage_importance=NULL,
-                                  mf_importance=NULL)
+                                  m_age_importance=NULL,
+                                  m_edu_2_importance=NULL,
+                                  m_edu_3_importance=NULL,
+                                  bw_importance=NULL)
 
 for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
@@ -213,7 +212,7 @@ for (p in programs) {
   }
 }
 
-write.csv(instrumental_output, paste0(output_dir, "instrumental_forest.csv"), row.names=FALSE)
+write.csv(instrumental_output, paste0(data_dir, "instrumental_forest.csv"), row.names=FALSE)
 
 instrumental_output_main <- instrumental_output %>%
   select('Program'=program,
@@ -230,26 +229,34 @@ print(xtable(instrumental_output_main,
       comment=FALSE,
       file=paste0(output_dir,"instrumental_forest_output.tex"))
 
+print(xtable(instrumental_output_main,
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3)),
+      include.rownames=FALSE,
+      comment=FALSE,
+      file=paste0(output_overleaf,"instrumental_forest_output.tex"))
+
 instrumental_output_importance <- instrumental_output %>%
   select('Program'=program,
          'Outcome'=output_var,
-         'Birth Weight'=bw_importance,
-         'Twin'=twin_importance,
-         'Mother Age'=m_age_importance,
-         'Mother Edu_2'=m_edu_2_importance,
-         'Mother Edu_3'=m_edu_2_importance,
-         'Sibling'=sibling_importance,
          'Mother IQ'=m_iq_importance,
          'Black'=black_importance,
          'Sex'=sex_importance,
-         'Gestational Age'=gestage_importance,
-         'Father Home'=mf_importance)
+         'Mother Age'=m_age_importance,
+         'Mother Edu_2'=m_edu_2_importance,
+         'Mother Edu_3'=m_edu_3_importance,
+         'Birth Weight'=bw_importance)
 
 print(xtable(instrumental_output_importance,
-             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)),
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3)),
       include.rownames=FALSE,
       comment=FALSE,
       file=paste0(output_dir,"instrumental_forest_importance_output.tex"))
+
+print(xtable(instrumental_output_importance,
+             digits=c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3)),
+      include.rownames=FALSE,
+      comment=FALSE,
+      file=paste0(output_overleaf,"instrumental_forest_importance_output.tex"))
 
 end_time <- Sys.time()
 end_time-start_time
