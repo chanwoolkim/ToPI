@@ -371,7 +371,15 @@ save "ihdp-preschools.dta", replace
 
 cd "$data_raw"
 use "append-abccare.dta", clear
-drop if id==74 //died at 3 months
+drop if id==74 	//died at 3 months
+drop if id==85 	//withdrawn at 3 months, does not have SB
+drop if id==108 //moved at 6 months, does not have SB
+*900 noshow
+*912 noshow
+*922 noshow
+*78  crossover
+*82	 crossover [need]
+*119 crossover [need]
 
 keep if program == "abc"
 tab P D //no (1,1)
