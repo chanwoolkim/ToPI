@@ -2,10 +2,45 @@ clear all
 
 cd "C:\Users\jpanta\Dropbox\TOPI\do-ToPI"
 
+
+
+* Get sub-types from ABC
+use "C:\Users\jpanta\Dropbox\TOPI\working\abc-topi.dta"
+
+* The variable R is the randomization
+* D is participation in ABC 
+* Center is participation in alternative preschools.
+keep R D center
+keep if D !=.
+
+gen None  = (D==0 & center==0)
+gen ABC   = (D==1)
+gen Other = (D==0 & center==1)
+
+su None if R==1
+scalar p_nn_ABC = r(mean)
+su Other if R==1
+scalar p_cc_ABC = r(mean)
+su ABC if R==0
+scalar p_hh_ABC = r(mean)
+su None if R==0
+scalar p_nh_ABC = r(mean)-p_nn_ABC
+su Other if R==0
+scalar p_ch_ABC = r(mean)-p_cc_ABC
+
+quietly{
+noi di as text "ABC Sub-Types                   "
+noi di as text "Estimated Pr[n always-taker]   =" p_nn_ABC
+noi di as text "Estimated Pr[h always-taker]   =" p_hh_ABC
+noi di as text "Estimated Pr[c always-taker]   =" p_cc_ABC
+noi di as text "Estimated Pr[n-to-h complier]  =" p_nh_ABC
+noi di as text "Estimated Pr[c-to-h complier]  =" p_ch_ABC
+}
+
 *use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs.dta"
 *use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta"
 *use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs.dta"
- use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs_mixed_center.dta"
+ use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs_mixed_center.dta", clear
 
 
  
@@ -67,6 +102,10 @@ gen m_edu_lessHS = (m_edu == 1)
 gen m_edu_HS     = (m_edu == 2)
 gen m_edu_moreHS = (m_edu == 3)
 
+rename m_edu_moreHS medumoreHS 
+rename m_edu_lessHS medulessHS 
+
+
 
 gen nonblack = 1-black
 
@@ -74,7 +113,7 @@ gen nonblack = 1-black
 *local covariates " m_iq nonblack       m_edu_moreHS sex bw m_age                " NO
 *local covariates " m_iq                                                         " NO
 *local covariates "      black                                                   " 
- local covariates " m_iq black sex m_age m_edu_HS m_edu_moreHS                   " 
+ local covariates " m_iq black sex m_age m_edu_HS medumoreHS                     " 
 *local covariates " m_iq black                    sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex                            " NO
 *local covariates " m_iq black       m_edu_moreHS sex bw                         " NO 
@@ -108,7 +147,7 @@ label values treat_choice lbltreatchoice
 
 *keep hhid Y Z_h Z_c Z_n treat_choice `covariates'
 *keep hhid Y Z_h Z_c     treat_choice `covariates'
- keep hhid Y Z_h Z_c Z_n treat_choice `covariates' bw program_type m_edu_lessHS m_edu_HS
+ keep hhid Y Z_h Z_c Z_n treat_choice `covariates' bw program_type medulessHS m_edu_HS
 
 gen D =(treat_choice==2)
 label var Z_h "Received EHS Offer"
@@ -118,15 +157,14 @@ label var m_iq "Mother's IQ"
 label var sex "Male" 
 label var bw "Birth Weight"
 label var m_edu_HS "MomEdu = HS" 
-label var m_edu_moreHS "MomEdu More Than HS"
-label var m_edu_lessHS "MomEdu Less Than HS"
+label var medumoreHS "MomEdu More Than HS"
+label var medulessHS "MomEdu Less Than HS"
 label var m_age "Mother's Age"
 
 sort hhid
 
 * Chopping Line
-* keep if bw>2000 & bw !=.
-
+*keep if `chop'
 save ehs_data.dta, replace
 
 * EHS Types
@@ -144,6 +182,8 @@ su None if Z_h==0
 scalar p_nh = r(mean)-p_nn
 su Other if Z_h==0
 scalar p_ch = r(mean)-p_cc
+
+/***
 
 * Full Sample - Center Only + Mixed
 * ---------------------------------
@@ -189,6 +229,51 @@ estadd scalar MeanDepVarControl = r(mean)
 eststo EHS_ols_trchoice_bw
 
 esttab EHS_ols_Zh EHS_ols_D EHS_2sls_D EHS_ols_trchoice EHS_ols_Zh_bw EHS_ols_D_bw EHS_2sls_D_bw EHS_ols_trchoice_bw using topi_EHS_jp.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice)
+
+* Full Sample - Center Only + Mixed (Only Black as Covariate)
+* ---------------------------------
+
+reg Y Z_h              black, robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_blk
+
+reg Y D              black, robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_blk
+
+ivregress 2sls Y (D=Z_h) black, first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_blk
+
+reg Y i.treat_choice black, robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_blk
+
+reg Y Z_h              black if bw !=., robust
+su Y if e(Sample) & Z_h==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_Zh_bw_blk
+
+reg Y D               black if bw !=., robust
+su Y if e(Sample) & D==0
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_D_bw_blk
+
+ivregress 2sls Y (D=Z_h) black if bw !=., first robust
+su Y if e(Sample) & D==0  /*here compute complier control mean*/
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_2sls_D_bw_blk
+
+reg Y i.treat_choice black if bw !=., robust
+su Y if e(Sample) & treat_choice==1
+estadd scalar MeanDepVarControl = r(mean)
+eststo EHS_ols_trchoice_bw_blk
+
+esttab EHS_ols_Zh_blk EHS_ols_D_blk EHS_2sls_D_blk EHS_ols_trchoice_blk EHS_ols_Zh_bw_blk EHS_ols_D_bw_blk EHS_2sls_D_bw_blk EHS_ols_trchoice_bw_blk using topi_EHS_jp_blk.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice black) drop(1.treat_choice)
 
 * Chopped Sample - Center Only + Mixed
 * ---------------------------------
@@ -428,7 +513,12 @@ esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoi
 
 restore
 
-local covariates "black"
+****/
+
+local covariates "m_age m_iq"
+local covariates "m_iq black sex m_age m_edu_HS medumoreHS" 
+local covariates "black m_age" 
+*keep if `chop'
 
 * Create Interactions of Instruments and Covariates.
 
@@ -487,43 +577,80 @@ matrix stdpat = J(3, 1, sqrt(0.5))
 predict pr_hat, pr
 predict psi_hat, xb
 
+
+* Manually Compute psi_h
+
 gen psi_h_Zi       =  0
 gen psi_h_Zi_Zhi_0 =  0
 gen psi_h_Zi_Zhi_1 =  0
 
-local Zs "Z_n Z_n_black Z_h Z_h_black Z_c Z_c_black"
-local col = 1 
+*local Zs "Z_n Z_n_black Z_h Z_h_black Z_c Z_c_black"
+
+local Zs = ""
+local Zs = "`Zs' Z_n"
+foreach x of local covariates {
+	local Zs = "`Zs' Z_n_`x'"
+}
+local Zs = "`Zs' Z_h"
+foreach x of local covariates {
+	local Zs = "`Zs' Z_h_`x'"
+}
+local Zs = "`Zs' Z_c"
+foreach x of local covariates {
+	local Zs = "`Zs' Z_c_`x'"
+}
+
+di "`Zs'"
+
+local col = 0 
 
 foreach var of local Zs {
+
+	local col = `col' + 1
+	di `col'
+	local done = 0
 	
-	if "`var'" == "Z_h" | "`var'"=="Z_h_black" {
-	
-		if "`var'" == "Z_h" {
+		if `done'== 0 & "`var'" == "Z_h" {
 			replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * Z_h
 			replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * 0
 			replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * 1
+			local done = 1
 		}
 		
-		if "`var'" == "Z_h_black" {			
-			replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * Z_h_black
-			replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * 0 * black
-			replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * 1 * black
+		foreach x of local covariates {
+			
+			if `done'== 0 & "`var'" == "Z_h_`x'" {			
+				replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * Z_h_`x'
+				replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * 0 * `x'
+				replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * 1 * `x'
+				local done = 1
+			}
 		}
-	}
 		
-	else {
-		replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * `var'
-		replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * `var'
-		replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * `var'
-	}
-	
-	local col = `col' + 1
-	di `col'	
+		if `done'== 0 {
+				replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * `var'
+				replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * `var'	
+				replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * `var'
+			}
+		
 }
 
-replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
-replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
-replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * black + e(b)[1,`col'+ 1]
+* Add case-specific coefficients and varibles for choice h
+foreach x of local covariates {
+	local col = `col' + 1
+	replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col'] * `x' 
+	replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col'] * `x' 
+	replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col'] * `x' 
+}
+
+* Add constant for choice h
+local col = `col' + 1
+replace psi_h_Zi       = psi_h_Zi       + e(b)[1,`col']
+replace psi_h_Zi_Zhi_0 = psi_h_Zi_Zhi_0 + e(b)[1,`col']
+replace psi_h_Zi_Zhi_1 = psi_h_Zi_Zhi_1 + e(b)[1,`col']
+
+* Compare manual and automatic.
+browse psi_hat psi_h_Zi  if treat_options==2 
 
 gen psi_hat_Zhi_0 = psi_h_Zi_Zhi_0
 gen psi_hat_Zhi_1 = psi_h_Zi_Zhi_1
@@ -645,7 +772,6 @@ foreach x of local covariates {
 	gen D_c_`x'   = D_c * `x'_normed
     gen D_h_`x'   = D_h * `x'_normed
 }
-
 
 gen D_c_lambda_h_c = D_c * lambda_h_c
 gen D_c_lambda_c_c = D_c * lambda_c_c
@@ -868,10 +994,12 @@ scalar LATE_allcompliers = rel_percent_nh * subLATE_nh + rel_percent_ch * subLAT
 
 
 quietly{
+	
 noi di as text "Estimated E[Y(h)-Y(n)|n-to-h complier]               =" subLATE_nh
 noi di as text "Estimated E[Y(h)-Y(c)|c-to-h complier]               =" subLATE_ch
 noi di as text "Estimated n-to-h compliers as % of all compliers =" rel_percent_nh
 noi di as text "Estimated c-to-h compliers as % of all compliers =" rel_percent_ch
 noi di as text "Estimated E[Y(h)-Y(not h)|complier]                  =" LATE_allcompliers
+noi di as text "Covariates Used                                      =" "`covariates'"
 }
 

@@ -86,6 +86,8 @@ cd "${code_path}/data_basic"
 *cd "${code_path}/data_basic"
 *	include "exploring_home" //Creates HS and Educ Weights CHANGE
 
+asd
+
 *AH May 18 2021 working on this:	
 cd "${code_path}/pile"			
 	include "pile_cog_prog_method"

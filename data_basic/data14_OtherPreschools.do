@@ -27,36 +27,43 @@ IHDP:
 *-----------------------*
 
 * HARVARD DATA, FAITHFUL TO QUESTIONNAIRE *
+** Parental Interview, Age 3 **
 use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B3P_ruf.dta", clear
+
+*Which arrangements are centers
 gen center_PI=0
-replace center_PI=1 if b3p405a1==6
-replace center_PI=1 if b3p405a2==6
-replace center_PI=1 if b3p405a3==6
+replace center_PI=1 if b3p405a1==6 	//Main Provider
+replace center_PI=1 if b3p405a2==6	//Second Provider
+replace center_PI=1 if b3p405a3==6	//Third Provider
 tab center_PI //35% yes, 2110 observations
 
+*Months of age at the time of the interview
 gen dob = date(cdob,"YMD")
 format dob %td
 gen intervew_date = date(b3p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-
 gen age_months=age_days/30
-tab age_months
-gen a1_center=(b3p405a1==6)
-gen a2_center=(b3p405a2==6)
-gen a3_center=(b3p405a3==6)
+tab age_months // almost all children are 36-39 months
 
+*Dummies for each arrangement being centers
+gen a1_center=(b3p405a1==6)			//arrangement 1
+gen a2_center=(b3p405a2==6)			//arrangement 2
+gen a3_center=(b3p405a3==6)			//arrangement 3
+
+*How old was child when started using that arrangement
 foreach r in 1 2 3{
 replace b3p407_`r'=. if b3p407_`r'<0
-gen mo`r'=age_months-b3p407_`r'
+gen mo`r'=age_months-b3p407_`r' //how many months has the child been using the arrangement
 replace mo`r'=0 if mo`r'<0
 replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
+*Months center ages 0-3
 gen mo_center=0
 replace mo_center=mo1 if a1_center==1
-replace mo_center=mo2 if a2_center==1
-replace mo_center=mo3 if a3_center==1
+replace mo_center=mo2 if a2_center==1 & mo_center==.
+replace mo_center=mo3 if a3_center==1 & mo_center==.
 
 keep id center_PI mo_center
 tempfile ehs_PI3
@@ -65,26 +72,32 @@ save `ehs_PI3'
 use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview/00097_Early_Head_Start_B2P_ruf.dta", clear
 merge 1:1 id using `ehs_PI3'
 
+*Which arrangements are centers
 gen center_extra=0
 replace center_extra=1 if b2p405a1==6
 replace center_extra=1 if b2p405a2==6
 replace center_extra=1 if b2p405a3==6
 tab center_extra //23% yes,  observations
 
+*Adding information to our previous variables
 replace center_PI=1 if center_PI==0 & center_extra==1
+tab center_PI //40% yes, 2110 obs
 
+*Months of age at time of the interview
 gen dob = date(cdob,"YMD")
 format dob %td
 gen intervew_date = date(b2p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-
 gen age_months=age_days/30
 tab age_months
+
+*Dummies for each arrangement being centers
 gen a1_center=(b2p405a1==6)
 gen a2_center=(b2p405a2==6)
 gen a3_center=(b2p405a3==6)
 
+*How old was child when started using that arrangement
 foreach r in 1 2 3{
 replace b2p407_`r'=. if b2p407_`r'<0
 gen mo`r'=age_months-b2p407_`r'
@@ -92,13 +105,17 @@ replace mo`r'=0 if mo`r'<0
 replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
-gen mo_center_extra=0
-replace mo_center_extra=mo1 if a1_center==1
-replace mo_center_extra=mo2 if a2_center==1
-replace mo_center_extra=mo3 if a3_center==1
+gen mo_center_02=0
+replace mo_center_02=mo1 if a1_center==1
+replace mo_center_02=mo2 if a2_center==1 & mo_center_02==.
+replace mo_center_02=mo3 if a3_center==1 & mo_center_02==.
 
-replace mo_center=mo_center_extra if mo_center<mo_center_extra & mo_center_extra!=.
-tab mo_center_extra
+gen 	mo_center_23=12 			if mo_center>12 & mo_center!=.
+replace mo_center_23=mo_center		if mo_center<12
+
+gen 	mo_center_total=mo_center_23+mo_center_02
+compare mo_center mo_center_total
+replace mo_center=max(mo_center_total,mo_center)
 
 keep id center_PI mo_center
 tempfile ehs_PI2
@@ -114,6 +131,7 @@ replace center_extra=1 if b1p405a3==6
 tab center_extra //20% yes, 2630 observations
 
 replace center_PI=1 if center_PI==0 & center_extra==1
+tab center_PI //44% Yes
 
 gen dob = date(cdob,"YMD")
 format dob %td
@@ -134,13 +152,27 @@ replace mo`r'=0 if mo`r'<0
 replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
-gen mo_center_extra=0
-replace mo_center_extra=mo1 if a1_center==1
-replace mo_center_extra=mo2 if a2_center==1
-replace mo_center_extra=mo3 if a3_center==1
+gen mo_center_01=0
+replace mo_center_01=mo1 if a1_center==1
+replace mo_center_01=mo2 if a2_center==1
+replace mo_center_01=mo3 if a3_center==1
 
-replace mo_center=mo_center_extra if mo_center<mo_center_extra & mo_center_extra!=.
-tab mo_center_extra
+gen 	mo_center_13=24 			if mo_center>24 & mo_center!=.
+replace mo_center_13=mo_center		if mo_center<24
+
+gen 	mo_center_total=mo_center_13+mo_center_01
+compare mo_center mo_center_total
+replace mo_center=max(mo_center_total,mo_center)
+
+replace mo_center=mo_center_01 if mo_center<mo_center_01 & mo_center_01!=.
+
+** DATA CHECKS September 2021 **
+*Participates more than one month is roughly consistent with participation
+count if mo_center==0 					//1211
+count if center_PI==0 					//1179
+count if mo_center>0 & mo_center !=. 	//885
+count if center_PI==1 					//931
+
 
 sum center_PI //.44 2110 obs
 
@@ -153,6 +185,10 @@ cd "$data_raw"
 use "std-ehs.dta", clear
 
 merge 1:1 id using `ehs_PI_participation'
+
+
+
+
 
 rename center_used6m center_care6m
 	label values center_care6m dummy
@@ -175,11 +211,20 @@ rename center_care3 center_care36m
 egen center_total=rowtotal(center_PI center_care6m center_care14m center_care15m center_care24m center_care26m center_care30m center_care36m), missing
 gen center=(center_total>=1) if center_total!=.
 sum center //2354 .50 BIG GAIN IN OBS
+
 reg center treat if program_type==1 //.27, DECENTE
 
 *-----------------------*
 * II. EHS PARTICIPATION *
 *-----------------------*
+*ehs1            Tracking: Care provider is EHS center
+*P2V_EH14        PSIs: IN EHS CARE AT 14 MONTHS OLD
+*ehs2            Tracking: Care provider is EHS center
+*P2V_EH24        PSIs: IN EHS CARE AT 24 MONTHS OLD
+*ehs3            Tracking: Care provider is EHS center
+*P2V_EH36        PSIs: IN EHS CARE AT 36 MONTHS OLD
+*ehs_care3       In EHS care at age 3
+
 egen ehs_total=rowtotal(ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3), mi
 gen ehs=(ehs_total>=1) if ehs_total!=.
 tab ehs //15%
@@ -219,10 +264,31 @@ gen alt=.
 replace alt=0 if center!=.
 replace alt=1 if center==1 & ehs==0
 
+compare alt_months ehs_months
+
+*Treated and control groups
+        cumul mo_center if treat==1, gen(v_t) equal
+		cumul mo_center if treat==0, gen(v_c) equal
+        line v_t v_c mo_center, sort ylabel(0(0.1)1) legend( order (1 "Treatment" 2 "Control")) 		
+*Months of EHS and non-EHS centers
+        cumul alt_months if ehs_months==0, gen(v_alt) equal
+		cumul ehs_months if alt_months==0, gen(v_ehs) equal
+		line v_alt v_ehs mo_center, sort ylabel(0(0.1)1) legend( order (1 "Alternative" 2 "EHS")) 		
 
 keep id center ehs center_ehs ehs_months alt_months
 cd "$data_working"
 save "ehs-preschools.dta", replace
+
+
+
+
+		
+		
+		
+		
+
+
+
 
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
@@ -305,8 +371,14 @@ save "ihdp-preschools.dta", replace
 
 cd "$data_raw"
 use "append-abccare.dta", clear
+drop if id==74 //died at 3 months
 
 keep if program == "abc"
+tab P D //no (1,1)
+gen abc_months=dc_fpg1+dc_fpg2+dc_fpg3
+gen alt_months=dc_alt1+dc_alt2+dc_alt3
+
+replace P=0 if alt_months==0 //11 changes!
 
 gen part=.
 replace part=1 if D==1
@@ -315,14 +387,28 @@ replace part=3 if D==0 & P==0
 tab part, mi
 
 *drop alt_months
-gen abc_months=dc_fpg1+dc_fpg2+dc_fpg3
-gen alt_months=dc_alt1+dc_alt2+dc_alt3
 tabstat abc_months alt_months, by(R)
-
 rename P center
-
 rename D center_abc
 
+tab dc_alt1 if R==0 //80% had none
+tab dc_alt2 if R==0 //70% had none
+tab dc_alt3 if R==0 //44% had none
+
+gen mo_center=abc_months+alt_months
+*Treated and control groups
+*        cumul mo_center if R==1, gen(v__t) equal
+*		cumul mo_center if R==0, gen(v__c) equal
+*        line v__t v__c mo_center, sort ylabel(0(0.1)1) legend( order(1 "Treatment" 2 "Control")) 		
+*Months of EHS and non-EHS centers
+*       cumul alt_months if abc_months==0, gen(v_alt) equal
+*		cumul abc_months if alt_months==0, gen(v_abc) equal
+*		line v_alt v_abc mo_center, sort ylabel(0(0.1)1) legend( order(1 "Alternative" 2 "ABC")) 		
+
+*		cumul abc_months if R==1, gen(v__t) equal
+*		cumul abc_months if R==0, gen(v__c) equal
+*		line v__t v__c abc_months, sort ylabel(0(0.1)1) legend( order(1 "Treatment" 2 "Control")) 		
+		
 keep id center part center_abc abc_months alt_months
 cd "$data_working"
 save "abc-preschools.dta", replace

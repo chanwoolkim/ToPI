@@ -653,7 +653,7 @@ gen D_c_lambda_c_c = D_c * lambda_c_c
 gen D_h_lambda_h_h = D_h * lambda_h_h
 gen D_h_lambda_c_h = D_h * lambda_c_h
 
- reg Y `normed_covariates' lambda_h_D lambda_c_D D_c D_c_*       D_h D_h_*       , robust
+ reg Y `covariates' lambda_h_D lambda_c_D D_c D_c_*       D_h D_h_*       , robust
 
 scalar gamma_nh_hat = _b[lambda_h_D]
 scalar gamma_nc_hat = _b[lambda_c_D]

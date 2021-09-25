@@ -86,11 +86,11 @@ reg ehs_center R caregiver_ever cc_price_relative //super influenced by the pric
 *Create Minimal Datasets
 keep id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months hs H
+caregiver_ever caregiver_home cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months alt_months hs H
 
 order id R D alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y hs H
+caregiver_ever caregiver_home cc_payments_site income_site cc_price_relative ppvt3y hs H alt_months
 
 
 
@@ -233,7 +233,7 @@ replace ww= `hs2_rate_abc'/`hs2_rate_`data'' if hs==2
 
 save, replace
 }
-asd
+
 
 
 
