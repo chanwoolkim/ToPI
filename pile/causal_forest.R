@@ -14,8 +14,8 @@ seed <- 9657
 
 covariates_all <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "sibling", "gestage", "mf")
 covariates_small <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "sibling", "gestage", "mf", "bw")
-covariates_short <- c("m_iq", "m_age", "gestage")
-covariates_short_small <- c("m_iq", "m_age", "gestage", "bw")
+covariates_short <- c("m_iq", "m_age")
+covariates_short_small <- c("m_iq", "m_age", "bw")
 
 
 # Function to create data frame for causal forest estimates ####
@@ -116,6 +116,9 @@ causal_matrix <- function(df, output_var, program,
                            statistic=forest_boot,
                            R=1000)
   
+  pre_dr_p_value <- 2*pnorm(-output_estimates$t0[2]/output_estimates$t0[3])
+  abc_p_value <- 2*pnorm(-output_estimates$t0[4]/sd(output_estimates$t[,4]))
+  
   if (covariates_list=="all") {
     if (data=="all") {
       output <- data.frame(program=program,
@@ -123,8 +126,10 @@ causal_matrix <- function(df, output_var, program,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
+                           pre_dr_p_value=pre_dr_p_value,
                            abc_estimate=output_estimates$t0[4],
                            abc_se=sd(output_estimates$t[,4]),
+                           abc_p_value=abc_p_value,
                            m_iq_importance=var_importance[1],
                            black_importance=var_importance[2],
                            sex_importance=var_importance[3],
@@ -141,8 +146,10 @@ causal_matrix <- function(df, output_var, program,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
+                           pre_dr_p_value=pre_dr_p_value,
                            abc_estimate=output_estimates$t0[4],
                            abc_se=sd(output_estimates$t[,4]),
+                           abc_p_value=abc_p_value,
                            m_iq_importance=var_importance[1],
                            black_importance=var_importance[2],
                            sex_importance=var_importance[3],
@@ -162,11 +169,12 @@ causal_matrix <- function(df, output_var, program,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
+                           pre_dr_p_value=pre_dr_p_value,
                            abc_estimate=output_estimates$t0[4],
                            abc_se=sd(output_estimates$t[,4]),
+                           abc_p_value=abc_p_value,
                            m_iq_importance=var_importance[1],
                            m_age_importance=var_importance[2],
-                           gestage_importance=var_importance[3],
                            N=N)
     } else if (data=="small") {
       output <- data.frame(program=program,
@@ -174,11 +182,12 @@ causal_matrix <- function(df, output_var, program,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
+                           pre_dr_p_value=pre_dr_p_value,
                            abc_estimate=output_estimates$t0[4],
                            abc_se=sd(output_estimates$t[,4]),
+                           abc_p_value=abc_p_value,
                            m_iq_importance=var_importance[1],
                            m_age_importance=var_importance[2],
-                           gestage_importance=var_importance[3],
                            bw_importance=var_importance[4],
                            N=N)
     }
@@ -216,8 +225,10 @@ covariates_all_df <- function() {
                    pre_estimate=NULL,
                    pre_dr_estimate=NULL,
                    pre_dr_se=NULL,
+                   pre_dr_p_value=NULL,
                    abc_estimate=NULL,
                    abc_se=NULL,
+                   abc_p_value=NULL,
                    m_iq_importance=NULL,
                    black_importance=NULL,
                    sex_importance=NULL,
@@ -237,8 +248,10 @@ covariates_small_df <- function() {
                    pre_estimate=NULL,
                    pre_dr_estimate=NULL,
                    pre_dr_se=NULL,
+                   pre_dr_p_value=NULL,
                    abc_estimate=NULL,
                    abc_se=NULL,
+                   abc_p_value=NULL,
                    m_iq_importance=NULL,
                    black_importance=NULL,
                    sex_importance=NULL,
@@ -259,11 +272,12 @@ covariates_short_df <- function() {
                    pre_estimate=NULL,
                    pre_dr_estimate=NULL,
                    pre_dr_se=NULL,
+                   pre_dr_p_value=NULL,
                    abc_estimate=NULL,
                    abc_se=NULL,
+                   abc_p_value=NULL,
                    m_iq_importance=NULL,
                    m_age_importance=NULL,
-                   gestage_importance=NULL,
                    N=NULL)
   return(df)
 }
@@ -274,11 +288,12 @@ covariates_short_small_df <- function() {
                    pre_estimate=NULL,
                    pre_dr_estimate=NULL,
                    pre_dr_se=NULL,
+                   pre_dr_p_value=NULL,
                    abc_estimate=NULL,
                    abc_se=NULL,
+                   abc_p_value=NULL,
                    m_iq_importance=NULL,
                    m_age_importance=NULL,
-                   gestage_importance=NULL,
                    bw_importance=NULL,
                    N=NULL)
   return(df)
@@ -303,8 +318,10 @@ output_to_table <- function(df,
              'Pre-Estimate'=pre_estimate,
              'Pre-DR-Estimate'=pre_dr_estimate,
              'Pre-DR-SE'=pre_dr_se,
+             'Pre-DR-p-Value'=pre_dr_p_value,
              'ABC-Estimate'=abc_estimate,
              'ABC-SE'=abc_se,
+             'ABC-p-Value'=abc_p_value,
              'N'=N)
     
     digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
@@ -360,7 +377,6 @@ output_to_table <- function(df,
                  'Outcome'=output_var,
                  'Mother IQ'=m_iq_importance,
                  'Mother Age'=m_age_importance,
-                 'Gestational Age'=gestage_importance,
                  'Birth Weight'=bw_importance,
                  'N'=N)
         
