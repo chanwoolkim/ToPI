@@ -131,8 +131,8 @@ causal_matrix <- function(df, output_var, program,
                            m_age_importance=var_importance[4],
                            m_edu_2_importance=var_importance[5],
                            m_edu_3_importance=var_importance[6],
-                           sibling=var_importance[7],
-                           gestage=var_importance[8],
+                           sibling_importance=var_importance[7],
+                           gestage_importance=var_importance[8],
                            mf_importance=var_importance[9],
                            N=N)
     } else if (data=="small") {
@@ -149,8 +149,8 @@ causal_matrix <- function(df, output_var, program,
                            m_age_importance=var_importance[4],
                            m_edu_2_importance=var_importance[5],
                            m_edu_3_importance=var_importance[6],
-                           sibling=var_importance[7],
-                           gestage=var_importance[8],
+                           sibling_importance=var_importance[7],
+                           gestage_importance=var_importance[8],
                            mf_importance=var_importance[9],
                            bw_importance=var_importance[10],
                            N=N)
@@ -200,6 +200,9 @@ for (p in programs) {
 abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
   mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
          m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA))
+
+ehscenter <- ehscenter %>% mutate(caregiver_home=caregiver_ever)
+ehsmixed_center <- ehsmixed_center %>% mutate(caregiver_home=caregiver_ever)
 
 ehscenter_output <- c("ppvt3y")
 ehsmixed_center_output <- c("ppvt3y")
@@ -304,7 +307,7 @@ output_to_table <- function(df,
              'ABC-SE'=abc_se,
              'N'=N)
     
-    digits_vec <- c(0, 0, 0, 3, 3, 3, 3, 3, 0)
+    digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
   } else if (table_type=="importance") {
     if (covariates_list=="all") {
       if (sample=="all") {
@@ -322,7 +325,7 @@ output_to_table <- function(df,
                  'Father'=mf_importance,
                  'N'=N)
         
-        digits_vec <- c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0)
+        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
       } else if (sample=="small") {
         df_select <- df %>%
           select('Program'=program,
@@ -339,7 +342,7 @@ output_to_table <- function(df,
                  'Birth Weight'=bw_importance,
                  'N'=N)
         
-        digits_vec <- c(0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0)
+        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
       }
     } else if (covariates_list=="short") {
       if (sample=="all") {
@@ -350,7 +353,7 @@ output_to_table <- function(df,
                  'Mother Age'=m_age_importance,
                  'N'=N)
         
-        digits_vec <- c(0, 0, 0, 3, 3, 3, 0)
+        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
       } else if (sample=="small") {
         df_select <- df %>%
           select('Program'=program,
@@ -361,7 +364,7 @@ output_to_table <- function(df,
                  'Birth Weight'=bw_importance,
                  'N'=N)
         
-        digits_vec <- c(0, 0, 0, 3, 3, 3, 3, 0)
+        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
       }
     }
   }
