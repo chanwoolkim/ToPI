@@ -210,6 +210,8 @@ rename center_care3 center_care36m
 *This creation of the variable gains 300 obs, while keeping average and treatment effects
 egen center_total=rowtotal(center_PI center_care6m center_care14m center_care15m center_care24m center_care26m center_care30m center_care36m), missing
 gen center=(center_total>=1) if center_total!=.
+
+
 sum center //2354 .50 BIG GAIN IN OBS
 
 reg center treat if program_type==1 //.27, DECENTE
@@ -225,57 +227,151 @@ reg center treat if program_type==1 //.27, DECENTE
 *P2V_EH36        PSIs: IN EHS CARE AT 36 MONTHS OLD
 *ehs_care3       In EHS care at age 3
 
+*gen has_ehs_hrs14m=ehs_hrs14m>0 & ehs_hrs14m!=.
+*gen has_ehs_hrs2=ehs_hrs2>0 & ehs_hrs2!=.
+*gen has_ehs_hrs3=ehs_hrs3>0 & ehs_hrs3!=.
+
+*replace any_ehs1=1 if has_ehs_hrs14m==1
+*replace any_ehs1=1 if has_ehs_hrs2==1
+*replace any_ehs1=1 if has_ehs_hrs3==1
 egen ehs_total=rowtotal(ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3), mi
-gen ehs=(ehs_total>=1) if ehs_total!=.
-tab ehs //15%
-reg ehs treat if program_type==1 //.58 effect, nice!
+gen any_ehs=(ehs_total>=1) if ehs_total!=.
 
-gen center_ehs=.
-replace center_ehs=1 if ehs==1 & center==1
-replace center_ehs=0 if ehs==0 & center!=.
-replace center_ehs=0 if ehs!=. & center==0
 
-sum center_ehs
-reg center_ehs treat if program_type==1 //.56, very nice
+gen mo_center1 =mo_center>=1  & mo_center!=.
+gen mo_center12=mo_center>=12 & mo_center!=.
+label var ehs1 		"Tracking: EHS center 14m"
+label var ehs2 		"Tracking: EHS center 24m"
+label var ehs3 		"Tracking: EHS center 36m"
+label var P2V_EH14 	"PSIs: IN EHS CARE 14m"
+label var P2V_EH24 	"PSIs: IN EHS CARE 24m"
+label var P2V_EH36 	"PSIs: IN EHS CARE 36m"
+label var any_ehs	"Indicator: any of the above"
+label var P2V_ENG2  "PSI: Eng min EHS act"
+
+matrix M=J(9,7,.)
+matrix rownames M=ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3 any_ehs P2V_ENG2 
+matrix colnames M=N avg_t avg_c center1_t center1_c center12_t center12_c
+local r=1
+foreach var in ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3 any_ehs P2V_ENG2{
+gen D_`var'_1=`var'*mo_center1
+gen D_`var'_12=`var'*mo_center12
+count if `var'!=.
+matrix M[`r',1]=r(N)
+
+sum `var' if treat==1
+matrix M[`r',2]=r(mean)
+sum `var' if treat==0
+matrix M[`r',3]=r(mean)
+
+sum D_`var'_1 if treat==1
+matrix M[`r',4]=r(mean)
+sum D_`var'_1 if treat==0
+matrix M[`r',5]=r(mean)
+
+sum D_`var'_12 if treat==1
+matrix M[`r',6]=r(mean)
+sum D_`var'_12 if treat==0
+matrix M[`r',7]=r(mean)
+
+local r=`r'+1
+
+}
+*outtable using "/Users/andres/Desktop/Participation EHS/participation", mat(M) replace nobox ///
+*caption("Participation Variables") ///
+*format(%9.0g %9.2g %9.2g %9.2g %9.2g %9.2g %9.2g %9.2g) label
+
+
+
+
+
+
+
+
+gen any_ehs1=(ehs_total>=1) if ehs_total!=.
+tab any_ehs1 //15%
+tab any_ehs1 if program_type==1 | program_type==3 //27%
+
+gen any_ehs2=any_ehs1
+replace any_ehs2=1 if P2V_ENG2==1
+tab any_ehs2 //47%
+
+reg any_ehs1 treat if program_type==1 //.58 effect, nice!
+reg any_ehs2 treat if program_type==1 //.71 effect, huge!
+
+gen center_ehs1=.
+replace center_ehs1=1 if any_ehs1==1 & center==1
+replace center_ehs1=0 if any_ehs1==0 & center!=.
+replace center_ehs1=0 if any_ehs1!=. & center==0
+tab center_ehs1 //15%
+
+gen center_ehs2=.
+replace center_ehs2=1 if any_ehs2==1 & center==1
+replace center_ehs2=0 if any_ehs2==0 & center!=.
+replace center_ehs2=0 if any_ehs2!=. & center==0
+tab center_ehs2 //29%
+
+reg center_ehs1 treat if program_type==1 //.58, very nice
+reg center_ehs2 treat if program_type==1 //.66, very nice
 
 *keep ppvt3 treat D m_age m_edu sibling m_iq race sex gestage mf
 
 *---------------------------------*
 * II. MONTHS IN EHS PARTICIPATION *
 *---------------------------------*
-gen ehs_months=.
-replace ehs_months=0 		 if center==0
-replace ehs_months=0 		 if center==1 & center_ehs==0
-replace ehs_months=mo_center if center==1 & center_ehs==1 // (redundant, just for organization)
+gen ehs_months1=.
+replace ehs_months1=0 		  if center==0
+replace ehs_months1=0 		  if center==1 & center_ehs1==0
+replace ehs_months1=mo_center if center==1 & center_ehs1==1 // (redundant, just for organization)
 
-gen alt_months=.
-replace alt_months=0 		 if center==0
-replace alt_months=0 		 if center==1 & center_ehs==1
-replace alt_months=mo_center if center==1 & center_ehs==0
+gen alt_months1=.
+replace alt_months1=0 		  if center==0
+replace alt_months1=0 		  if center==1 & center_ehs1==1
+replace alt_months1=mo_center if center==1 & center_ehs1==0
 
-sum ehs_months
-sum ehs_months if ehs_months>0
-sum alt_months
-sum alt_months if alt_months>0
+sum ehs_months1
+sum ehs_months1 if ehs_months1>0
+sum alt_months1
+sum alt_months1 if alt_months1>0
 
-tab ehs treat
+*tab ehs treat
+*gen alt=.
+*replace alt=0 if center!=.
+*replace alt=1 if center==1 & ehs==0
 
-gen alt=.
-replace alt=0 if center!=.
-replace alt=1 if center==1 & ehs==0
-
-compare alt_months ehs_months
+*compare alt_months ehs_months
 
 *Treated and control groups
-        cumul mo_center if treat==1, gen(v_t) equal
-		cumul mo_center if treat==0, gen(v_c) equal
-        line v_t v_c mo_center, sort ylabel(0(0.1)1) legend( order (1 "Treatment" 2 "Control")) 		
+*        cumul mo_center if treat==1, gen(v_t) equal
+*		cumul mo_center if treat==0, gen(v_c) equal
+*       line v_t v_c mo_center, sort ylabel(0(0.1)1) legend( order (1 "Treatment" 2 "Control")) 		
 *Months of EHS and non-EHS centers
-        cumul alt_months if ehs_months==0, gen(v_alt) equal
-		cumul ehs_months if alt_months==0, gen(v_ehs) equal
-		line v_alt v_ehs mo_center, sort ylabel(0(0.1)1) legend( order (1 "Alternative" 2 "EHS")) 		
+*       cumul alt_months if ehs_months==0, gen(v_alt) equal
+*		cumul ehs_months if alt_months==0, gen(v_ehs) equal
+*		line v_alt v_ehs mo_center, sort ylabel(0(0.1)1) legend( order (1 "Alternative" 2 "EHS")) 		
 
-keep id center ehs center_ehs ehs_months alt_months
+
+foreach m in 1 6 12 18{
+gen P_`m'=.
+replace P_`m'=1 if alt_months>=`m' & alt_months!=.
+replace P_`m'=0 if alt_months<`m'
+gen D_`m'=.
+replace D_`m'=1 if ehs_months>=`m' & ehs_months!=.
+replace D_`m'=0 if ehs_months<`m'
+}
+
+gen P=.
+replace P=1 if alt_months>=1 & alt_months!=.
+replace P=0 if alt_months<1
+gen D=.
+replace D=1 if ehs_months>=1 & ehs_months!=.
+replace D=0 if ehs_months<1
+		
+*tab ehs D, mi
+
+
+
+keep id center /*center_ehs*/ ehs_months alt_months D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 
 cd "$data_working"
 save "ehs-preschools.dta", replace
 
@@ -382,22 +478,41 @@ drop if id==108 //moved at 6 months, does not have SB
 *119 crossover [need]
 
 keep if program == "abc"
-tab P D //no (1,1)
+drop P D //no (1,1)
 gen abc_months=dc_fpg1+dc_fpg2+dc_fpg3
 gen alt_months=dc_alt1+dc_alt2+dc_alt3
 
-replace P=0 if alt_months==0 //11 changes!
+foreach m in 1 6 12 18{
+gen P_`m'=.
+replace P_`m'=1 if alt_months>=`m' & alt_months!=.
+replace P_`m'=0 if alt_months<`m'
+gen D_`m'=.
+replace D_`m'=1 if abc_months>=`m' & abc_months!=.
+replace D_`m'=0 if abc_months<`m'
+}
 
-gen part=.
-replace part=1 if D==1
-replace part=2 if D==0 & P==1
-replace part=3 if D==0 & P==0
-tab part, mi
+gen P=.
+replace P=1 if alt_months>=1 & alt_months!=.
+replace P=0 if alt_months<1
+gen D=.
+replace D=1 if abc_months>=1 & abc_months!=.
+replace D=0 if abc_months<1
+
+
+
+
+*replace P=0 if alt_months==0 //11 changes!
+
+*gen part=.
+*replace part=1 if D==1
+*replace part=2 if D==0 & P==1
+*replace part=3 if D==0 & P==0
+*tab part, mi
 
 *drop alt_months
 tabstat abc_months alt_months, by(R)
-rename P center
-rename D center_abc
+*rename P center
+*rename D center_abc
 
 tab dc_alt1 if R==0 //80% had none
 tab dc_alt2 if R==0 //70% had none
@@ -417,7 +532,7 @@ gen mo_center=abc_months+alt_months
 *		cumul abc_months if R==0, gen(v__c) equal
 *		line v__t v__c abc_months, sort ylabel(0(0.1)1) legend( order(1 "Treatment" 2 "Control")) 		
 		
-keep id center part center_abc abc_months alt_months
+keep id center abc_months alt_months D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 
 cd "$data_working"
 save "abc-preschools.dta", replace
 

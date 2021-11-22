@@ -30,9 +30,6 @@ drop _merge
 merge 1:1 id using ehs-instruments
 drop _merge
 
-drop D
-rename ehs D
-
 *Create instruments
 egen cc_payments_site =mean(weekly_cc_pay),by(sitenum)
 egen income_site =mean(labor_hh_inc60),by(sitenum)
@@ -48,7 +45,7 @@ gen alt=.
 replace alt=0 if center!=.
 replace alt=1 if center==1 & D==0 // D==0 is equivalent to doing center_ehs==0
 
-gen n=alt==0 & D==0
+*gen n=alt==0 & D==0
 
 *Check the coding of Caregiver, which should definitely impact n and it is not impacting anything
 *Check why alt is not affeced by price, wtf
@@ -66,7 +63,7 @@ gen n=alt==0 & D==0
 *reg center		R 	cc_price_relative	//R, price very significant
 reg D			R 	cc_price_relative	//R, price very significant
 reg alt			R 	cc_price_relative	//R, but not price
-reg n			R 	cc_price_relative	//R, price very significant
+*reg n			R 	cc_price_relative	//R, price very significant
 
 
 /*trying different specification of alt centers to see if it works
@@ -84,11 +81,12 @@ reg ehs_center R caregiver_ever cc_price_relative //super influenced by the pric
 */
 
 *Create Minimal Datasets
-keep id R D alt program_type sitenum ///
+keep id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y center_ehs ehs_months alt_months hs H
+caregiver_ever cc_payments_site income_site cc_price_relative ///
+ppvt3y /*center_ehs*/ ehs_months alt_months hs H
 
-order id R D alt program_type sitenum ///
+order id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18  alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
 caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y hs H alt_months
 
@@ -96,21 +94,21 @@ caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y hs H alt_mo
 
 preserve
 keep if program_type==1
-drop center_ehs ehs_months
+drop /*center_ehs*/ ehs_months
 outsheet using ehscenter-topi.csv, comma nolabel replace	//for Chanwool/Athey
 save ehscenter-juan, replace								//for Juan: few variables
 restore
 
 preserve
 keep if program_type==1
-gen center_ehscenter=center_ehs 							//to work on the pile code
+*gen center_ehscenter=center_ehs 							//to work on the pile code
 gen ehscenter_months=ehs_months 							//to work on the pile code 
 save ehscenter-topi, replace
 restore
 
 preserve
 keep if program_type==3
-drop center_ehs ehs_months
+drop /*center_ehs*/ ehs_months
 outsheet using ehsmixed-topi.csv, comma nolabel replace		//for Chanwool/Athey
 restore
 
@@ -227,9 +225,9 @@ local hs1_rate_`data'= `hs1_`data''/(`hs1_`data'' + `hs2_`data'')
 local hs2_rate_`data'= `hs2_`data''/(`hs1_`data'' + `hs2_`data'')
 di "Proportion of Families with HS completed in `data': `hs1_rate_`data''"
 
-gen ww=.
-replace ww= `hs1_rate_abc'/`hs1_rate_`data'' if hs==1
-replace ww= `hs2_rate_abc'/`hs2_rate_`data'' if hs==2
+*gen ww=.
+*replace ww= `hs1_rate_abc'/`hs1_rate_`data'' if hs==1
+*replace ww= `hs2_rate_abc'/`hs2_rate_`data'' if hs==2
 
 save, replace
 }
@@ -243,7 +241,7 @@ save, replace
 * ABC
 use "abc-renamed-items.dta", clear
 
-keep id R D home1_* home3_* norm_home_* video* sb* $covariates ///
+keep id R home1_* home3_* norm_home_* video* sb* $covariates ///
 bw  norm_pari* norm_pase* norm_bayley_* cbcl*  poverty black ///
 /*hs0 H twin ww home3y6m_original*/ home_jbg_learning
 
@@ -252,7 +250,7 @@ merge 1:1 id using "abc-preschools.dta"
 save abc-topi, replace
 outsheet using abc-topi.csv, comma nolabel replace
 
-
+*D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18
 
 
 
