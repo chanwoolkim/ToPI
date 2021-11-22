@@ -44,17 +44,17 @@ causal_matrix <- function(df, output_var, program,
   
   # Now create input for ABC and covariates
   if (covariates_list=="all" && data=="all") {
-    X <- df %>% select(covariates_all) %>% as.matrix()
-    X_abc <- abc %>% select(covariates_all) %>% as.matrix()
+    X <- df %>% select(all_of(covariates_all)) %>% as.matrix()
+    X_abc <- abc %>% select(all_of(covariates_all)) %>% as.matrix()
   } else if (covariates_list=="all" && data=="small") {
-    X <- df %>% select(covariates_small) %>% as.matrix()
-    X_abc <- abc %>% select(covariates_small) %>% as.matrix()
+    X <- df %>% select(all_of(covariates_small)) %>% as.matrix()
+    X_abc <- abc %>% select(all_of(covariates_small)) %>% as.matrix()
   } else if (covariates_list=="short" && data=="all") {
-    X <- df %>% select(covariates_short) %>% as.matrix()
-    X_abc <- abc %>% select(covariates_short) %>% as.matrix()
+    X <- df %>% select(all_of(covariates_short)) %>% as.matrix()
+    X_abc <- abc %>% select(all_of(covariates_short)) %>% as.matrix()
   } else if (covariates_list=="short" && data=="small") {
-    X <- df %>% select(covariates_short_small) %>% as.matrix()
-    X_abc <- abc %>% select(covariates_short_small) %>% as.matrix()
+    X <- df %>% select(all_of(covariates_short_small)) %>% as.matrix()
+    X_abc <- abc %>% select(all_of(covariates_short_small)) %>% as.matrix()
   }
   
   # Variable importance can be run outside bootstrap
@@ -78,13 +78,13 @@ causal_matrix <- function(df, output_var, program,
     df_select <- data[index,]
     
     if (covariates_list=="all" && data=="all") {
-      X <- df_select %>% select(covariates_all) %>% as.matrix()
+      X <- df_select %>% select(all_of(covariates_all)) %>% as.matrix()
     } else if (covariates_list=="all" && data=="small") {
-      X <- df_select %>% select(covariates_small) %>% as.matrix()
+      X <- df_select %>% select(all_of(covariates_small)) %>% as.matrix()
     } else if (covariates_list=="short" && data=="all") {
-      X <- df_select %>% select(covariates_short) %>% as.matrix()
+      X <- df_select %>% select(all_of(covariates_short)) %>% as.matrix()
     } else if (covariates_list=="short" && data=="small") {
-      X <- df_select %>% select(covariates_short_small) %>% as.matrix()
+      X <- df_select %>% select(all_of(covariates_short_small)) %>% as.matrix()
     }
     
     W <- df_select$R
@@ -123,6 +123,8 @@ causal_matrix <- function(df, output_var, program,
     if (data=="all") {
       output <- data.frame(program=program,
                            output_var=output_var,
+                           data=data,
+                           covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
@@ -143,6 +145,8 @@ causal_matrix <- function(df, output_var, program,
     } else if (data=="small") {
       output <- data.frame(program=program,
                            output_var=output_var,
+                           data=data,
+                           covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
@@ -166,6 +170,8 @@ causal_matrix <- function(df, output_var, program,
     if (data=="all") {
       output <- data.frame(program=program,
                            output_var=output_var,
+                           data=data,
+                           covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
@@ -179,6 +185,8 @@ causal_matrix <- function(df, output_var, program,
     } else if (data=="small") {
       output <- data.frame(program=program,
                            output_var=output_var,
+                           data=data,
+                           covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
                            pre_dr_se=output_estimates$t0[3],
@@ -192,6 +200,15 @@ causal_matrix <- function(df, output_var, program,
                            N=N)
     }
   }
+  
+  if (chopped) {
+    output <- output %>%
+      add_column(chopped="TRUE", .after="covariates_list")
+  } else {
+    output <- output %>%
+      add_column(chopped="FALSE", .after="covariates_list")
+  }
+  
   return(output)
 }
 
@@ -210,111 +227,30 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
   mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
          m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA))
 
-ehscenter <- ehscenter %>% mutate(caregiver_home=caregiver_ever)
-ehsmixed_center <- ehsmixed_center %>% mutate(caregiver_home=caregiver_ever)
+ehscenter <- ehscenter %>%
+  mutate(caregiver_home=caregiver_ever,
+         D=D_18)
+
+ehsmixed_center <- ehsmixed_center %>%
+  mutate(caregiver_home=caregiver_ever,
+         D=D_18)
 
 ehscenter_output <- c("ppvt3y")
 ehsmixed_center_output <- c("ppvt3y")
 ihdp_output <- c("ppvt3y", "sb3y")
 abc_output <- c("sb3y")
 
-# Empty data for output
-covariates_all_df <- function() {
-  df <- data.frame(program=NULL,
-                   output_var=NULL,
-                   pre_estimate=NULL,
-                   pre_dr_estimate=NULL,
-                   pre_dr_se=NULL,
-                   pre_dr_p_value=NULL,
-                   abc_estimate=NULL,
-                   abc_se=NULL,
-                   abc_p_value=NULL,
-                   m_iq_importance=NULL,
-                   black_importance=NULL,
-                   sex_importance=NULL,
-                   m_age_importance=NULL,
-                   m_edu_2_importance=NULL,
-                   m_edu_3_importance=NULL,
-                   sibling_importance=NULL,
-                   gestage_importance=NULL,
-                   mf_importance=NULL,
-                   N=NULL)
-  return(df)
-}
-
-covariates_small_df <- function() {
-  df <- data.frame(program=NULL,
-                   output_var=NULL,
-                   pre_estimate=NULL,
-                   pre_dr_estimate=NULL,
-                   pre_dr_se=NULL,
-                   pre_dr_p_value=NULL,
-                   abc_estimate=NULL,
-                   abc_se=NULL,
-                   abc_p_value=NULL,
-                   m_iq_importance=NULL,
-                   black_importance=NULL,
-                   sex_importance=NULL,
-                   m_age_importance=NULL,
-                   m_edu_2_importance=NULL,
-                   m_edu_3_importance=NULL,
-                   sibling_importance=NULL,
-                   gestage_importance=NULL,
-                   mf_importance=NULL,
-                   bw_importance=NULL,
-                   N=NULL)
-  return(df)
-}
-
-covariates_short_df <- function() {
-  df <- data.frame(program=NULL,
-                   output_var=NULL,
-                   pre_estimate=NULL,
-                   pre_dr_estimate=NULL,
-                   pre_dr_se=NULL,
-                   pre_dr_p_value=NULL,
-                   abc_estimate=NULL,
-                   abc_se=NULL,
-                   abc_p_value=NULL,
-                   m_iq_importance=NULL,
-                   m_age_importance=NULL,
-                   N=NULL)
-  return(df)
-}
-
-covariates_short_small_df <- function() {
-  df <- data.frame(program=NULL,
-                   output_var=NULL,
-                   pre_estimate=NULL,
-                   pre_dr_estimate=NULL,
-                   pre_dr_se=NULL,
-                   pre_dr_p_value=NULL,
-                   abc_estimate=NULL,
-                   abc_se=NULL,
-                   abc_p_value=NULL,
-                   m_iq_importance=NULL,
-                   m_age_importance=NULL,
-                   bw_importance=NULL,
-                   N=NULL)
-  return(df)
-}
-
 # Output to LaTeX table
-output_to_table <- function(df,
-                            forest_type="causal",
-                            table_type="main",
-                            sample="all",
-                            covariates_list="all",
-                            chopped="") {
-  file_name <- paste0(forest_type, "_output_", table_type, "_",
-                      sample, "_sample_",
-                      covariates_list, "_covariates",
-                      chopped, ".tex")
+output_to_table <- function(df, forest_type="causal", table_type="main") {
+  file_name <- paste0(forest_type, "_output_", table_type, ".tex")
   
   if (table_type=="main") {
     df_select <- df %>%
       select('Program'=program,
              'Outcome'=output_var,
+             'Data'=data,
+             'Covariates'=covariates_list,
+             'Chopped'=chopped,
              'Pre-Estimate'=pre_estimate,
              'Pre-DR-Estimate'=pre_dr_estimate,
              'Pre-DR-SE'=pre_dr_se,
@@ -323,67 +259,26 @@ output_to_table <- function(df,
              'ABC-SE'=abc_se,
              'ABC-p-Value'=abc_p_value,
              'N'=N)
-    
-    digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
   } else if (table_type=="importance") {
-    if (covariates_list=="all") {
-      if (sample=="all") {
-        df_select <- df %>%
-          select('Program'=program,
-                 'Outcome'=output_var,
-                 'Mother IQ'=m_iq_importance,
-                 'Black'=black_importance,
-                 'Sex'=sex_importance,
-                 'Mother Age'=m_age_importance,
-                 'Mother Edu_2'=m_edu_2_importance,
-                 'Mother Edu_3'=m_edu_3_importance,
-                 'Sibling'=sibling_importance,
-                 'Gestational Age'=gestage_importance,
-                 'Father'=mf_importance,
-                 'N'=N)
-        
-        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
-      } else if (sample=="small") {
-        df_select <- df %>%
-          select('Program'=program,
-                 'Outcome'=output_var,
-                 'Mother IQ'=m_iq_importance,
-                 'Black'=black_importance,
-                 'Sex'=sex_importance,
-                 'Mother Age'=m_age_importance,
-                 'Mother Edu_2'=m_edu_2_importance,
-                 'Mother Edu_3'=m_edu_3_importance,
-                 'Sibling'=sibling_importance,
-                 'Gestational Age'=gestage_importance,
-                 'Father'=mf_importance,
-                 'Birth Weight'=bw_importance,
-                 'N'=N)
-        
-        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
-      }
-    } else if (covariates_list=="short") {
-      if (sample=="all") {
-        df_select <- df %>%
-          select('Program'=program,
-                 'Outcome'=output_var,
-                 'Mother IQ'=m_iq_importance,
-                 'Mother Age'=m_age_importance,
-                 'N'=N)
-        
-        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
-      } else if (sample=="small") {
-        df_select <- df %>%
-          select('Program'=program,
-                 'Outcome'=output_var,
-                 'Mother IQ'=m_iq_importance,
-                 'Mother Age'=m_age_importance,
-                 'Birth Weight'=bw_importance,
-                 'N'=N)
-        
-        digits_vec <- c(rep(0, 3), rep(3, ncol(df_select)-3), 0)
-      }
-    }
+    df_select <- df %>%
+      select('Program'=program,
+             'Outcome'=output_var,
+             'Data'=data,
+             'Covariates'=covariates_list,
+             'Chopped'=chopped,
+             'Mother IQ'=m_iq_importance,
+             'Black'=black_importance,
+             'Sex'=sex_importance,
+             'Mother Age'=m_age_importance,
+             'Mother Edu_2'=m_edu_2_importance,
+             'Mother Edu_3'=m_edu_3_importance,
+             'Sibling'=sibling_importance,
+             'Gestational Age'=gestage_importance,
+             'Father'=mf_importance,
+             'Birth Weight'=bw_importance,
+             'N'=N)
   }
+  digits_vec <- c(rep(0, 6), rep(3, ncol(df_select)-6), 0)
   
   print(xtable(df_select, digits=digits_vec, table.placement="H"),
         include.rownames=FALSE,
@@ -396,14 +291,88 @@ output_to_table <- function(df,
         file=paste0(output_overleaf, file_name))
 }
 
-# Causal forest
+# Empty data
+data_empty <- function() {
+  df <- data.frame(program=NULL,
+                   output_var=NULL,
+                   data=NULL,
+                   covariates_list=NULL,
+                   chopped=NULL,
+                   pre_estimate=NULL,
+                   pre_dr_estimate=NULL,
+                   pre_dr_se=NULL,
+                   pre_dr_p_value=NULL,
+                   abc_estimate=NULL,
+                   abc_se=NULL,
+                   abc_p_value=NULL,
+                   m_iq_importance=NULL,
+                   black_importance=NULL,
+                   sex_importance=NULL,
+                   m_age_importance=NULL,
+                   m_edu_2_importance=NULL,
+                   m_edu_3_importance=NULL,
+                   sibling_importance=NULL,
+                   gestage_importance=NULL,
+                   mf_importance=NULL,
+                   bw_importance=NULL,
+                   N=NULL)
+  
+  return(df)
+}
 
-causal_output <- covariates_all_df()
+# Causal forest
+causal_output <- data_empty()
 
 for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
-    causal_output <- rbind(causal_output,
-                           causal_matrix(get(p), v, p))
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p,
+                          covariates_list="short"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p,
+                          data="small"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p,
+                          data="small", covariates_list="short"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p,
+                          covariates_list="short", chopped=TRUE))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    causal_output <-
+      bind_rows(causal_output,
+            causal_matrix(get(p), v, p,
+                          data="small", covariates_list="short", chopped=TRUE))
   }
 }
 
@@ -413,215 +382,68 @@ write.csv(causal_output,
 output_to_table(causal_output)
 output_to_table(causal_output, table_type="importance")
 
-causal_output_short <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output_short <-
-      rbind(causal_output_short,
-            causal_matrix(get(p), v, p,
-                          covariates_list="short"))
-  }
-}
-
-write.csv(causal_output_short,
-          paste0(data_dir, "causal_forest_short.csv"), row.names=FALSE)
-
-output_to_table(causal_output_short,
-                covariates_list="short")
-output_to_table(causal_output_short,
-                covariates_list="short", table_type="importance")
-
-causal_output_small <- covariates_all_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output_small <-
-      rbind(causal_output_small,
-            causal_matrix(get(p), v, p,
-                          data="small"))
-  }
-}
-
-write.csv(causal_output_small,
-          paste0(data_dir, "causal_forest_small.csv"), row.names=FALSE)
-
-output_to_table(causal_output_small,
-                sample="small")
-output_to_table(causal_output_small,
-                sample="small", table_type="importance")
-
-causal_output_small_short <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output_small_short <-
-      rbind(causal_output_small_short,
-            causal_matrix(get(p), v, p,
-                          data="small", covariates_list="short"))
-  }
-}
-
-write.csv(causal_output_small_short,
-          paste0(data_dir, "causal_forest_small_short.csv"), row.names=FALSE)
-
-output_to_table(causal_output_small_short,
-                sample="small", covariates_list="short")
-output_to_table(causal_output_small_short,
-                sample="small", covariates_list="short", table_type="importance")
-
-causal_output_chopped <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output_chopped <-
-      rbind(causal_output_chopped,
-            causal_matrix(get(p), v, p,
-                          covariates_list="short", chopped=TRUE))
-  }
-}
-
-write.csv(causal_output_chopped,
-          paste0(data_dir, "causal_forest_chopped.csv"), row.names=FALSE)
-
-output_to_table(causal_output_chopped,
-                covariates_list="short", chopped="_chopped")
-output_to_table(causal_output_chopped,
-                covariates_list="short", table_type="importance", chopped="_chopped")
-
-causal_output_small_chopped <- covariates_short_small_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output_small_chopped <-
-      rbind(causal_output_small_chopped,
-            causal_matrix(get(p), v, p,
-                          data="small", covariates_list="short", chopped=TRUE))
-  }
-}
-
-write.csv(causal_output_small_chopped,
-          paste0(data_dir, "causal_forest_small_chopped.csv"), row.names=FALSE)
-
-output_to_table(causal_output_small_chopped,
-                sample="small", covariates_list="short", chopped="_chopped")
-output_to_table(causal_output_small_chopped,
-                sample="small", covariates_list="short", table_type="importance", chopped="_chopped")
-
 # Instrumental forest
-
-instrumental_output <- covariates_all_df()
+instrumental_output <- data_empty()
 
 for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     instrumental_output <-
-      rbind(instrumental_output,
+      bind_rows(instrumental_output,
             causal_matrix(get(p), v, p,
                           method="LATE"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    instrumental_output <-
+      bind_rows(instrumental_output,
+            causal_matrix(get(p), v, p,
+                          method="LATE", covariates_list="short"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    instrumental_output <-
+      bind_rows(instrumental_output,
+            causal_matrix(get(p), v, p,
+                          method="LATE", data="small"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    instrumental_output <-
+      bind_rows(instrumental_output,
+            causal_matrix(get(p), v, p,
+                          method="LATE", data="small", covariates_list="short"))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    instrumental_output <-
+      bind_rows(instrumental_output,
+            causal_matrix(get(p), v, p,
+                          method="LATE", covariates_list="short", chopped=TRUE))
+  }
+}
+
+for (p in programs) {
+  for (v in get(paste0(p, "_output"))) {
+    instrumental_output <-
+      bind_rows(instrumental_output,
+            causal_matrix(get(p), v, p,
+                          method="LATE", data="small", covariates_list="short", chopped=TRUE))
   }
 }
 
 write.csv(instrumental_output,
           paste0(data_dir, "instrumental_forest.csv"), row.names=FALSE)
 
-output_to_table(instrumental_output)
-output_to_table(instrumental_output,
-                table_type="importance")
-
-instrumental_output_short <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output_short <-
-      rbind(instrumental_output_short,
-            causal_matrix(get(p), v, p,
-                          method="LATE", covariates_list="short"))
-  }
-}
-
-write.csv(instrumental_output_short,
-          paste0(data_dir, "instrumental_forest_short.csv"), row.names=FALSE)
-
-output_to_table(instrumental_output_short,
-                covariates_list="short")
-output_to_table(instrumental_output_short,
-                covariates_list="short", table_type="importance")
-
-instrumental_output_small <- covariates_all_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output_small <-
-      rbind(instrumental_output_small,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small"))
-  }
-}
-
-write.csv(instrumental_output_small,
-          paste0(data_dir, "instrumental_forest_small.csv"), row.names=FALSE)
-
-output_to_table(instrumental_output_small,
-                sample="small")
-output_to_table(instrumental_output_small,
-                sample="small", table_type="importance")
-
-instrumental_output_small_short <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output_small_short <-
-      rbind(instrumental_output_small_short,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small", covariates_list="short"))
-  }
-}
-
-write.csv(instrumental_output_small_short,
-          paste0(data_dir, "instrumental_forest_small_short.csv"), row.names=FALSE)
-
-output_to_table(instrumental_output_small_short,
-                sample="small", covariates_list="short")
-output_to_table(instrumental_output_small_short,
-                sample="small", covariates_list="short", table_type="importance")
-
-instrumental_output_chopped <- covariates_short_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output_chopped <-
-      rbind(instrumental_output_chopped,
-            causal_matrix(get(p), v, p,
-                          method="LATE", covariates_list="short", chopped=TRUE))
-  }
-}
-
-write.csv(instrumental_output_chopped,
-          paste0(data_dir, "instrumental_forest_chopped.csv"), row.names=FALSE)
-
-output_to_table(instrumental_output_chopped,
-                covariates_list="short", chopped="_chopped")
-output_to_table(instrumental_output_chopped,
-                covariates_list="short", table_type="importance", chopped="_chopped")
-
-instrumental_output_small_chopped <- covariates_short_small_df()
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output_small_chopped <-
-      rbind(instrumental_output_small_chopped,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small", covariates_list="short", chopped=TRUE))
-  }
-}
-
-write.csv(instrumental_output_small_chopped,
-          paste0(data_dir, "instrumental_forest_small_chopped.csv"), row.names=FALSE)
-
-output_to_table(instrumental_output_small_chopped,
-                sample="small", covariates_list="short", chopped="_chopped")
-output_to_table(instrumental_output_small_chopped,
-                sample="small", covariates_list="short", table_type="importance", chopped="_chopped")
+output_to_table(instrumental_output, forest_type="instrumental")
+output_to_table(instrumental_output, forest_type="instrumental", table_type="importance")
 
 end_time <- Sys.time()
 end_time-start_time
