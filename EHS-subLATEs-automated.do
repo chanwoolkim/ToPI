@@ -10,47 +10,68 @@ use "C:\Users\jpanta\Dropbox\TOPI\working\abc-topi.dta"
 * The variable R is the randomization
 * D is participation in ABC 
 * Center is participation in alternative preschools.
-keep R D center
+
+keep R  D D_* P P_* sb3y id
+keep if sb3y != .
 keep if D !=.
 
-gen None  = (D==0 & center==0)
-gen ABC   = (D==1)
-gen Other = (D==0 & center==1)
+foreach num of numlist 6 12 18 {
+	
+	gen None_`num'  = (D_`num'==0 & P_`num'==0)
+	gen ABC_`num'   = (D_`num'==1)
+	gen Other_`num' = (D_`num'==0 & P_`num'==1)
+	
+	su None_`num' if R==1
+	scalar p_nn_ABC_`num' = r(mean)
+	su Other_`num' if R==1
+	scalar p_cc_ABC_`num' = r(mean)
+	su ABC_`num' if R==0
+	scalar p_hh_ABC_`num' = r(mean)
+	su None_`num' if R==0
+	scalar p_nh_ABC_`num' = r(mean)-p_nn_ABC_`num'
+	su Other_`num' if R==0
+	scalar p_ch_ABC_`num' = r(mean)-p_cc_ABC_`num'
 
-su None if R==1
-scalar p_nn_ABC = r(mean)
-su Other if R==1
-scalar p_cc_ABC = r(mean)
-su ABC if R==0
-scalar p_hh_ABC = r(mean)
-su None if R==0
-scalar p_nh_ABC = r(mean)-p_nn_ABC
-su Other if R==0
-scalar p_ch_ABC = r(mean)-p_cc_ABC
-
-quietly{
-noi di as text "ABC Sub-Types                   "
-noi di as text "Estimated Pr[n always-taker]   =" p_nn_ABC
-noi di as text "Estimated Pr[h always-taker]   =" p_hh_ABC
-noi di as text "Estimated Pr[c always-taker]   =" p_cc_ABC
-noi di as text "Estimated Pr[n-to-h complier]  =" p_nh_ABC
-noi di as text "Estimated Pr[c-to-h complier]  =" p_ch_ABC
+	quietly{
+	    
+		noi di as text "ABC Sub-Types Using Threshold   " `num'
+		noi di as text "Estimated Pr[n always-taker]   =" p_nn_ABC_`num'
+		noi di as text "Estimated Pr[h always-taker]   =" p_hh_ABC_`num'
+		noi di as text "Estimated Pr[c always-taker]   =" p_cc_ABC_`num'
+		noi di as text "Estimated Pr[n-to-h complier]  =" p_nh_ABC_`num'
+		noi di as text "Estimated Pr[c-to-h complier]  =" p_ch_ABC_`num'
+	}
+	
 }
 
-*use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs.dta"
-*use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta"
-*use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs.dta"
- use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs_mixed_center.dta", clear
 
 
+
+use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs.dta", clear 
+su
+use "C:\Users\jpanta\Dropbox\TOPI\working\juan_ehs_centermixed.dta" , clear
+su
+use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs.dta", clear
+su
+use "C:\Users\jpanta\Dropbox\TOPI\working\ehscenter-juan-with-IVs_mixed_center.dta", clear
+su
+use "C:\Users\jpanta\Dropbox\TOPI\working\ehs_mixed_center-topi.dta"
+su
+
+rename caregiver_ever caregiver_home
  
 * Basic Data Clean-Up
-keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type bw
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
-drop if  ppvt3y == .
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D alt caregiver_home cc_payments income_site cc_price_relative program_type
+keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type bw
 
-drop if       D == .
+su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type
+
+drop if  ppvt3y == .
+su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type
+
+* drop if       D == . /*D seems to have more missing than D_X for X=1,6,12,18 */
+rename D oldD
+gen D = D_18
+ drop if       D == .
 drop if     alt == .
 drop if   black == .
 drop if caregiver_home == . 
@@ -69,7 +90,7 @@ drop if   m_edu == .
 drop if m_edu!=1 & m_edu!=2 & m_edu!=3
 * N=716
 
-drop if      bw == . 
+* drop if      bw == . 
 *N=598
 
 *drop if    income_site == . 
@@ -124,7 +145,7 @@ gen nonblack = 1-black
 *local covariates "      black       m_edu_moreHS                                " NO
 local important_covs "m_iq m_age"                    
 
-local chop "black==1 & (m_edu_HS==1|m_edu_lessHS==1)"
+local chop "black==1 & (m_edu_HS==1|medulessHS==1)"
 
 * Norm the covariate vector X (see page 1830 KW(2016))
 
@@ -183,7 +204,7 @@ scalar p_nh = r(mean)-p_nn
 su Other if Z_h==0
 scalar p_ch = r(mean)-p_cc
 
-/***
+***
 
 * Full Sample - Center Only + Mixed
 * ---------------------------------
@@ -319,7 +340,7 @@ su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
 eststo EHS_ols_trchoice_chop_bw
 
-esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_trchoice_chop EHS_ols_Zh_chop_bw EHS_ols_D_chop_bw EHS_2sls_D_chop_bw EHS_ols_trchoice_chop_bw using topi_EHS_jp_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black m_edu_moreHS)
+esttab EHS_ols_Zh_chop EHS_ols_D_chop EHS_2sls_D_chop EHS_ols_trchoice_chop EHS_ols_Zh_chop_bw EHS_ols_D_chop_bw EHS_2sls_D_chop_bw EHS_ols_trchoice_chop_bw using topi_EHS_jp_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black medumoreHS)
 
 * Chopped Sample - Center Only + Mixed - Important Covariates
 * -----------------------------------------------------------
@@ -462,7 +483,7 @@ su Y if e(Sample) & treat_choice==1
 estadd scalar MeanDepVarControl = r(mean)
 eststo EHS_ols_trchoice_ctr_chp_bw
 
-esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoice_ctr_chp EHS_ols_Zh_ctr_chop_bw EHS_ols_D_ctr_chop_bw EHS_2sls_D_ctr_chop_bw EHS_ols_trchoice_ctr_chp_bw using topi_EHS_jp_centeronly_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black m_edu_moreHS)
+esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoice_ctr_chp EHS_ols_Zh_ctr_chop_bw EHS_ols_D_ctr_chop_bw EHS_2sls_D_ctr_chop_bw EHS_ols_trchoice_ctr_chp_bw using topi_EHS_jp_centeronly_chop.tex, b(%5.2f) se(%5.2f) label replace star(* 0.10 ** 0.05 *** 0.01) mtitles(OLS OLS 2SLS OLS OLS OLS 2SLS OLS) nonotes scalars(MeanDepVarControl) order(Z_h D 2.treat_choice 3.treat_choice `covariates' bw) drop(1.treat_choice black medumoreHS)
 
 * Chopped Sample - Center Only - Important Covariates
 * ---------------------------------------------------
@@ -513,7 +534,7 @@ esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoi
 
 restore
 
-****/
+****
 
 local covariates "m_age m_iq"
 local covariates "m_iq black sex m_age m_edu_HS medumoreHS" 
