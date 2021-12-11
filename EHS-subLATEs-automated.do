@@ -15,7 +15,7 @@ keep R  D D_* P P_* sb3y id
 keep if sb3y != .
 keep if D !=.
 
-foreach num of numlist 6 12 18 {
+foreach num of numlist 1 6 12 18 {
 	
 	gen None_`num'  = (D_`num'==0 & P_`num'==0)
 	gen ABC_`num'   = (D_`num'==1)
