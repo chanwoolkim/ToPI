@@ -1,33 +1,17 @@
 \begin{table}[ht]
 \centering
-\begin{tabular}{lllllrrrrrrrr}
+\begin{tabular}{llllrrrrrrrr}
   \hline
-Program & Outcome & Data & Covariates & Chopped & Pre-Estimate & Pre-DR-Estimate & Pre-DR-SE & Pre-DR-p-Value & ABC-Estimate & ABC-SE & ABC-p-Value & N \\ 
+Program & Outcome & Covariates & Chopped & Pre-Estimate & Pre-DR-Estimate & Pre-DR-SE & Pre-DR-p-Value & ABC-Estimate & ABC-SE & ABC-p-Value & N \\ 
   \hline
-ehscenter & ppvt3y & all & all & FALSE & 0.662 & 0.641 & 0.163 & 0.000 & 1.030 & 0.226 & 0.000 & 371 \\ 
-  ehsmixed\_center & ppvt3y & all & all & FALSE & 0.412 & 0.391 & 0.142 & 0.006 & 0.690 & 0.206 & 0.001 & 779 \\ 
-  ihdp & ppvt3y & all & all & FALSE & 0.571 & 0.558 & 0.064 & 0.000 & 0.513 & 0.144 & 0.000 & 894 \\ 
-  ihdp & sb3y & all & all & FALSE & 0.611 & 0.591 & 0.062 & 0.000 & 0.545 & 0.144 & 0.000 & 1000 \\ 
-  ehscenter & ppvt3y & all & short & FALSE & 0.629 & 0.605 & 0.166 & 0.000 & 0.604 & 0.222 & 0.006 & 371 \\ 
-  ehsmixed\_center & ppvt3y & all & short & FALSE & 0.405 & 0.391 & 0.141 & 0.006 & 0.425 & 0.194 & 0.029 & 779 \\ 
-  ihdp & ppvt3y & all & short & FALSE & 0.549 & 0.546 & 0.068 & 0.000 & 0.446 & 0.127 & 0.000 & 894 \\ 
-  ihdp & sb3y & all & short & FALSE & 0.618 & 0.609 & 0.067 & 0.000 & 0.491 & 0.129 & 0.000 & 1000 \\ 
-  ehscenter & ppvt3y & small & all & FALSE & 0.533 & 0.535 & 0.161 & 0.001 & 0.971 & 0.240 & 0.000 & 319 \\ 
-  ehsmixed\_center & ppvt3y & small & all & FALSE & 0.344 & 0.335 & 0.152 & 0.028 & 0.647 & 0.215 & 0.003 & 646 \\ 
-  ihdp & ppvt3y & small & all & FALSE & 0.564 & 0.554 & 0.064 & 0.000 & 0.498 & 0.171 & 0.004 & 894 \\ 
-  ihdp & sb3y & small & all & FALSE & 0.603 & 0.586 & 0.062 & 0.000 & 0.623 & 0.163 & 0.000 & 1000 \\ 
-  ehscenter & ppvt3y & small & short & FALSE & 0.545 & 0.535 & 0.167 & 0.001 & 0.542 & 0.222 & 0.015 & 319 \\ 
-  ehsmixed\_center & ppvt3y & small & short & FALSE & 0.374 & 0.387 & 0.156 & 0.013 & 0.397 & 0.193 & 0.040 & 646 \\ 
-  ihdp & ppvt3y & small & short & FALSE & 0.556 & 0.550 & 0.066 & 0.000 & 0.479 & 0.167 & 0.004 & 894 \\ 
-  ihdp & sb3y & small & short & FALSE & 0.599 & 0.589 & 0.064 & 0.000 & 0.605 & 0.164 & 0.000 & 1000 \\ 
-  ehscenter & ppvt3y & all & short & TRUE & 1.220 & 1.179 & 0.321 & 0.000 & 1.220 & 0.402 & 0.002 & 109 \\ 
-  ehsmixed\_center & ppvt3y & all & short & TRUE & 0.783 & 0.717 & 0.221 & 0.001 & 0.783 & 0.228 & 0.001 & 244 \\ 
-  ihdp & ppvt3y & all & short & TRUE & 0.537 & 0.537 & 0.086 & 0.000 & 0.622 & 0.128 & 0.000 & 355 \\ 
-  ihdp & sb3y & all & short & TRUE & 0.599 & 0.590 & 0.077 & 0.000 & 0.514 & 0.106 & 0.000 & 408 \\ 
-  ehscenter & ppvt3y & small & short & TRUE & 1.199 & 1.114 & 0.320 & 0.000 & 1.199 & 0.351 & 0.001 & 89 \\ 
-  ehsmixed\_center & ppvt3y & small & short & TRUE & 0.673 & 0.603 & 0.238 & 0.011 & 0.673 & 0.232 & 0.004 & 206 \\ 
-  ihdp & ppvt3y & small & short & TRUE & 0.538 & 0.542 & 0.086 & 0.000 & 0.602 & 0.143 & 0.000 & 355 \\ 
-  ihdp & sb3y & small & short & TRUE & 0.586 & 0.582 & 0.077 & 0.000 & 0.579 & 0.133 & 0.000 & 408 \\ 
+ehscenter & ppvt3y & all & FALSE & 0.653 & 0.623 & 0.163 & 0.000 & 0.993 & 0.253 & 0.000 & 371 \\ 
+  ehsmixed\_center & ppvt3y & all & FALSE & 0.407 & 0.375 & 0.139 & 0.007 & 0.686 & 0.189 & 0.000 & 779 \\ 
+  ehscenter & ppvt3y & short & FALSE & 0.631 & 0.603 & 0.169 & 0.000 & 0.608 & 0.161 & 0.000 & 371 \\ 
+  ehsmixed\_center & ppvt3y & short & FALSE & 0.426 & 0.411 & 0.140 & 0.003 & 0.442 & 0.144 & 0.002 & 779 \\ 
+  ehscenter & ppvt3y & chopped\_all & TRUE & 1.249 & 1.218 & 0.336 & 0.000 & 1.249 & 0.327 & 0.000 & 109 \\ 
+  ehsmixed\_center & ppvt3y & chopped\_all & TRUE & 0.735 & 0.684 & 0.231 & 0.003 & 0.735 & 0.232 & 0.002 & 244 \\ 
+  ehscenter & ppvt3y & short & TRUE & 1.228 & 1.192 & 0.324 & 0.000 & 1.227 & 0.314 & 0.000 & 109 \\ 
+  ehsmixed\_center & ppvt3y & short & TRUE & 0.767 & 0.706 & 0.214 & 0.001 & 0.767 & 0.226 & 0.001 & 244 \\ 
    \hline
 \end{tabular}
 \end{table}

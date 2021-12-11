@@ -7,21 +7,19 @@ library(grf)
 library(tidyverse)
 library(xtable)
 
-data_dir <- "C:/Users/561CO/Dropbox/Research/TOPI/working/"
-output_dir <- "C:/Users/561CO/Dropbox/Research/TOPI/do-TOPI/output_backup/"
-output_overleaf <- "C:/Users/561CO/Dropbox/Apps/Overleaf/ToPI/Results/"
+data_dir <- "~/Dropbox/Research/TOPI/working/"
+output_dir <- "~/Dropbox/Research/TOPI/do-TOPI/output_backup/"
+output_overleaf <- "~/Dropbox/Apps/Overleaf/ToPI/Results/"
 seed <- 9657
 
 covariates_all <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "sibling", "gestage", "mf")
-covariates_small <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "sibling", "gestage", "mf", "bw")
+covariates_chopped_all <- c("m_iq", "sex", "m_age", "sibling", "gestage", "mf")
 covariates_short <- c("m_iq", "m_age")
-covariates_short_small <- c("m_iq", "m_age", "bw")
 
 
 # Function to create data frame for causal forest estimates ####
 causal_matrix <- function(df, output_var, program,
-                          method="ATE", covariates_list="all", data="all",
-                          chopped=FALSE) {
+                          method="ATE", covariates_list="all", chopped=FALSE) {
   
   # Input for the program of interest
   df <- df %>%
@@ -32,10 +30,6 @@ causal_matrix <- function(df, output_var, program,
            !is.na(caregiver_home),
            m_edu %in% c(1, 2, 3))
   
-  if (data=="small") {
-    df <- df %>% filter(!is.na(bw))
-  }
-  
   if (chopped) {
     df <- df %>% filter(black==1, m_edu %in% c(1, 2))
   }
@@ -43,18 +37,15 @@ causal_matrix <- function(df, output_var, program,
   N <- count(df) %>% as.numeric()
   
   # Now create input for ABC and covariates
-  if (covariates_list=="all" && data=="all") {
+  if (covariates_list=="all") {
     X <- df %>% select(all_of(covariates_all)) %>% as.matrix()
     X_abc <- abc %>% select(all_of(covariates_all)) %>% as.matrix()
-  } else if (covariates_list=="all" && data=="small") {
-    X <- df %>% select(all_of(covariates_small)) %>% as.matrix()
-    X_abc <- abc %>% select(all_of(covariates_small)) %>% as.matrix()
-  } else if (covariates_list=="short" && data=="all") {
+  } else if (covariates_list=="chopped_all") {
+    X <- df %>% select(all_of(covariates_chopped_all)) %>% as.matrix()
+    X_abc <- abc %>% select(all_of(covariates_chopped_all)) %>% as.matrix()
+  } else if (covariates_list=="short") {
     X <- df %>% select(all_of(covariates_short)) %>% as.matrix()
     X_abc <- abc %>% select(all_of(covariates_short)) %>% as.matrix()
-  } else if (covariates_list=="short" && data=="small") {
-    X <- df %>% select(all_of(covariates_short_small)) %>% as.matrix()
-    X_abc <- abc %>% select(all_of(covariates_short_small)) %>% as.matrix()
   }
   
   # Variable importance can be run outside bootstrap
@@ -77,14 +68,12 @@ causal_matrix <- function(df, output_var, program,
   forest_boot <- function(data, index) {
     df_select <- data[index,]
     
-    if (covariates_list=="all" && data=="all") {
+    if (covariates_list=="all") {
       X <- df_select %>% select(all_of(covariates_all)) %>% as.matrix()
-    } else if (covariates_list=="all" && data=="small") {
-      X <- df_select %>% select(all_of(covariates_small)) %>% as.matrix()
-    } else if (covariates_list=="short" && data=="all") {
+    } else if (covariates_list=="chopped_all") {
+      X <- df_select %>% select(all_of(covariates_chopped_all)) %>% as.matrix()
+    } else if (covariates_list=="short") {
       X <- df_select %>% select(all_of(covariates_short)) %>% as.matrix()
-    } else if (covariates_list=="short" && data=="small") {
-      X <- df_select %>% select(all_of(covariates_short_small)) %>% as.matrix()
     }
     
     W <- df_select$R
@@ -120,10 +109,8 @@ causal_matrix <- function(df, output_var, program,
   abc_p_value <- 2*pnorm(-output_estimates$t0[4]/sd(output_estimates$t[,4]))
   
   if (covariates_list=="all") {
-    if (data=="all") {
       output <- data.frame(program=program,
                            output_var=output_var,
-                           data=data,
                            covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
@@ -142,10 +129,9 @@ causal_matrix <- function(df, output_var, program,
                            gestage_importance=var_importance[8],
                            mf_importance=var_importance[9],
                            N=N)
-    } else if (data=="small") {
+    } else if (covariates_list=="chopped_all") {
       output <- data.frame(program=program,
                            output_var=output_var,
-                           data=data,
                            covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
@@ -155,22 +141,15 @@ causal_matrix <- function(df, output_var, program,
                            abc_se=sd(output_estimates$t[,4]),
                            abc_p_value=abc_p_value,
                            m_iq_importance=var_importance[1],
-                           black_importance=var_importance[2],
                            sex_importance=var_importance[3],
                            m_age_importance=var_importance[4],
-                           m_edu_2_importance=var_importance[5],
-                           m_edu_3_importance=var_importance[6],
                            sibling_importance=var_importance[7],
                            gestage_importance=var_importance[8],
                            mf_importance=var_importance[9],
-                           bw_importance=var_importance[10],
                            N=N)
-    }
-  } else if (covariates_list=="short") {
-    if (data=="all") {
+    } else if (covariates_list=="short") {
       output <- data.frame(program=program,
                            output_var=output_var,
-                           data=data,
                            covariates_list=covariates_list,
                            pre_estimate=output_estimates$t0[1],
                            pre_dr_estimate=output_estimates$t0[2],
@@ -182,23 +161,6 @@ causal_matrix <- function(df, output_var, program,
                            m_iq_importance=var_importance[1],
                            m_age_importance=var_importance[2],
                            N=N)
-    } else if (data=="small") {
-      output <- data.frame(program=program,
-                           output_var=output_var,
-                           data=data,
-                           covariates_list=covariates_list,
-                           pre_estimate=output_estimates$t0[1],
-                           pre_dr_estimate=output_estimates$t0[2],
-                           pre_dr_se=output_estimates$t0[3],
-                           pre_dr_p_value=pre_dr_p_value,
-                           abc_estimate=output_estimates$t0[4],
-                           abc_se=sd(output_estimates$t[,4]),
-                           abc_p_value=abc_p_value,
-                           m_iq_importance=var_importance[1],
-                           m_age_importance=var_importance[2],
-                           bw_importance=var_importance[4],
-                           N=N)
-    }
   }
   
   if (chopped) {
@@ -215,7 +177,7 @@ causal_matrix <- function(df, output_var, program,
 
 # Execute! ####
 # Load data
-programs <- c("ehscenter", "ehsmixed_center", "ihdp")
+programs <- c("ehscenter", "ehsmixed_center") #, "ihdp")
 
 for (p in programs) {
   assign(p, read.csv(paste0(data_dir, p, "-topi.csv")) %>%
@@ -237,7 +199,7 @@ ehsmixed_center <- ehsmixed_center %>%
 
 ehscenter_output <- c("ppvt3y")
 ehsmixed_center_output <- c("ppvt3y")
-ihdp_output <- c("ppvt3y", "sb3y")
+#ihdp_output <- c("ppvt3y", "sb3y")
 abc_output <- c("sb3y")
 
 # Output to LaTeX table
@@ -248,7 +210,6 @@ output_to_table <- function(df, forest_type="causal", table_type="main") {
     df_select <- df %>%
       select('Program'=program,
              'Outcome'=output_var,
-             'Data'=data,
              'Covariates'=covariates_list,
              'Chopped'=chopped,
              'Pre-Estimate'=pre_estimate,
@@ -263,7 +224,6 @@ output_to_table <- function(df, forest_type="causal", table_type="main") {
     df_select <- df %>%
       select('Program'=program,
              'Outcome'=output_var,
-             'Data'=data,
              'Covariates'=covariates_list,
              'Chopped'=chopped,
              'Mother IQ'=m_iq_importance,
@@ -275,10 +235,9 @@ output_to_table <- function(df, forest_type="causal", table_type="main") {
              'Sibling'=sibling_importance,
              'Gestational Age'=gestage_importance,
              'Father'=mf_importance,
-             'Birth Weight'=bw_importance,
              'N'=N)
   }
-  digits_vec <- c(rep(0, 6), rep(3, ncol(df_select)-6), 0)
+  digits_vec <- c(rep(0, 5), rep(3, ncol(df_select)-5), 0)
   
   print(xtable(df_select, digits=digits_vec, table.placement="H"),
         include.rownames=FALSE,
@@ -295,7 +254,6 @@ output_to_table <- function(df, forest_type="causal", table_type="main") {
 data_empty <- function() {
   df <- data.frame(program=NULL,
                    output_var=NULL,
-                   data=NULL,
                    covariates_list=NULL,
                    chopped=NULL,
                    pre_estimate=NULL,
@@ -314,7 +272,6 @@ data_empty <- function() {
                    sibling_importance=NULL,
                    gestage_importance=NULL,
                    mf_importance=NULL,
-                   bw_importance=NULL,
                    N=NULL)
   
   return(df)
@@ -327,7 +284,7 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     causal_output <-
       bind_rows(causal_output,
-            causal_matrix(get(p), v, p))
+                causal_matrix(get(p), v, p))
   }
 }
 
@@ -335,8 +292,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     causal_output <-
       bind_rows(causal_output,
-            causal_matrix(get(p), v, p,
-                          covariates_list="short"))
+                causal_matrix(get(p), v, p,
+                              covariates_list="short"))
   }
 }
 
@@ -344,8 +301,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     causal_output <-
       bind_rows(causal_output,
-            causal_matrix(get(p), v, p,
-                          data="small"))
+                causal_matrix(get(p), v, p,
+                              covariates_list="chopped_all", chopped=TRUE))
   }
 }
 
@@ -353,26 +310,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     causal_output <-
       bind_rows(causal_output,
-            causal_matrix(get(p), v, p,
-                          data="small", covariates_list="short"))
-  }
-}
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output <-
-      bind_rows(causal_output,
-            causal_matrix(get(p), v, p,
-                          covariates_list="short", chopped=TRUE))
-  }
-}
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    causal_output <-
-      bind_rows(causal_output,
-            causal_matrix(get(p), v, p,
-                          data="small", covariates_list="short", chopped=TRUE))
+                causal_matrix(get(p), v, p,
+                              covariates_list="short", chopped=TRUE))
   }
 }
 
@@ -389,8 +328,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     instrumental_output <-
       bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE"))
+                causal_matrix(get(p), v, p,
+                              method="LATE"))
   }
 }
 
@@ -398,8 +337,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     instrumental_output <-
       bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE", covariates_list="short"))
+                causal_matrix(get(p), v, p,
+                              method="LATE", covariates_list="short"))
   }
 }
 
@@ -407,8 +346,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     instrumental_output <-
       bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small"))
+                causal_matrix(get(p), v, p,
+                              method="LATE", covariates_list="chopped_all", chopped=TRUE))
   }
 }
 
@@ -416,26 +355,8 @@ for (p in programs) {
   for (v in get(paste0(p, "_output"))) {
     instrumental_output <-
       bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small", covariates_list="short"))
-  }
-}
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output <-
-      bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE", covariates_list="short", chopped=TRUE))
-  }
-}
-
-for (p in programs) {
-  for (v in get(paste0(p, "_output"))) {
-    instrumental_output <-
-      bind_rows(instrumental_output,
-            causal_matrix(get(p), v, p,
-                          method="LATE", data="small", covariates_list="short", chopped=TRUE))
+                causal_matrix(get(p), v, p,
+                              method="LATE", covariates_list="short", chopped=TRUE))
   }
 }
 
