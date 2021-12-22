@@ -61,16 +61,20 @@ su
 rename caregiver_ever caregiver_home
  
 * Basic Data Clean-Up
-keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type bw
+keep id ppvt3y R sitenum m_edu m_iq bw m_age black sex D* P* alt caregiver_home cc_payments income_site cc_price_relative program_type bw
 
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type
+su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* P* alt caregiver_home cc_payments income_site cc_price_relative program_type
 
 drop if  ppvt3y == .
-su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* alt caregiver_home cc_payments income_site cc_price_relative program_type
+su      ppvt3y R sitenum m_edu m_iq bw m_age black sex D* P* alt caregiver_home cc_payments income_site cc_price_relative program_type
 
 * drop if       D == . /*D seems to have more missing than D_X for X=1,6,12,18 */
 rename D oldD
 gen D = D_18
+
+rename alt oldalt
+gen alt = P_18
+
  drop if       D == .
 drop if     alt == .
 drop if   black == .
@@ -185,7 +189,7 @@ label var m_age "Mother's Age"
 sort hhid
 
 * Chopping Line
-*keep if `chop'
+keep if `chop'
 save ehs_data.dta, replace
 
 * EHS Types
@@ -203,6 +207,20 @@ su None if Z_h==0
 scalar p_nh = r(mean)-p_nn
 su Other if Z_h==0
 scalar p_ch = r(mean)-p_cc
+
+
+
+quietly{
+noi di as text "Estimated Pr[n always-taker]   =" p_nn
+noi di as text "Estimated Pr[h always-taker]   =" p_hh
+noi di as text "Estimated Pr[c always-taker]   =" p_cc
+noi di as text "Estimated Pr[n-to-h complier]  =" p_nh
+noi di as text "Estimated Pr[c-to-h complier]  =" p_ch
+}
+
+
+
+
 
 ***
 
@@ -535,11 +553,35 @@ esttab EHS_ols_Zh_ctr_chop EHS_ols_D_ctr_chop EHS_2sls_D_ctr_chop EHS_ols_trchoi
 restore
 
 ****
-
+*local covariates "m_iq black sex m_age m_edu_HS medumoreHS" 
+*local covariates "black m_age" 
 local covariates "m_age m_iq"
-local covariates "m_iq black sex m_age m_edu_HS medumoreHS" 
-local covariates "black m_age" 
-*keep if `chop'
+
+keep if `chop'
+keep if bw !=.
+
+
+* Types in EHS
+
+su None if Z_h==1
+scalar p_nn = r(mean)
+su Other if Z_h==1
+scalar p_cc = r(mean)
+su EHS if Z_h==0
+scalar p_hh = r(mean)
+su None if Z_h==0
+scalar p_nh = r(mean)-p_nn
+su Other if Z_h==0
+scalar p_ch = r(mean)-p_cc
+
+quietly{
+noi di as text "Estimated Pr[n always-taker]   =" p_nn
+noi di as text "Estimated Pr[h always-taker]   =" p_hh
+noi di as text "Estimated Pr[c always-taker]   =" p_cc
+noi di as text "Estimated Pr[n-to-h complier]  =" p_nh
+noi di as text "Estimated Pr[c-to-h complier]  =" p_ch
+}
+
 
 * Create Interactions of Instruments and Covariates.
 
@@ -570,15 +612,15 @@ foreach x of local covariates {
     replace Z_c_`x'   = 0 if treat_options == 1|treat_options == 2
 }
 
-*replace Z_n           = 0 if treat_options == 2|treat_options == 3
-*foreach x of local covariates {
-*    replace Z_n_`x'   = 0 if treat_options == 2|treat_options == 3
-*}
-
-replace Z_n           = 0 if treat_options == 1
+replace Z_n           = 0 if treat_options == 2|treat_options == 3
 foreach x of local covariates {
-    replace Z_n_`x'   = 0 if treat_options == 1
+    replace Z_n_`x'   = 0 if treat_options == 2|treat_options == 3
 }
+
+*replace Z_n           = 0 if treat_options == 1
+*foreach x of local covariates {
+*    replace Z_n_`x'   = 0 if treat_options == 1
+*}
 
 
 * Set up the data as needed using "cmset" for multinomial probit command.
