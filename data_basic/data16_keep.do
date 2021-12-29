@@ -41,6 +41,8 @@ label var income_site		"Z_ph Mean income in area (proxy of wages)"
 label var caregiver_ever 	"Z_n Potential Caregiver Available at Home"
 label var caregiver_n 		"Z_n N Potential Caregivers Available "
 
+*Many Participation Varaiables
+
 gen alt=.
 replace alt=0 if center!=.
 replace alt=1 if center==1 & D==0 // D==0 is equivalent to doing center_ehs==0
@@ -84,7 +86,8 @@ reg ehs_center R caregiver_ever cc_price_relative //super influenced by the pric
 keep id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
-ppvt3y /*center_ehs*/ ehs_months alt_months hs H
+ppvt3y /*center_ehs*/ ehs_months alt_months hs H ///
+any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months alt1 alt2 alt center
 
 order id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18  alt program_type sitenum ///
 m_iq m_age sex poverty m_edu gestage bw black mf sibling twin ///
@@ -113,7 +116,9 @@ outsheet using ehsmixed-topi.csv, comma nolabel replace		//for Chanwool/Athey
 restore
 
 preserve
+count
 keep if program_type==3|program_type==1
+count
 gen ehs_mixed_center_months=ehs_months
 *gen center_ehsmmixed=center_ehs 							//to work on the pile code
 *gen ehsmixed_months=ehs_months 								//to work on the pile code 
@@ -121,8 +126,13 @@ outsheet using ehsmixed_center-topi.csv, comma nolabel replace		//for Chanwool/A
 save ehs_mixed_center-topi, replace
 restore
 
+save ehs-full-topi, replace
+
+asd
 
 
+
+/*
 * IHDP
 use "ihdp-renamed-items.dta", clear
 
@@ -175,7 +185,7 @@ caregiver_home cc_payments_site income_site cc_price_relative ppvt3y sb3y hs H c
 outsheet using ihdp-topi.csv, comma nolabel replace			//for Chanwool/Athey
 save ihdp-juan, replace								//for Juan: few variables
 save ihdp-topi, replace
-
+*/
 
 
 use "abc-topi.dta", clear

@@ -51,7 +51,7 @@ gen a1_center=(b3p405a1==6)			//arrangement 1
 gen a2_center=(b3p405a2==6)			//arrangement 2
 gen a3_center=(b3p405a3==6)			//arrangement 3
 
-*How old was child when started using that arrangement
+*Months using each arrangement
 foreach r in 1 2 3{
 replace b3p407_`r'=. if b3p407_`r'<0
 gen mo`r'=age_months-b3p407_`r' //how many months has the child been using the arrangement
@@ -186,10 +186,6 @@ use "std-ehs.dta", clear
 
 merge 1:1 id using `ehs_PI_participation'
 
-
-
-
-
 rename center_used6m center_care6m
 	label values center_care6m dummy
 rename P2V_CB14 center_care14m
@@ -237,7 +233,6 @@ reg center treat if program_type==1 //.27, DECENTE
 egen ehs_total=rowtotal(ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3), mi
 gen any_ehs=(ehs_total>=1) if ehs_total!=.
 
-
 gen mo_center1 =mo_center>=1  & mo_center!=.
 gen mo_center12=mo_center>=12 & mo_center!=.
 label var ehs1 		"Tracking: EHS center 14m"
@@ -277,16 +272,13 @@ matrix M[`r',7]=r(mean)
 local r=`r'+1
 
 }
+matrix list M
 *outtable using "/Users/andres/Desktop/Participation EHS/participation", mat(M) replace nobox ///
 *caption("Participation Variables") ///
 *format(%9.0g %9.2g %9.2g %9.2g %9.2g %9.2g %9.2g %9.2g) label
 
-
-
-
-
-
-
+** Comparing two ways of construucting the EHS participation variables **
+* With and without the minimal engagement variable
 
 gen any_ehs1=(ehs_total>=1) if ehs_total!=.
 tab any_ehs1 //15%
@@ -295,6 +287,7 @@ tab any_ehs1 if program_type==1 | program_type==3 //27%
 gen any_ehs2=any_ehs1
 replace any_ehs2=1 if P2V_ENG2==1
 tab any_ehs2 //47%
+tab any_ehs2 if program_type==1 | program_type==3 //48%
 
 reg any_ehs1 treat if program_type==1 //.58 effect, nice!
 reg any_ehs2 treat if program_type==1 //.71 effect, huge!
@@ -335,9 +328,15 @@ sum alt_months1
 sum alt_months1 if alt_months1>0
 
 *tab ehs treat
-*gen alt=.
-*replace alt=0 if center!=.
-*replace alt=1 if center==1 & ehs==0
+gen alt1=.
+replace alt1=0 if center!=.
+replace alt1=1 if center==1 & any_ehs1==0
+gen alt2=.
+replace alt2=0 if center!=.
+replace alt2=1 if center==1 & any_ehs2==0
+
+
+
 
 *compare alt_months ehs_months
 
@@ -350,28 +349,28 @@ sum alt_months1 if alt_months1>0
 *		cumul ehs_months if alt_months==0, gen(v_ehs) equal
 *		line v_alt v_ehs mo_center, sort ylabel(0(0.1)1) legend( order (1 "Alternative" 2 "EHS")) 		
 
-
 foreach m in 1 6 12 18{
 gen P_`m'=.
-replace P_`m'=1 if alt_months>=`m' & alt_months!=.
-replace P_`m'=0 if alt_months<`m'
+replace P_`m'=1 if alt_months1>=`m' & alt_months1!=.
+replace P_`m'=0 if alt_months1<`m'
 gen D_`m'=.
-replace D_`m'=1 if ehs_months>=`m' & ehs_months!=.
-replace D_`m'=0 if ehs_months<`m'
+replace D_`m'=1 if ehs_months1>=`m' & ehs_months1!=.
+replace D_`m'=0 if ehs_months1<`m'
 }
 
 gen P=.
-replace P=1 if alt_months>=1 & alt_months!=.
-replace P=0 if alt_months<1
-gen D=.
-replace D=1 if ehs_months>=1 & ehs_months!=.
-replace D=0 if ehs_months<1
-		
+replace P=1 if alt_months1>=1 & alt_months1!=.
+replace P=0 if alt_months1<1
+
+*This is silenced because it is redundant w D_1 and later gets replaced by the old construction of the variable
+*gen D=.
+*replace D=1 if ehs_months1>=1 & ehs_months1!=.
+*replace D=0 if ehs_months1<1
 *tab ehs D, mi
 
 
-
-keep id center /*center_ehs*/ ehs_months alt_months D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 
+keep id center /*center_ehs*/ any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months ///
+								D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt1 alt2
 cd "$data_working"
 save "ehs-preschools.dta", replace
 
@@ -385,7 +384,7 @@ save "ehs-preschools.dta", replace
 
 
 
-
+/*
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
 *--------------------------------------------------*
@@ -459,7 +458,7 @@ rename D center_ihdp
 keep id center part center_ihdp ihdp_months alt_months
 cd "$data_working"
 save "ihdp-preschools.dta", replace
-
+*/
 *--------*
 * IV ABC *
 *--------*
@@ -484,8 +483,12 @@ gen alt_months=dc_alt1+dc_alt2+dc_alt3
 
 foreach m in 1 6 12 18{
 gen P_`m'=.
-replace P_`m'=1 if alt_months>=`m' & alt_months!=.
 replace P_`m'=0 if alt_months<`m'
+replace P_`m'=1 if alt_months>=`m' & alt_months!=.
+
+
+
+
 gen D_`m'=.
 replace D_`m'=1 if abc_months>=`m' & abc_months!=.
 replace D_`m'=0 if abc_months<`m'

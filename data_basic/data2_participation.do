@@ -16,7 +16,7 @@ rename treat R
 rename P2V_ENG2 D
 
 tab D, mi
-replace D = 1 if (D > 0 & D != .)
+replace D = 1 if (D > 0 & D != .) //0 changes
 sum D
 tab D R, col
 
