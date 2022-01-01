@@ -4,11 +4,11 @@
 
 clear all
 set more off
-global master_path			"/Users/andres/Dropbox/TOPI"
+global master_path			"/Users/ckim/Dropbox/Research/TOPI"
 global code_path 			"${master_path}/do-ToPI"
 global data_raw		        "${master_path}/Original datasets"
 global data_working			"${master_path}/working"
-global out					"${master_path}/../Apps/Overleaf/ToPI/Results"
+global out					"${master_path}/../../Apps/Overleaf/ToPI/Results"
 global git_out				"${code_path}/output_backup"
 
 global covariates			m_age m_edu sibling m_iq black sex gestage mf
@@ -43,6 +43,10 @@ global parent_axis_range	-1.5(0.5)1.5
 set seed 2018
 
 *[UNMUTE THIS IF YOU DONT HAVE THE PROGRAM]
+*cd $code_path
+*ssc install estout, replace
+*ssc install ivreg2, replace
+*ssc install ranktest, replace
 *net install github, from("https://haghish.github.io/github/")
 *github install haghish/rcall, stable
 
@@ -86,111 +90,13 @@ cd "${code_path}/data_basic"
 *cd "${code_path}/data_basic"
 *	include "exploring_home" //Creates HS and Educ Weights CHANGE
 
-END OF DATA PREPARATION
 
 *AH May 18 2021 working on this:	
-cd "${code_path}/pile"			
+cd "${code_path}/analysis"			
 	include "pile_cog_prog_method"
+
+cd "${code_path}/analysis"
+	include "forChanwool"
 	
-asd	
-	
-	
-	cd "${code_path}/pile"			
-	include "pile_homevariants_prog_method"
-	
-* -------- * Charts * -------- *
-cd "${code_path}/pile"			
-	include "pile_prog_CI_chop"
-cd "${code_path}/pile"
-	include "pile_prog_chop_educ"
-cd "${code_path}/pile"
-	include "pile_prog_chop_poor"
-cd "${code_path}/pile"
-	include "pile_prog_educ"
-cd "${code_path}/pile"
-	include "pile_prog_poor"
-
-asd
-
-
-
-cd "${code_path}/pile"				//uses the -topi data
-	include "pile_prog_var_method" /*AH: original was treatment_outcome_pile */		
-cd "${code_path}/pile"
-	include "pile_prog_var_educ"
-cd "${code_path}/pile"
-	include "treatment_outcome_pile2" /*AH: original was treatment_outcome_pile */
-cd "${code_path}/pile"
-	include "treatment_homevideo_aggregate_pile" /*AH created this*/
-cd "${code_path}/pile"
-	include "treatment_home_aggregate_pile"	
-
-*AH JAN cd "${code_path}/pile"
-*AH JAN 	include "treatment_home_aggregate_substitution_pile" 
-	
-	*cd "${code_path}/pile"
-*	include "treatment_home_item_pile2" /* AH: original was treatment_home_item_pile2 */
-*cd "${code_path}/pile"
-*	include "treatment_parent_item_pile"
-*AH JAN cd "${code_path}/pile"
-*AH JAN 	include "treatment_noncognitive_aggregate_pile"
-*cd "${code_path}/pile"
-*	include "treatment_noncognitive_item_pile"
-*AH JAN cd "${code_path}/pile"
-*AH JAN 	include "treatment_home_comparison_pile"
-
-* ------------ * Homogenisation * ------------ *
-*cd "${code_path}/homogenisation" 	//AH: added to data creation
-*	include "data_homo"				// use data_raw Creates race and poverty variables. Should be in data creation.
-*cd "${code_path}/homogenisation" 
-*	include "data_merge_homo"		//Renames HOME variables. Should be in data creation.
-*cd "${code_path}/homogenisation" 
-*	include "data_table_homo"		//count by cells
-*cd "${code_path}/homogenisation"
-*	include "treatment_table_homo"	//creates weights
-*cd "${code_path}/homogenisation"
-*	include "treatment_home_aggregate_homo" 
-*cd "${code_path}/homogenisation"
-*	include "treatment_home_item_homo"
-*cd "${code_path}/homogenisation"
-*	include "treatment_home_comparison_homo"
-*cd "${code_path}/homogenisation"
-*	include "home_comparison_aggregate"
-
-* ----------- * Subpopulation * ----------- *
-/*
-cd "${code_path}/subpopulation"
-	include "data_subpop"	//this simply creates a commonnly coded race variable. Include it in data preparation codes!
-cd "${code_path}/subpopulation"
-	include "data_table_subpop" //this prepares a table of # of blacks, whites, poor, nonpoor
-cd "${code_path}/subpopulation"
-	include "treatment_home_aggregate_subpop" //chats w effects on HOME subscales by poverty/race
-cd "${code_path}/subpopulation"
-	include "treatment_homevideo_aggregate_subpop" //charts w scales on HOME + Video by poverty/race
-cd "${code_path}/subpopulation"
-	include "treatment_home_item_subpop"
-cd "${code_path}/subpopulation"
-	include "treatment_home_aggregate_vulnerable_subpop"
-cd "${code_path}/subpopulation"
-	include "treatment_outcome_vulnerable_subpop"
-*/
-
-/* Homogenisation + Subpopulation
-cd "${code_path}/homo_subpop"
-	include "data_table_homo_subpop"
-cd "${code_path}/homo_subpop"
-	include "treatment_home_aggregate_homo_subpop"
-cd "${code_path}/homo_subpop"
-	include "treatment_home_item_homo_subpop" */
-
-* ------- * Mediation * ------- *
-cd "${code_path}/mediation"
-	include "imputations" /* AH: Factors and Averages */
-cd "${code_path}/mediation"
-	include "treatment_home_outcome_mediation3" // Uses Month notation
-*cd "${code_path}/mediation"
-*	include "treatment_home_outcome_interaction" AH: This is for the subscales
-	
-* ------------ * By-Site (IHDP) * ------------ *
-*cd "${code_path}/by_site"
-*	include "treatment_ihdp_by_site"
+cd "${code_path}/analysis"
+*	include "IV_Chopped"
