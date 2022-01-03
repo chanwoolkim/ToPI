@@ -1,4 +1,3 @@
-rm(list=ls())
 start_time <- Sys.time()
 
 library(boot)
@@ -7,9 +6,6 @@ library(grf)
 library(tidyverse)
 library(xtable)
 
-data_dir <- "~/Dropbox/Research/TOPI/working/"
-output_dir <- "~/Dropbox/Research/TOPI/do-TOPI/output_backup/"
-output_overleaf <- "~/Dropbox/Apps/Overleaf/ToPI/Results/"
 seed <- 9657
 
 covariates_all <- c("m_iq", "black", "sex", "m_age", "m_edu_2", "m_edu_3", "sibling", "gestage", "mf")
@@ -103,7 +99,7 @@ causal_matrix <- function(df, output_var, program,
   
   output_estimates <- boot(data=df,
                            statistic=forest_boot,
-                           R=1000)
+                           R=10)
   
   pre_dr_p_value <- 2*pnorm(-output_estimates$t0[2]/output_estimates$t0[3])
   abc_p_value <- 2*pnorm(-output_estimates$t0[4]/sd(output_estimates$t[,4]))
@@ -191,11 +187,13 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
 
 ehscenter <- ehscenter %>%
   mutate(caregiver_home=caregiver_ever,
-         D=D_18)
+         D=D_18,
+         alt=P_18)
 
 ehsmixed_center <- ehsmixed_center %>%
   mutate(caregiver_home=caregiver_ever,
-         D=D_18)
+         D=D_18,
+         alt=P_18)
 
 ehscenter_output <- c("ppvt3y")
 ehsmixed_center_output <- c("ppvt3y")

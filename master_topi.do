@@ -8,6 +8,7 @@ global master_path			"/Users/ckim/Dropbox/Research/TOPI"
 global code_path 			"${master_path}/do-ToPI"
 global data_raw		        "${master_path}/Original datasets"
 global data_working			"${master_path}/working"
+**# Bookmark #1
 global out					"${master_path}/../../Apps/Overleaf/ToPI/Results"
 global git_out				"${code_path}/output_backup"
 
@@ -100,3 +101,10 @@ cd "${code_path}/analysis"
 	
 cd "${code_path}/analysis"
 *	include "IV_Chopped"
+
+cd "${code_path}/analysis"
+rcall : rm(list=ls())
+rcall : data_dir <- "${data_working}/"
+rcall : output_dir <- "${git_out}/"
+rcall : output_overleaf <- "${out}/"
+rcall : source("causal_forest.R")

@@ -49,6 +49,8 @@ foreach num of numlist 1 6 12 18 {
 use "ehs_mixed_center-topi", clear
 su
 
+cd $git_out
+
 rename caregiver_ever caregiver_home
  
 * Basic Data Clean-Up
@@ -181,7 +183,6 @@ sort hhid
 
 * Chopping Line
 keep if `chop'
-save ehs_data, replace
 
 * EHS Types
 gen None  = (treat_choice==1)

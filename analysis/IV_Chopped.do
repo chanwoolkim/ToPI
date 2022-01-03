@@ -4,12 +4,14 @@
 *center any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months ///
 *D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt1 alt2
 
+global master_path			"/Users/andres/Dropbox/TOPI"
+global data_working			"${master_path}/working"
 cd $data_working
 
 *****************************************
 *** Data Experiments with Full Sample ***
 *****************************************
-matrix A=J(50,10,.)
+matrix A=J(41,10,.)
 matrix colnames A = "HomeEHS" "Chop B" "Chop Ed" "Months" "b_N" "p" "b_P" p CD MinCD
 matrix rownames A = "R_Pr" "R_Pr" "R_Pr" "R_Pr" ///
 					"R_Pr" "R_Pr" "R_Pr" "R_Pr" ///	
@@ -431,6 +433,24 @@ ivreg2 ppvt3 (N_6 P_6   = cc_price_relative R)	i.program_type if $chop //CD=1.6 
 ivreg2 ppvt3 (N_12 P_12 = cc_price_relative R)	i.program_type if $chop //CD=2.9 original CD=10/7	N=354
 ivreg2 ppvt3 (N_18 P_18 = cc_price_relative R)	i.program_type if $chop //CD=0 	 original CD=12/7	N=354
 
+
+
+
+ivreg2 ppvt3 (N_1 P_1   = cc_price_relative R)	i.program_type if $chop & program_type!=2
+ivreg2 ppvt3 (N_6 P_6   = cc_price_relative R)	i.program_type if $chop & program_type!=2 
+ivreg2 ppvt3 (N_12 P_12 = cc_price_relative R)	i.program_type if $chop & program_type!=2 
+ivreg2 ppvt3 (N_18 P_18 = cc_price_relative R)	i.program_type if $chop & program_type!=2 
+
+ivreg2 ppvt3 (N_6 P_6   = cc_price_relative R)	m_iq m_age i.program_type if $chop & program_type!=2 
+ivreg2 ppvt3 (N_12 P_12 = cc_price_relative R)	m_iq m_age i.program_type if $chop & program_type!=2 
+ivreg2 ppvt3 (N_18 P_18 = cc_price_relative R)	m_iq m_age i.program_type if $chop & program_type!=2 
+
+ivreg2 ppvt3 (N_18 P_18 = cc_price_relative R)	m_iq m_age i.program_type if black==1 
+
+
+
+
+
 * No program type
 ivreg2 ppvt3 (D_6 P_6   = cc_price_relative R) if $chop	//CD=2.3/7
 ivreg2 ppvt3 (D_12 P_12 = cc_price_relative R) if $chop	//CD=3.8/7
@@ -525,7 +545,20 @@ matrix A[`r',9]=e(cdf)
 matrix A[`r',10]=5.5
 local r=`r'+1
 }
+cd /Users/Andres/Dropbox/Apps/Overleaf/ToPI/Results
+
 matrix list A, format( %9.2g)
+
+matrix A1=A[1...,1..4]
+matrix list A1
+matrix A2=A[1...,5...]
+matrix list A2
+
+frmttable using IV_Chopped, statmat(A1) sdec(0) replace tex
+frmttable using IV_Chopped, statmat(A2) sdec(2) merge   tex 
+
+
+
 
 																					//CD's:	Chopped 	Original	N	Black CD
 ivreg2 ppvt3 (N_1 P_1   = cc_price_relative R R_inter_type2)	i.program_type if black==1 	//CD=0					354		1.7
@@ -548,6 +581,57 @@ ivreg2 ppvt3 (D_12 = R) if (m_edu_HS==1|medulessHS==1) & black==1 //.69
 ************
 *** HULL ***
 ************
+matrix colnames B = "HomeEHS" "Chop B" "Chop Ed" "Months" "b_N" "p" "b_P" p CD MinCD
+matrix B=J(4,10,.)
+gen inter_Z=cc_price_relative*R
+local r=1
+foreach n in 1 6 12 18{
+ivreg2 ppvt3 (N_`n' P_`n' = inter_Z R) cc_price_relative i.program_type
+matrix B[`r',1]=1
+matrix B[`r',2]=0
+matrix B[`r',3]=0
+matrix B[`r',4]=`n'
+matrix B[`r',5]=_b[N_]
+matrix B[`r',6]=2*ttail(e(N),abs(_b[N_]/_se[N_]))
+matrix B[`r',7]=_b[P_]
+matrix B[`r',8]=2*ttail(e(N),abs(_b[P_]/_se[P_]))
+matrix B[`r',9]=e(cdf) 
+matrix B[`r',10]=3.63
+local r=`r'+1
+}
+matrix list B, format( %9.2g)
+
+
+asd meeting
+
+ivreg2 ppvt3 (N_6 P_6 = inter_Z R) 		cc_price_relative i.program_type if program_type!=2 & $chop
+ivreg2 ppvt3 (N_12 P_12 = inter_Z R) 	cc_price_relative i.program_type if program_type!=2 & $chop
+ivreg2 ppvt3 (N_18 P_18 = inter_Z R) 	cc_price_relative i.program_type if program_type!=2 & $chop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 rename P_* C_*
 
 *1 Not Chopping
