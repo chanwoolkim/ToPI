@@ -99,7 +99,7 @@ causal_matrix <- function(df, output_var, program,
   
   output_estimates <- boot(data=df,
                            statistic=forest_boot,
-                           R=10)
+                           R=1000)
   
   pre_dr_p_value <- 2*pnorm(-output_estimates$t0[2]/output_estimates$t0[3])
   abc_p_value <- 2*pnorm(-output_estimates$t0[4]/sd(output_estimates$t[,4]))
