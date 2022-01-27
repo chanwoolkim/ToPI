@@ -4,11 +4,10 @@
 
 clear all
 set more off
-global master_path			"/Users/ckim/Dropbox/Research/TOPI"
+global master_path			"~/Dropbox/Research/TOPI"
 global code_path 			"${master_path}/do-ToPI"
 global data_raw		        "${master_path}/Original datasets"
 global data_working			"${master_path}/working"
-**# Bookmark #1
 global out					"${master_path}/../../Apps/Overleaf/ToPI/Results"
 global git_out				"${code_path}/output_backup"
 
