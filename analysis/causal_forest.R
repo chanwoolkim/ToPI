@@ -5,6 +5,17 @@ library(DiagrammeR)
 library(grf)
 library(tidyverse)
 library(xtable)
+library(textables)
+library(doParallel)
+library(doSNOW)
+library(snow)
+library(doMPI)
+library(Rmpi)
+library(foreach)
+
+nw <- mpi.universe.size()-1
+my_workers <- parallel::makeCluster(nw, type="MPI")
+registerDoParallel(my_workers)
 
 seed <- 9657
 
@@ -99,7 +110,8 @@ causal_matrix <- function(df, output_var, program,
   
   output_estimates <- boot(data=df,
                            statistic=forest_boot,
-                           R=1000)
+                           R=1000,
+                           parallel="snow")
   
   pre_dr_p_value <- 2*pnorm(-output_estimates$t0[2]/output_estimates$t0[3])
   abc_p_value <- 2*pnorm(-output_estimates$t0[4]/sd(output_estimates$t[,4]))
