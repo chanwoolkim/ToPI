@@ -1,0 +1,29 @@
+% created using textables on Thu Jul 14 02:31:12 PM 2022
+\begin{tabular}{lccccccc}
+\toprule 
+\midrule 
+\multicolumn{2}{c}{} & \multicolumn{3}{c}{ITT} & \multicolumn{3}{c}{LATE} \\
+ \cmidrule(lr){3-5} \cmidrule(lr){6-8} 
+Sample/Description & Obs & OLS & \multicolumn{2}{c}{Causal Forest} & 2SLS & \multicolumn{2}{c}{Instrumental Forest} \\
+\multicolumn{3}{c}{} & $f_X$ & $f_X^{\text{ABC}}$ &  & $f_X$ & $f_X^{\text{ABC}}$ \\
+\midrule 
+ &  & \multicolumn{6}{c}{Programme: EHS, Center $+$ Mixed} \\
+ \cmidrule(lr){3-8} 
+Full/All Xs & 773 & 0.135** & 0.128* & 0.183** & 0.390*** & 0.374*** & 0.712*** \\
+ &  & (0.067) & (0.070) & (0.078) & (0.149) & (0.143) & (0.188) \\
+Full/Key Xs & 773 & 0.130* & 0.134* & 0.114 & 0.463*** & 0.412*** & 0.432*** \\
+ &  & (0.069) & (0.073) & (0.076) & (0.155) & (0.141) & (0.154) \\
+Chopped/Key Xs & 242 & 0.256** & 0.255** & 0.287*** & 0.735*** & 0.728*** & 0.792*** \\
+ &  & (0.101) & (0.109) & (0.097) & (0.253) & (0.237) & (0.207) \\
+\midrule 
+ &  & \multicolumn{6}{c}{Programme: EHS, Center Only} \\
+ \cmidrule(lr){3-8} 
+Full/All Xs & 370 & 0.175* & 0.154 & 0.294*** & 0.613*** & 0.647*** & 1.046*** \\
+ &  & (0.095) & (0.098) & (0.109) & (0.168) & (0.164) & (0.258) \\
+Full/Key Xs & 370 & 0.172* & 0.150 & 0.182* & 0.663*** & 0.589*** & 0.596*** \\
+ &  & (0.096) & (0.104) & (0.103) & (0.172) & (0.166) & (0.178) \\
+Chopped/Key Xs & 109 & 0.514*** & 0.483*** & 0.473*** & 1.279*** & 1.206*** & 1.236*** \\
+ &  & (0.142) & (0.149) & (0.136) & (0.336) & (0.334) & (0.329) \\
+\midrule 
+\bottomrule 
+\end{tabular}
