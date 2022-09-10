@@ -128,11 +128,11 @@ restore
 
 save ehs-full-topi, replace
 
-asd
 
 
 
-/*
+
+
 * IHDP
 use "ihdp-renamed-items.dta", clear
 
@@ -185,63 +185,6 @@ caregiver_home cc_payments_site income_site cc_price_relative ppvt3y sb3y hs H c
 outsheet using ihdp-topi.csv, comma nolabel replace			//for Chanwool/Athey
 save ihdp-juan, replace								//for Juan: few variables
 save ihdp-topi, replace
-*/
-
-
-use "abc-topi.dta", clear
-cap drop hs
-cap drop H
-cap drop twin
-cap drop ww
-
-tab poverty // 102 12 (poverty=1-->nonpoor)
-tab m_ed     // 77 35 4
-		gen hs=.
-		replace hs=1 if m_ed==1|m_ed==2
-		replace hs=2 if m_ed==3
-
-gen H=.
-replace H = 6000/6000 if D==1  // 50 weeks/year, 40 hours per week
-replace H=0 if D==0
-
-gen twin=0
-	
-save, replace
-
-cd "$data_working"
-use "abc-topi.dta", clear
-gen ww=1
-save,replace
-
-*Counts in ABC
-count if hs==1 & bw>2000 & black==1
-local hs1_abc=r(N)
-count if hs==2 & bw>2000 & black==1
-local hs2_abc=r(N)
-local hs1_rate_abc= `hs1_abc'/(`hs1_abc' + `hs2_abc')
-local hs2_rate_abc= `hs2_abc'/(`hs1_abc' + `hs2_abc')
-di "Proportion of Families with HS completed in ABC: `hs1_rate_abc'"
-
-foreach data in ihdp ehscenter ehs_mixed_center{
-use "`data'-topi.dta", clear
-if "`data'"=="ihdp" drop if missing(pag)
-if "`data'"=="ihdp" drop if twin==1
-if "`data'"=="ihdp" drop if pag==0  //drops the second twin
-count if hs==1 & bw>2000 & black==1
-local hs1_`data'=r(N)
-count if hs==2 & bw>2000 & black==1
-local hs2_`data'=r(N)
-local hs1_rate_`data'= `hs1_`data''/(`hs1_`data'' + `hs2_`data'')
-local hs2_rate_`data'= `hs2_`data''/(`hs1_`data'' + `hs2_`data'')
-di "Proportion of Families with HS completed in `data': `hs1_rate_`data''"
-
-*gen ww=.
-*replace ww= `hs1_rate_abc'/`hs1_rate_`data'' if hs==1
-*replace ww= `hs2_rate_abc'/`hs2_rate_`data'' if hs==2
-
-save, replace
-}
-
 
 
 

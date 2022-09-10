@@ -384,7 +384,7 @@ save "ehs-preschools.dta", replace
 
 
 
-/*
+
 *--------------------------------------------------*
 * III. IHDP CENTER CARE and PROGRAM PARTICIPATION  *
 *--------------------------------------------------*
@@ -458,7 +458,7 @@ rename D center_ihdp
 keep id center part center_ihdp ihdp_months alt_months
 cd "$data_working"
 save "ihdp-preschools.dta", replace
-*/
+
 *--------*
 * IV ABC *
 *--------*
