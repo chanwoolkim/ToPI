@@ -11,18 +11,8 @@ library(RColorBrewer)
 library(ggplot2)
 library(xtable)
 library(textables)
-library(doParallel)
-library(doSNOW)
-library(snow)
-library(doMPI)
-library(Rmpi)
-library(foreach)
 
-nw <- mpi.universe.size()-1
-my_workers <- parallel::makeCluster(nw, type="MPI")
-registerDoParallel(my_workers)
-
-seed <- 9657
+seed <- 2022
 
 data_dir <- "~/Dropbox/Research/TOPI/working/"
 output_dir <- "~/Dropbox/Apps/Overleaf/ToPI/EHStoABC/Results/"
@@ -159,7 +149,7 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
   output_estimates <- boot(data=df_from,
                            statistic=forest_boot,
                            R=1000,
-                           parallel="snow")
+                           parallel="multicore")
   
   pre_dr_p_value <- 2*pnorm(-pre_dr_estimate/pre_dr_se)
   to_p_value <- 2*pnorm(-output_estimates$t0/sd(output_estimates$t))
@@ -253,6 +243,35 @@ regression_matrix <- function(df, program,
   return(output)
 }
 
+# Type Prevalence
+type_prevalence <- function(df, program, chopped) {
+  df <- clean_data(df, chopped)
+  N <- count(df)$n
+  df_stats <- df %>%
+    transmute(none=(D==0 & alt==0),
+              participate=D==1,
+              other=(D==0 & alt==1),
+              R)
+  
+  stats_1 <- df_stats %>%
+    filter(R==1) %>%
+    summarise(p_nn=mean(none, na.rm=TRUE),
+              p_cc=mean(other, na.rm=TRUE))
+  stats_0 <- df_stats %>%
+    filter(R==0) %>%
+    summarise(p_hh=mean(participate, na.rm=TRUE),
+              p_nh=mean(none, na.rm=TRUE),
+              p_ch=mean(other, na.rm=TRUE))
+  stats <- cbind(stats_1, stats_0) %>%
+    mutate(p_nh=p_nh-p_nn,
+           p_ch=p_ch-p_cc,
+           nh_share=p_nh/(p_nh+p_ch),
+           program=program,
+           N=N) %>%
+    select(program, N, p_nh, p_ch, nh_share, p_hh, p_cc, p_nn)
+  return(stats)
+}
+
 
 # Execute! ####
 # Load data
@@ -267,9 +286,11 @@ for (p in programs_ehs) {
 }
 
 abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
-  mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
+  mutate(D=D_18,
+         alt=P_18,
+         m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
          m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA),
-         alt=1, caregiver_home=1) %>%
+         caregiver_home=1) %>%
   rename(iq=sb3y)
 
 ehscenter <- ehscenter %>%
@@ -288,6 +309,7 @@ causal_output <- data.frame()
 instrumental_output <- data.frame()
 variable_importance_output <- data.frame()
 regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant"))
+prevalence_output <- data.frame()
 
 for (p in programs_ehs) {
   causal_output <- bind_rows(causal_output,
@@ -365,6 +387,13 @@ for (p in programs_ehs) {
                                  by="variable")
 }
 
+for (p in programs) {
+  prevalence_output <- bind_rows(prevalence_output,
+                                 type_prevalence(get(p), p, chopped=FALSE))
+  prevalence_output <- bind_rows(prevalence_output,
+                                 type_prevalence(get(p), p, chopped=TRUE))
+}
+
 
 # Output to LaTeX tables ####
 # Forest output
@@ -423,6 +452,45 @@ tab <- forest_tex(causal_output, instrumental_output)
 TS(tab, file="forest_base", header=c('l', rep('c', 7)),
    output_path=output_dir, stand_alone=FALSE)
 TS(tab, file="forest_base", header=c('l', rep('c', 7)),
+   output_path=output_git, stand_alone=FALSE)
+
+# Type prevalence output
+prevalence_tex <- function(prevalence_result) {
+  row_tr <- function(row) {
+    out <- TR(prevalence_result[row, 2:8] %>% as.numeric(),
+              dec=c(0, rep(3, 6)))
+    return(out)
+  }
+  
+  tab <- TR(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
+    midrulep(list(c(3, 4), c(6, 8))) +
+    TR(c("Sample", "Obs",
+         "$p_{nh}", "$p_{ch}", "$nh$-share", "$p_{hh}", "$p_{cc}", "$p_{nn}")) +
+    midrule() +
+    textables::`%:%`(TR(c(NA)),
+                     TR(c("", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 6))) +
+    midrulep(list(c(3, 8))) +
+    textables::`%:%`(TR("Full"), row_tr(1)) +
+    textables::`%:%`(TR("Chopped"), row_tr(2)) +
+    midrule() +
+    textables::`%:%`(TR(c(NA)),
+                     TR(c("", "Programme: EHS, Center Only"), cspan=c(1, 6))) +
+    midrulep(list(c(3, 8))) +
+    textables::`%:%`(TR("Full"), row_tr(3)) +
+    textables::`%:%`(TR("Chopped"), row_tr(4)) +
+    midrule() +
+    textables::`%:%`(TR(c(NA)),
+                     TR(c("", "Programme: ABC"), cspan=c(1, 6))) +
+    midrulep(list(c(3, 8))) +
+    textables::`%:%`(TR("Full"), row_tr(5)) +
+    textables::`%:%`(TR("Chopped"), row_tr(6))
+  return(tab)
+}
+
+tab <- prevalence_tex(prevalence_output)
+TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
+   output_path=output_dir, stand_alone=FALSE)
+TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
    output_path=output_git, stand_alone=FALSE)
 
 end_time <- Sys.time()
