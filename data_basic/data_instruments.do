@@ -81,10 +81,10 @@ foreach y in 1 2 3 {
 	save `instruments`y''
 }
 
-merge 1:1 id using `instruments2', nogen nolabel keep(match)
-merge 1:1 id using `instruments1', nogen nolabel keep(match)
+merge 1:1 id using `instruments2', nogen nolabel
+merge 1:1 id using `instruments1', nogen nolabel
 cd "$data_working"
-merge 1:1 id using ehs-labor, nogen nolabel keep(match)
+merge 1:1 id using ehs-labor, nogen nolabel
 
 ** Creating summary variables **
 
@@ -167,8 +167,7 @@ reg main_informal caregiver_ever couple3 // +8%
 
 * Merge sitenum
 cd "${data_raw}/Harvard Dataverse Sensitive Original Data/baseline"
-merge 1:1 id using "00097_Early_Head_Start_ehs_sites.dta"
-drop _merge
+merge 1:1 id using "00097_Early_Head_Start_ehs_sites.dta", nogen nolabel
 
 egen cc_payments_site=mean(weekly_cc_pay), by(sitenum)
 egen income_site=mean(labor_hh_inc60), by(sitenum)

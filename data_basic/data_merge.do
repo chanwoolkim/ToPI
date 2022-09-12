@@ -8,12 +8,12 @@ clear all
 * -------------- *
 * Early Head Start
 cd "$data_working"
-use "ehs-control.dta", clear
+use "ehs-participation.dta", clear
 
-merge 1:1 id using ehs-labor, nogen nolabel keep(match)
-merge 1:1 id using ehs-instruments, nogen nolabel keep(match)
-merge 1:1 id using ehs-participation, nogen nolabel keep(match)
-merge 1:1 id using ehs-outcome, nogen nolabel keep(match)
+merge 1:1 id using ehs-control, nogen nolabel
+merge 1:1 id using ehs-labor, nogen nolabel
+merge 1:1 id using ehs-instruments, nogen nolabel
+merge 1:1 id using ehs-outcome, nogen nolabel
 
 *Create minimal datasets
 keep id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt program_type sitenum ///
@@ -56,11 +56,11 @@ save ehs-full-topi, replace
 * Abecedarian
 
 cd "$data_working"
-use "abc-control.dta", clear
+use "abc-participation.dta", clear
 
-merge 1:1 id using abc-labor, nogen nolabel keep(match)
-merge 1:1 id using abc-participation, nogen nolabel keep(match)
-merge 1:1 id using abc-outcome, nogen nolabel keep(match)
+merge 1:1 id using abc-control, nogen nolabel
+merge 1:1 id using abc-labor, nogen nolabel
+merge 1:1 id using abc-outcome, nogen nolabel
 
 keep id R sb* $covariates bw poverty ///
 D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18

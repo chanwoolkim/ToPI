@@ -73,7 +73,7 @@ tempfile ehs_PI3
 save `ehs_PI3'
 
 use "00097_Early_Head_Start_B2P_ruf.dta", clear
-merge 1:1 id using `ehs_PI3'
+merge 1:1 id using `ehs_PI3', nogen nolabel
 
 * Which arrangements are centers
 gen center_extra=0
@@ -125,7 +125,7 @@ tempfile ehs_PI2
 save `ehs_PI2'
 
 use "00097_Early_Head_Start_B1P_ruf.dta", clear
-merge 1:1 id using `ehs_PI2'
+merge 1:1 id using `ehs_PI2', nogen nolabel
 
 gen center_extra=0
 replace center_extra=1 if b1p405a1==6
@@ -185,7 +185,7 @@ save `ehs_PI_participation'
 cd "$data_raw"
 use "std-ehs.dta", clear
 
-merge 1:1 id using `ehs_PI_participation'
+merge 1:1 id using `ehs_PI_participation', nogen nolabel
 
 rename center_used6m center_care6m
 label values center_care6m dummy
