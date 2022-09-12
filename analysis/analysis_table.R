@@ -1,11 +1,9 @@
-rm(list=ls())
 start_time <- Sys.time()
 
 library(boot)
 library(DiagrammeR)
 library(grf)
 library(ivreg)
-library(glmnet)
 library(tidyverse)
 library(RColorBrewer)
 library(ggplot2)
@@ -13,10 +11,6 @@ library(xtable)
 library(textables)
 
 seed <- 2022
-
-data_dir <- "~/Dropbox/Research/TOPI/working/"
-output_dir <- "~/Dropbox/Apps/Overleaf/ToPI/EHStoABC/Results/"
-output_git <- "~/Dropbox/Research/TOPI/do-ToPI/output_backup/"
 
 fte_theme <- function() {
   # Generate the colours for the chart procedurally with RColorBrewer
