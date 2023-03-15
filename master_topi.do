@@ -56,3 +56,4 @@ rcall : data_dir <- "${data_working}/"
 rcall : output_dir <- "${out}/"
 rcall : output_git <- "${git_out}/"
 rcall : source("analysis_table.R")
+rcall : source("analysis_grpah.R")

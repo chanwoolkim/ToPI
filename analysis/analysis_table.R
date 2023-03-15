@@ -9,47 +9,18 @@ library(RColorBrewer)
 library(ggplot2)
 library(xtable)
 library(textables)
+library(doParallel)
+library(doSNOW)
+library(snow)
+library(doMPI)
+library(Rmpi)
+library(foreach)
+
+nw <- mpi.universe.size()-1
+my_workers <- parallel::makeCluster(nw, type="MPI")
+registerDoParallel(my_workers)
 
 seed <- 2022
-
-fte_theme <- function() {
-  # Generate the colours for the chart procedurally with RColorBrewer
-  palette <- brewer.pal("Greys", n=9)
-  color.background="white"
-  color.grid.major=palette[3]
-  color.axis.text=palette[7]
-  color.axis.title=palette[7]
-  color.title=palette[9]
-  
-  # Begin construction of chart
-  theme_bw(base_size=12, base_family="serif") +
-    
-    # Set the entire chart region to a light gray color
-    theme(panel.background=element_rect(fill=color.background, color=color.background)) +
-    theme(plot.background=element_rect(fill=color.background, color=color.background)) +
-    theme(panel.border=element_rect(color=color.background)) +
-    
-    # Format the grid
-    theme(panel.grid.major=element_line(color=color.grid.major,size=.25)) +
-    theme(panel.grid.minor=element_blank()) +
-    theme(axis.ticks=element_blank()) +
-    
-    # Format the legend
-    theme(legend.position="bottom") +
-    theme(legend.background=element_rect(fill=color.background)) +
-    theme(legend.title=element_blank()) +
-    theme(legend.text=element_text(size=14, color=color.axis.title, family="serif")) +
-    theme(legend.box.background=element_rect(colour=color.grid.major)) +
-    theme(legend.title.align=0.5) +
-    
-    # Set title and axis labels, and format these and tick marks
-    theme(axis.text=element_text(size=rel(1), color=color.axis.text)) +
-    theme(axis.title.x=element_text(color=color.axis.title, vjust=0)) +
-    theme(axis.title.y=element_text(color=color.axis.title, vjust=1.25)) +
-    
-    # Plot margins
-    theme(plot.margin=unit(c(0.35, 0.2, 0.3, 0.35), "cm"))
-}
 
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
@@ -143,7 +114,7 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
   output_estimates <- boot(data=df_from,
                            statistic=forest_boot,
                            R=1000,
-                           parallel="multicore")
+                           parallel="snow")
   
   pre_dr_p_value <- 2*pnorm(-pre_dr_estimate/pre_dr_se)
   to_p_value <- 2*pnorm(-output_estimates$t0/sd(output_estimates$t))
@@ -280,8 +251,8 @@ for (p in programs_ehs) {
 }
 
 abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
-  mutate(D=D_18,
-         alt=P_18,
+  mutate(D=D_12,
+         alt=P_12,
          m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
          m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA),
          caregiver_home=1) %>%
@@ -289,13 +260,13 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
 
 ehscenter <- ehscenter %>%
   mutate(caregiver_home=caregiver_ever,
-         D=D_18,
-         alt=P_18)
+         D=D_12,
+         alt=P_12)
 
 ehsmixed_center <- ehsmixed_center %>%
   mutate(caregiver_home=caregiver_ever,
-         D=D_18,
-         alt=P_18)
+         D=D_12,
+         alt=P_12)
 
 # Build all output
 # Base case
@@ -447,6 +418,12 @@ TS(tab, file="forest_base", header=c('l', rep('c', 7)),
    output_path=output_dir, stand_alone=FALSE)
 TS(tab, file="forest_base", header=c('l', rep('c', 7)),
    output_path=output_git, stand_alone=FALSE)
+write.csv(causal_output,
+          file=paste0(output_git, "causal_output.csv"),
+          row.names=FALSE)
+write.csv(instrumental_output,
+          file=paste0(output_git, "instrumental_output.csv"),
+          row.names=FALSE)
 
 # Type prevalence output
 prevalence_tex <- function(prevalence_result) {
@@ -486,6 +463,9 @@ TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
    output_path=output_dir, stand_alone=FALSE)
 TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
    output_path=output_git, stand_alone=FALSE)
+write.csv(prevalence_output,
+          file=paste0(output_git, "prevalence_output.csv"),
+          row.names=FALSE)
 
 end_time <- Sys.time()
 end_time-start_time
