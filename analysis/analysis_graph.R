@@ -103,7 +103,7 @@ sublate_ehscenter_mixed <-
         sublate_estimate(prevalence_output$nh_share[2],
                          prevalence_output$nh_share[6],
                          instrumental_output$coefficient[3]) %>%
-          mutate(type="Chopped/Key Xs"))
+          mutate(type="Subsample/Key Xs"))
 
 gg_sublate_ehscenter_mixed <- graph_sublate(sublate_ehscenter_mixed)
 gg_sublate_ehscenter_mixed
@@ -136,7 +136,7 @@ sublate_ehscenter <-
         sublate_estimate(prevalence_output$nh_share[4],
                          prevalence_output$nh_share[6],
                          instrumental_output$coefficient[6]) %>%
-          mutate(type="Chopped/Key Xs"))
+          mutate(type="Subsample/Key Xs"))
 
 gg_sublate_ehscenter <- graph_sublate(sublate_ehscenter)
 gg_sublate_ehscenter

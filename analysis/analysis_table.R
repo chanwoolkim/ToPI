@@ -30,7 +30,7 @@ covariates_short <- c("m_iq", "m_age")
 
 # Function to create data frame for output estimates ####
 # Input for the program of interest
-clean_data <- function(df, chopped) {
+clean_data <- function(df, subsample) {
   df_output <- df %>%
     filter(!is.na(iq),
            !is.na(D),
@@ -39,7 +39,7 @@ clean_data <- function(df, chopped) {
            !is.na(caregiver_home),
            m_edu %in% c(1, 2, 3))
   
-  if (chopped) {
+  if (subsample) {
     df_output <- df_output %>% filter(black==1, m_edu %in% c(1, 2))
   }
   
@@ -54,10 +54,10 @@ covariate_selection <- function(df, covariates_list) {
 
 # Causal matrix
 causal_matrix <- function(df_from, df_to, program_from, program_to,
-                          method="ITT", covariates_list=covariates_all, chopped=FALSE,
+                          method="ITT", covariates_list=covariates_all, subsample=FALSE,
                           honesty=FALSE, min.node.size=20) {
   
-  df_from <- clean_data(df_from, chopped)
+  df_from <- clean_data(df_from, subsample)
   N <- count(df_from) %>% as.numeric()
   X_from <- covariate_selection(df_from, covariates_list)
   W <- df_from$R
@@ -133,12 +133,12 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
                        pre_dr_p_value=pre_dr_p_value,
                        to_p_value=to_p_value)
   
-  if (chopped) {
+  if (subsample) {
     output <- output %>%
-      add_column(chopped="TRUE", .after="program_to")
+      add_column(subsample="TRUE", .after="program_to")
   } else {
     output <- output %>%
-      add_column(chopped="FALSE", .after="program_to")
+      add_column(subsample="FALSE", .after="program_to")
   }
   
   return(output)
@@ -146,9 +146,9 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
 
 # Variable importance can be run outside bootstrap
 variable_importance_matrix <- function(df, program,
-                                       covariates_list=covariates_all, chopped=FALSE,
+                                       covariates_list=covariates_all, subsample=FALSE,
                                        method="ITT", honesty=FALSE, min.node.size=5) {
-  df <- clean_data(df, chopped)
+  df <- clean_data(df, subsample)
   X <- covariate_selection(df, covariates_list)
   W <- df$R
   Y <- df$iq
@@ -170,15 +170,15 @@ variable_importance_matrix <- function(df, program,
                       by="covariate")
   result <- cbind(result,
                   data.frame(program=program,
-                             chopped=chopped,
+                             subsample=subsample,
                              method=method))
   return(result)
 }
 
 # Basic regression matrix
 regression_matrix <- function(df, program,
-                              method="ITT", covariates_list=covariates_all, chopped=FALSE) {
-  df_select <- clean_data(df, chopped)
+                              method="ITT", covariates_list=covariates_all, subsample=FALSE) {
+  df_select <- clean_data(df, subsample)
   
   # Fit the (IV) regression on the program of interest
   if (method=="ITT") {
@@ -209,8 +209,8 @@ regression_matrix <- function(df, program,
 }
 
 # Type Prevalence
-type_prevalence <- function(df, program, chopped) {
-  df <- clean_data(df, chopped)
+type_prevalence <- function(df, program, subsample) {
+  df <- clean_data(df, subsample)
   N <- count(df)$n
   df_stats <- df %>%
     transmute(none=(D==0 & alt==0),
@@ -261,12 +261,14 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
 ehscenter <- ehscenter %>%
   mutate(caregiver_home=caregiver_ever,
          D=D_12,
-         alt=P_12)
+         alt=P_12,
+         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
 
 ehsmixed_center <- ehsmixed_center %>%
   mutate(caregiver_home=caregiver_ever,
          D=D_12,
-         alt=P_12)
+         alt=P_12,
+         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
 
 # Build all output
 # Base case
@@ -324,39 +326,39 @@ for (p in programs_ehs) {
   causal_output <-
     bind_rows(causal_output,
               causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short, chopped=TRUE))
+                            covariates_list=covariates_short, subsample=TRUE))
   instrumental_output <-
     bind_rows(instrumental_output,
               causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short, chopped=TRUE,
+                            covariates_list=covariates_short, subsample=TRUE,
                             method="LATE"))
   variable_importance_output <-
     bind_rows(variable_importance_output,
               variable_importance_matrix(get(p), p,
                                          covariates_list=covariates_short,
-                                         chopped=TRUE))
+                                         subsample=TRUE))
   variable_importance_output <-
     bind_rows(variable_importance_output,
               variable_importance_matrix(get(p), p,
                                          covariates_list=covariates_short,
-                                         chopped=TRUE, method="LATE"))
+                                         subsample=TRUE, method="LATE"))
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p,
                                                    covariates_list=covariates_short,
-                                                   chopped=TRUE),
+                                                   subsample=TRUE),
                                  by="variable")
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p,
                                                    covariates_list=covariates_short,
-                                                   chopped=TRUE, method="LATE"),
+                                                   subsample=TRUE, method="LATE"),
                                  by="variable")
 }
 
 for (p in programs) {
   prevalence_output <- bind_rows(prevalence_output,
-                                 type_prevalence(get(p), p, chopped=FALSE))
+                                 type_prevalence(get(p), p, subsample=FALSE))
   prevalence_output <- bind_rows(prevalence_output,
-                                 type_prevalence(get(p), p, chopped=TRUE))
+                                 type_prevalence(get(p), p, subsample=TRUE))
 }
 
 
@@ -399,7 +401,7 @@ forest_tex <- function(causal_result, instrumental_result) {
     row_tr(1, se=TRUE) +
     textables::`%:%`(TR("Full/Key Xs"), row_tr(2)) +
     row_tr(2, se=TRUE) +
-    textables::`%:%`(TR("Chopped/Key Xs"), row_tr(3)) +
+    textables::`%:%`(TR("Subsample/Key Xs"), row_tr(3)) +
     row_tr(3, se=TRUE) + midrule() +
     textables::`%:%`(TR(c(NA)),
                      TR(c("", "Programme: EHS, Center Only"), cspan=c(1, 6))) +
@@ -408,7 +410,7 @@ forest_tex <- function(causal_result, instrumental_result) {
     row_tr(4, se=TRUE) +
     textables::`%:%`(TR("Full/Key Xs"), row_tr(5)) +
     row_tr(5, se=TRUE) +
-    textables::`%:%`(TR("Chopped/Key Xs"), row_tr(6)) +
+    textables::`%:%`(TR("Subsample/Key Xs"), row_tr(6)) +
     row_tr(6, se=TRUE)
   return(tab)
 }
@@ -436,25 +438,25 @@ prevalence_tex <- function(prevalence_result) {
   tab <- TR(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
     midrulep(list(c(3, 4), c(6, 8))) +
     TR(c("Sample", "Obs",
-         "$p_{nh}", "$p_{ch}", "$nh$-share", "$p_{hh}", "$p_{cc}", "$p_{nn}")) +
+         "$p_{nh}$", "$p_{ch}$", "$nh$-share", "$p_{hh}$", "$p_{cc}$", "$p_{nn}$")) +
     midrule() +
     textables::`%:%`(TR(c(NA)),
                      TR(c("", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 6))) +
     midrulep(list(c(3, 8))) +
     textables::`%:%`(TR("Full"), row_tr(1)) +
-    textables::`%:%`(TR("Chopped"), row_tr(2)) +
+    textables::`%:%`(TR("Subsample"), row_tr(2)) +
     midrule() +
     textables::`%:%`(TR(c(NA)),
                      TR(c("", "Programme: EHS, Center Only"), cspan=c(1, 6))) +
     midrulep(list(c(3, 8))) +
     textables::`%:%`(TR("Full"), row_tr(3)) +
-    textables::`%:%`(TR("Chopped"), row_tr(4)) +
+    textables::`%:%`(TR("Subsample"), row_tr(4)) +
     midrule() +
     textables::`%:%`(TR(c(NA)),
                      TR(c("", "Programme: ABC"), cspan=c(1, 6))) +
     midrulep(list(c(3, 8))) +
     textables::`%:%`(TR("Full"), row_tr(5)) +
-    textables::`%:%`(TR("Chopped"), row_tr(6))
+    textables::`%:%`(TR("Subsample"), row_tr(6))
   return(tab)
 }
 
