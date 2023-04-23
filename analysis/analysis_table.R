@@ -17,10 +17,10 @@ library(Rmpi)
 library(foreach)
 
 nw <- mpi.universe.size()-1
-my_workers <- parallel::makeCluster(nw, type="MPI")
+my_workers <- parallel::makeCluster(nw)
 registerDoParallel(my_workers)
 
-seed <- 2022
+seed <- 2023
 
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
@@ -279,21 +279,12 @@ regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant")
 prevalence_output <- data.frame()
 
 for (p in programs_ehs) {
+  start_time_p <- Sys.time()
+  
   causal_output <- bind_rows(causal_output,
                              causal_matrix(get(p), abc, p, "abc"))
   instrumental_output <- bind_rows(instrumental_output,
                                    causal_matrix(get(p), abc, p, "abc", method="LATE"))
-  variable_importance_output <- bind_rows(variable_importance_output,
-                                          variable_importance_matrix(get(p), p))
-  variable_importance_output <- bind_rows(variable_importance_output,
-                                          variable_importance_matrix(get(p), p,
-                                                                     method="LATE"))
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p, method="LATE"),
-                                 by="variable")
   
   causal_output <-
     bind_rows(causal_output,
@@ -304,24 +295,6 @@ for (p in programs_ehs) {
               causal_matrix(get(p), abc, p, "abc",
                             covariates_list=covariates_short,
                             method="LATE"))
-  variable_importance_output <-
-    bind_rows(variable_importance_output,
-              variable_importance_matrix(get(p), p,
-                                         covariates_list=covariates_short))
-  variable_importance_output <-
-    bind_rows(variable_importance_output,
-              variable_importance_matrix(get(p), p,
-                                         covariates_list=covariates_short,
-                                         method="LATE"))
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short, 
-                                                   method="LATE"),
-                                 by="variable")
   
   causal_output <-
     bind_rows(causal_output,
@@ -332,29 +305,15 @@ for (p in programs_ehs) {
               causal_matrix(get(p), abc, p, "abc",
                             covariates_list=covariates_short, subsample=TRUE,
                             method="LATE"))
-  variable_importance_output <-
-    bind_rows(variable_importance_output,
-              variable_importance_matrix(get(p), p,
-                                         covariates_list=covariates_short,
-                                         subsample=TRUE))
-  variable_importance_output <-
-    bind_rows(variable_importance_output,
-              variable_importance_matrix(get(p), p,
-                                         covariates_list=covariates_short,
-                                         subsample=TRUE, method="LATE"))
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short,
-                                                   subsample=TRUE),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short,
-                                                   subsample=TRUE, method="LATE"),
-                                 by="variable")
+  
+  end_time_p <- Sys.time()
+  print(paste0("Program ", p, ": ", end_time_p-start_time_p))
 }
 
 for (p in programs) {
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p),
+                                 by="variable")
   prevalence_output <- bind_rows(prevalence_output,
                                  type_prevalence(get(p), p, subsample=FALSE))
   prevalence_output <- bind_rows(prevalence_output,
@@ -425,6 +384,9 @@ write.csv(causal_output,
           row.names=FALSE)
 write.csv(instrumental_output,
           file=paste0(output_git, "instrumental_output.csv"),
+          row.names=FALSE)
+write.csv(regression_output,
+          file=paste0(output_git, "regression_output.csv"),
           row.names=FALSE)
 
 # Type prevalence output

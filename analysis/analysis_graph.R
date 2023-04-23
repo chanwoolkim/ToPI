@@ -88,7 +88,35 @@ graph_late_to <- function(result) {
 # Load data
 causal_output <- read.csv(paste0(output_git, "causal_output.csv"))
 instrumental_output <- read.csv(paste0(output_git, "instrumental_output.csv"))
+regression_output <- read.csv(paste0(output_git, "regression_output.csv"))
 prevalence_output <- read.csv(paste0(output_git, "prevalence_output.csv"))
+
+# ITT basic
+itt_results <- regression_output[1, c(2, 3, 6, 7, 10, 11)]
+itt_results <- data.frame(program=c("EHS, Center + Mixed",
+                                    "EHS, Center Only",
+                                    "ABC"),
+                          coef=itt_results[1, c(1, 3, 5)] %>% as.numeric(),
+                          se=itt_results[1, c(2, 4, 6)] %>% as.numeric()) %>%
+  mutate(ci_lower=coef-1.96*se,
+         ci_upper=coef+1.96*se)
+
+gg_itt_results <- ggplot(itt_results,
+                         aes(x=coef, y=program, group=1)) +
+  geom_errorbar(width=.1,
+                aes(xmin=ci_lower, xmax=ci_upper),
+                colour="red") +
+  geom_point(shape=21, size=5, fill="white", stroke=1) +
+  fte_theme() +
+  scale_x_continuous(name="Coefficients") +
+  scale_y_discrete(name="")
+gg_itt_results
+ggsave(plot=gg_itt_results,
+       file=paste0(output_dir, "itt_results.png"),
+       width=6, height=4)
+ggsave(plot=gg_itt_results,
+       file=paste0(output_git, "itt_results.png"),
+       width=6, height=4)
 
 # EHS Center-Mixed
 sublate_ehscenter_mixed <-
