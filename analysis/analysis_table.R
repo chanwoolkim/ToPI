@@ -1,4 +1,11 @@
+rm(list=ls())
+
 start_time <- Sys.time()
+
+wd <- paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/../..")
+data_dir <- paste0(wd, "/working/")
+output_dir <- paste0(wd, "/../../Apps/Overleaf/ToPI/EHStoABC/Results/")
+output_git <- paste0(wd, "/do-ToPI/output_backup/")
 
 library(boot)
 library(DiagrammeR)
@@ -8,7 +15,7 @@ library(tidyverse)
 library(RColorBrewer)
 library(ggplot2)
 library(xtable)
-library(textables)
+library(textab)
 library(doParallel)
 library(doSNOW)
 library(snow)
@@ -25,6 +32,8 @@ seed <- 2023
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
                     "sibling", "gestage", "mf")
+covariates_subsample_all <- c("m_iq", "sex", "m_age",
+                              "sibling", "gestage", "mf")
 covariates_short <- c("m_iq", "m_age")
 
 
@@ -278,7 +287,7 @@ variable_importance_output <- data.frame()
 regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant"))
 prevalence_output <- data.frame()
 
-for (p in programs_ehs) {
+for (p in programs) {
   start_time_p <- Sys.time()
   
   causal_output <- bind_rows(causal_output,
@@ -314,6 +323,40 @@ for (p in programs) {
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p),
                                  by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_short),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p, method="LATE"),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_short,
+                                                   method="LATE"),
+                                 by="variable")
+  
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_subsample_all,
+                                                   subsample=TRUE),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_short,
+                                                   subsample=TRUE),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_subsample_all,
+                                                   subsample=TRUE, method="LATE"),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates_list=covariates_short,
+                                                   subsample=TRUE, method="LATE"),
+                                 by="variable")
+  
   prevalence_output <- bind_rows(prevalence_output,
                                  type_prevalence(get(p), p, subsample=FALSE))
   prevalence_output <- bind_rows(prevalence_output,
@@ -324,67 +367,132 @@ for (p in programs) {
 # Output to LaTeX tables ####
 # Forest output
 forest_tex <- function(causal_result, instrumental_result) {
-  row_tr <- function(row, se=FALSE) {
+  row_tr <- function(row, se=FALSE, abc=FALSE) {
     if (se) {
-      out <- TR(c(NA, NA,
-                  causal_result[row, 9],
-                  causal_result[row, 10:11],
-                  instrumental_result[row, 9],
-                  instrumental_result[row, 10:11]) %>% as.numeric(), se=TRUE, dec=3)
+      if (abc) {
+        out <- TexRow(c(NA, NA,
+                        causal_result[row, 9:10], NA,
+                        instrumental_result[row, 9:10], NA) %>% as.numeric(), se=TRUE, dec=3)
+      } else{
+        out <- TexRow(c(NA, NA,
+                        causal_result[row, 9:11],
+                        instrumental_result[row, 9:11]) %>% as.numeric(), se=TRUE, dec=3) 
+      }
     } else {
-      out <- TR(c(causal_result[row, 4:5],
-                  causal_result[row, 7:8],
-                  instrumental_result[row, 5],
-                  instrumental_result[row, 7:8]) %>% as.numeric(),
-                pvalues=c(1,
-                          causal_result[row, 12],
-                          causal_result[row, 13:14],
-                          instrumental_result[row, 12],
-                          instrumental_result[row, 13:14]) %>% as.numeric(),
-                dec=c(0, rep(3, 6)))
+      if (abc) {
+        out <- TexRow(c(causal_result[row, c(4:5, 7)]) %>% as.numeric(),
+                      pvalues=c(1, causal_result[row, 12:13]) %>% as.numeric(),
+                      dec=c(0, rep(3, 2))) /
+          TexRow(c("-")) /
+          TexRow(c(instrumental_result[row, c(5,7)]) %>% as.numeric(),
+                 pvalues=c(instrumental_result[row, 12:13]) %>% as.numeric(),
+                 dec=3) /
+          TexRow(c("-"))
+      } else {
+        out <- TexRow(c(causal_result[row, c(4:5, 7:8)],
+                        instrumental_result[row, c(5, 7:8)]) %>% as.numeric(),
+                      pvalues=c(1,
+                                causal_result[row, 12:14],
+                                instrumental_result[row, 12:14]) %>% as.numeric(),
+                      dec=c(0, rep(3, 6)))
+      }
     }
     return(out)
   }
   
-  tab <- TR(c("", "ITT", "LATE"), cspan=c(2, 3, 3)) +
-    midrulep(list(c(3, 5), c(6, 8))) +
-    TR(c("Sample/Description", "Obs", "OLS", "Causal Forest", "2SLS", "Instrumental Forest"),
-       cspan=c(1, 1, 1, 2, 1, 2)) +
-    TR(c("", "$f_X$", "$f_X^{\\text{ABC}}$",
-         "", "$f_X$", "$f_X^{\\text{ABC}}$"),
-       cspan=c(3, 1, 1, 1, 1, 1)) + midrule() +
-    textables::`%:%`(TR(c(NA)),
-                     TR(c("", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 6))) +
-    midrulep(list(c(3, 8))) +
-    textables::`%:%`(TR("Full/All Xs"), row_tr(1)) +
-    row_tr(1, se=TRUE) +
-    textables::`%:%`(TR("Full/Key Xs"), row_tr(2)) +
-    row_tr(2, se=TRUE) +
-    textables::`%:%`(TR("Subsample/Key Xs"), row_tr(3)) +
-    row_tr(3, se=TRUE) + midrule() +
-    textables::`%:%`(TR(c(NA)),
-                     TR(c("", "Programme: EHS, Center Only"), cspan=c(1, 6))) +
-    midrulep(list(c(3, 8))) +
-    textables::`%:%`(TR("Full/All Xs"), row_tr(4)) +
-    row_tr(4, se=TRUE) +
-    textables::`%:%`(TR("Full/Key Xs"), row_tr(5)) +
-    row_tr(5, se=TRUE) +
-    textables::`%:%`(TR("Subsample/Key Xs"), row_tr(6)) +
-    row_tr(6, se=TRUE)
+  tab <- TexRow(c("", "ITT", "LATE"), cspan=c(2, 3, 3)) +
+    TexMidrule(list(c(3, 5), c(6, 8))) +
+    TexRow(c("Sample/Description", "Obs", "OLS", "Causal Forest", "2SLS", "Instrumental Forest"),
+           cspan=c(1, 1, 1, 2, 1, 2)) +
+    TexRow(c("", "$f_X$", "$f_X^{\\text{ABC}}$",
+             "", "$f_X$", "$f_X^{\\text{ABC}}$"),
+           cspan=c(3, 1, 1, 1, 1, 1)) + TexMidrule() +
+    TexRow(c("", "", "Program: EHS, Center $+$ Mixed"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full/All Xs") / row_tr(1) + row_tr(1, se=TRUE) +
+    TexRow("Full/Key Xs") / row_tr(2) + row_tr(2, se=TRUE) +
+    TexRow("Subsample/Key Xs") / row_tr(3) + row_tr(3, se=TRUE) + TexMidrule() +
+    TexRow(c("", "", "Program: EHS, Center Only"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full/All Xs") / row_tr(4) + row_tr(4, se=TRUE) +
+    TexRow("Full/Key Xs") / row_tr(5) + row_tr(5, se=TRUE) +
+    TexRow("Subsample/Key Xs") / row_tr(6) + row_tr(6, se=TRUE) + TexMidrule() +
+    TexRow(c("", "", "Program: ABC"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full/All Xs") / row_tr(7, abc=TRUE) + row_tr(7, se=TRUE, abc=TRUE) +
+    TexRow("Full/Key Xs") / row_tr(8, abc=TRUE) + row_tr(8, se=TRUE, abc=TRUE) +
+    TexRow("Subsample/Key Xs") / row_tr(9, abc=TRUE) + row_tr(9, se=TRUE, abc=TRUE)
   return(tab)
 }
 
 tab <- forest_tex(causal_output, instrumental_output)
-TS(tab, file="forest_base", header=c('l', rep('c', 7)),
-   output_path=output_dir, stand_alone=FALSE)
-TS(tab, file="forest_base", header=c('l', rep('c', 7)),
-   output_path=output_git, stand_alone=FALSE)
+TexSave(tab, filename="forest_base", positions=c('l', rep('c', 7)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="forest_base", positions=c('l', rep('c', 7)),
+        output_path=output_git, stand_alone=FALSE)
 write.csv(causal_output,
           file=paste0(output_git, "causal_output.csv"),
           row.names=FALSE)
 write.csv(instrumental_output,
           file=paste0(output_git, "instrumental_output.csv"),
           row.names=FALSE)
+
+# Regression output
+regression_tex <- function(regression_result) {
+  row_tr <- function(r_name, row, se=FALSE) {
+    if (se) {
+      out <- TexRow("") /
+        TexRow(regression_result[row, seq(3, 33, 4)] %>%
+                 as.numeric(), se=TRUE, dec=3)
+    } else {
+      out <- TexRow(r_name) /
+        TexRow(regression_result[row, seq(2, 33, 4)] %>% as.numeric(),
+               pvalues=c(replace_na(regression_result[row, seq(4, 33, 4)] %>%
+                                      as.numeric(), 1)), dec=3)
+    }
+    return(out)
+  }
+  
+  tab <- TexRow(c("", "Full", "Subsample"), cspan=c(1, 4, 4)) +
+    TexMidrule(list(c(2, 5), c(6, 9))) +
+    TexRow(c("", rep(c("OLS", "2SLS"), 2)), cspan=c(1, 2, 2, 2, 2)) +
+    TexMidrule(list(c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
+    TexRow("") / TexRow(1:8, surround="(%s)", dec=0) +
+    TexRow(c("", rep(c("All", "Short"), 4))) +
+    TexMidrule() +
+    row_tr("Received Offer", 1) + row_tr("R", 1, se=TRUE) +
+    row_tr("Participated", 2) + row_tr("R", 2, se=TRUE) +
+    row_tr("Mom IQ", 3) + row_tr("Mom IQ", 3, se=TRUE) +
+    row_tr("Black", 4) + row_tr("Black", 4, se=TRUE) +
+    row_tr("Sex", 5) + row_tr("Sex", 5, se=TRUE) +
+    row_tr("Mom Age", 6) + row_tr("Mom Age", 6, se=TRUE) +
+    row_tr("Mom Edu$=$HS", 7) + row_tr("Mom Edu$=$HS", 7, se=TRUE) +
+    row_tr("Mom Edu$>$HS", 8) + row_tr("Mom Edu$>$HS", 8, se=TRUE) +
+    row_tr("Sibling", 9) + row_tr("Sibling", 9, se=TRUE) +
+    row_tr("Gestational Age", 10) + row_tr("Gestational Age", 10, se=TRUE) +
+    row_tr("Father Home", 11) + row_tr("Father Home", 11, se=TRUE) +
+    row_tr("(Constant)", 12) + row_tr("(Constant)", 12, se=TRUE) +
+    TexMidrule() +
+    TexRow("Observation") /
+    TexRow(regression_result[12, seq(5, 33, 4)] %>% as.numeric(), dec=0)
+  return(tab)
+}
+
+tab <- regression_tex(regression_output[, 1:33])
+TexSave(tab, filename="regression_ehsmixed_center", positions=c('l', rep('c', 8)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="regression_ehsmixed_center", positions=c('l', rep('c', 8)),
+        output_path=output_git, stand_alone=FALSE)
+tab <- regression_tex(regression_output[, c(1, 34:65)])
+TexSave(tab, filename="regression_ehscenter", positions=c('l', rep('c', 8)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="regression_ehscenter", positions=c('l', rep('c', 8)),
+        output_path=output_git, stand_alone=FALSE)
+tab <- regression_tex(regression_output[, c(1, 66:97)])
+TexSave(tab, filename="regression_abc", positions=c('l', rep('c', 8)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="regression_abc", positions=c('l', rep('c', 8)),
+        output_path=output_git, stand_alone=FALSE)
 write.csv(regression_output,
           file=paste0(output_git, "regression_output.csv"),
           row.names=FALSE)
@@ -392,41 +500,34 @@ write.csv(regression_output,
 # Type prevalence output
 prevalence_tex <- function(prevalence_result) {
   row_tr <- function(row) {
-    out <- TR(prevalence_result[row, 2:8] %>% as.numeric(),
-              dec=c(0, rep(3, 6)))
+    out <- TexRow(prevalence_result[row, 2:8] %>% as.numeric(),
+                  dec=c(0, rep(3, 6)))
     return(out)
   }
   
-  tab <- TR(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
-    midrulep(list(c(3, 4), c(6, 8))) +
-    TR(c("Sample", "Obs",
-         "$p_{nh}$", "$p_{ch}$", "$nh$-share", "$p_{hh}$", "$p_{cc}$", "$p_{nn}$")) +
-    midrule() +
-    textables::`%:%`(TR(c(NA)),
-                     TR(c("", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 6))) +
-    midrulep(list(c(3, 8))) +
-    textables::`%:%`(TR("Full"), row_tr(1)) +
-    textables::`%:%`(TR("Subsample"), row_tr(2)) +
-    midrule() +
-    textables::`%:%`(TR(c(NA)),
-                     TR(c("", "Programme: EHS, Center Only"), cspan=c(1, 6))) +
-    midrulep(list(c(3, 8))) +
-    textables::`%:%`(TR("Full"), row_tr(3)) +
-    textables::`%:%`(TR("Subsample"), row_tr(4)) +
-    midrule() +
-    textables::`%:%`(TR(c(NA)),
-                     TR(c("", "Programme: ABC"), cspan=c(1, 6))) +
-    midrulep(list(c(3, 8))) +
-    textables::`%:%`(TR("Full"), row_tr(5)) +
-    textables::`%:%`(TR("Subsample"), row_tr(6))
+  tab <- TexRow(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
+    TexMidrule(list(c(3, 4), c(6, 8))) +
+    TexRow(c("Sample", "Obs",
+             "$p_{nh}$", "$p_{ch}$", "$nh$-share", "$p_{hh}$", "$p_{cc}$", "$p_{nn}$")) +
+    TexMidrule() +
+    TexRow(c("", "", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full") / row_tr(1) + TexRow("Subsample") / row_tr(2) + TexMidrule() +
+    TexRow(c("", "", "Programme: EHS, Center Only"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full") / row_tr(3) + TexRow("Subsample") / row_tr(4) +
+    TexMidrule() +
+    TexRow(c("", "", "Programme: ABC"), cspan=c(1, 1, 6)) +
+    TexMidrule(list(c(3, 8))) +
+    TexRow("Full") / row_tr(5) + TexRow("Subsample") / row_tr(6)
   return(tab)
 }
 
 tab <- prevalence_tex(prevalence_output)
-TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
-   output_path=output_dir, stand_alone=FALSE)
-TS(tab, file="type_prevalence", header=c('l', rep('c', 7)),
-   output_path=output_git, stand_alone=FALSE)
+TexSave(tab, filename="type_prevalence", positions=c('l', rep('c', 7)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="type_prevalence", positions=c('l', rep('c', 7)),
+        output_path=output_git, stand_alone=FALSE)
 write.csv(prevalence_output,
           file=paste0(output_git, "prevalence_output.csv"),
           row.names=FALSE)
