@@ -7,7 +7,7 @@ clear all
 set more off
 
 global master_path		"~/Dropbox/Research/TOPI"
-global code_path 		"${master_path}/do-ToPI"
+global code_path 		"${master_path}/code"
 global data_raw		    "${master_path}/Original datasets"
 global data_working		"${master_path}/working"
 global out				"${master_path}/../../Apps/Overleaf/ToPI/EHStoABC/Results"
