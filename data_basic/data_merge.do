@@ -50,6 +50,7 @@ outsheet using ehsmixed_center-topi.csv, comma nolabel replace
 save ehs_mixed_center-topi, replace
 restore
 
+outsheet using ehs-full-topi.csv, comma nolabel replace
 save ehs-full-topi, replace
 
 * --------- *

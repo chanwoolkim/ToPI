@@ -5,7 +5,7 @@ start_time <- Sys.time()
 wd <- paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/../..")
 data_dir <- paste0(wd, "/working/")
 output_dir <- paste0(wd, "/../../Apps/Overleaf/ToPI/EHStoABC/Results/")
-output_git <- paste0(wd, "/do-ToPI/output_backup/")
+output_git <- paste0(wd, "/code/output_backup/")
 
 library(boot)
 library(DiagrammeR)
@@ -27,7 +27,7 @@ nw <- mpi.universe.size()-1
 my_workers <- parallel::makeCluster(nw)
 registerDoParallel(my_workers)
 
-seed <- 2023
+seed <- 2024
 
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
@@ -63,7 +63,9 @@ covariate_selection <- function(df, covariates_list) {
 
 # Causal matrix
 causal_matrix <- function(df_from, df_to, program_from, program_to,
-                          method="ITT", covariates_list=covariates_all, subsample=FALSE,
+                          method="ITT", 
+                          covariates_list=covariates_all, 
+                          subsample=FALSE,
                           honesty=FALSE, min.node.size=20) {
   
   df_from <- clean_data(df_from, subsample)
@@ -78,15 +80,17 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
   if (method=="ITT") {
     forest <- causal_forest(X_from, Y, W,
                             honesty=honesty, min.node.size=min.node.size, seed=seed)
-    fit <- lm(as.formula(paste0("iq~R+",
-                                paste(covariates_list, collapse="+"))),
-              data=df_from)
+    
+      fit <- lm(as.formula(paste0("iq~R+",
+                                  paste(covariates_list, collapse="+"))),
+                data=df_from)
   } else if (method=="LATE") {
     forest <- instrumental_forest(X_from, Y, W, Z,
                                   honesty=honesty, min.node.size=min.node.size, seed=seed)
-    fit <- ivreg(as.formula(paste0("iq~R+",
+    
+    fit <- ivreg(as.formula(paste0("iq~D+",
                                    paste(covariates_list, collapse="+"),
-                                   "|D+",
+                                   "|R+",
                                    paste(covariates_list, collapse="+"))),
                  data=df_from)
   }
@@ -186,30 +190,55 @@ variable_importance_matrix <- function(df, program,
 
 # Basic regression matrix
 regression_matrix <- function(df, program,
-                              method="ITT", covariates_list=covariates_all, subsample=FALSE) {
+                              method="ITT", 
+                              covariates=TRUE, covariates_list=covariates_all, 
+                              subsample=FALSE) {
   df_select <- clean_data(df, subsample)
   
   # Fit the (IV) regression on the program of interest
   if (method=="ITT") {
-    fit <- lm(as.formula(paste0("iq~R+",
-                                paste(covariates_list, collapse="+"))),
-              data=df_select)
-    output <- data.frame(variable=c("Constant", "R", covariates_list),
-                         coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
-                         se=summary(fit)$coefficients[, 2] %>% as.numeric(),
-                         p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
-                         N=nobs(fit))
+    if (covariates) {
+      fit <- lm(as.formula(paste0("iq~R+",
+                                  paste(covariates_list, collapse="+"))),
+                data=df_select)
+      output <- data.frame(variable=c("Constant", "R", covariates_list),
+                           coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
+                           se=summary(fit)$coefficients[, 2] %>% as.numeric(),
+                           p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
+                           F_stat=NA,
+                           N=nobs(fit))
+    } else {
+      fit <- lm(iq~R, data=df_select)
+      output <- data.frame(variable=c("Constant", "R"),
+                           coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
+                           se=summary(fit)$coefficients[, 2] %>% as.numeric(),
+                           p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
+                           F_stat=NA,
+                           N=nobs(fit))
+    }
+    
   } else if (method=="LATE") {
-    fit <- ivreg(as.formula(paste0("iq~D+",
+    if (covariates) {
+      fit <- ivreg(as.formula(paste0("iq~D+",
                                    paste(covariates_list, collapse="+"),
                                    "|R+",
                                    paste(covariates_list, collapse="+"))),
                  data=df_select)
-    output <- data.frame(variable=c("Constant", "D", covariates_list),
-                         coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
-                         se=summary(fit)$coefficients[, 2] %>% as.numeric(),
-                         p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
-                         N=nobs(fit))
+      output <- data.frame(variable=c("Constant", "D", covariates_list),
+                           coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
+                           se=summary(fit)$coefficients[, 2] %>% as.numeric(),
+                           p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
+                           F_stat=summary(fit)$diagnostic[1, 3] %>% as.numeric(),
+                           N=nobs(fit))
+    } else {
+      fit <- ivreg(iq~D|R, data=df_select)
+      output <- data.frame(variable=c("Constant", "D"),
+                           coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
+                           se=summary(fit)$coefficients[, 2] %>% as.numeric(),
+                           p_value=summary(fit)$coefficients[, 4] %>% as.numeric(),
+                           F_stat=summary(fit)$diagnostic[1, 3] %>% as.numeric(),
+                           N=nobs(fit))
+    }
   }
   
   output_empty <- data.frame(variable=c("R", "D", covariates_list, "Constant"))
@@ -249,7 +278,7 @@ type_prevalence <- function(df, program, subsample) {
 
 # Execute! ####
 # Load data
-programs_ehs <- c("ehsmixed_center", "ehscenter")
+programs_ehs <- c("ehs-full", "ehsmixed_center", "ehscenter")
 programs <- c(programs_ehs, "abc")
 
 for (p in programs_ehs) {
@@ -266,6 +295,12 @@ abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
          m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA),
          caregiver_home=1) %>%
   rename(iq=sb3y)
+
+`ehs-full` <- `ehs-full` %>%
+  mutate(caregiver_home=caregiver_ever,
+         D=D_12,
+         alt=P_12,
+         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
 
 ehscenter <- ehscenter %>%
   mutate(caregiver_home=caregiver_ever,
@@ -321,11 +356,20 @@ for (p in programs) {
 
 for (p in programs) {
   regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p, 
+                                                   covariates=FALSE),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p),
                                  by="variable")
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p,
                                                    covariates_list=covariates_short),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p, 
+                                                   covariates=FALSE,
+                                                   method="LATE"),
                                  by="variable")
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p, method="LATE"),
@@ -338,6 +382,11 @@ for (p in programs) {
   
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p,
+                                                   covariates=FALSE, 
+                                                   subsample=TRUE),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
                                                    covariates_list=covariates_subsample_all,
                                                    subsample=TRUE),
                                  by="variable")
@@ -345,6 +394,11 @@ for (p in programs) {
                                  regression_matrix(get(p), p,
                                                    covariates_list=covariates_short,
                                                    subsample=TRUE),
+                                 by="variable")
+  regression_output <- left_join(regression_output,
+                                 regression_matrix(get(p), p,
+                                                   covariates=FALSE,
+                                                   subsample=TRUE, method="LATE"),
                                  by="variable")
   regression_output <- left_join(regression_output,
                                  regression_matrix(get(p), p,
@@ -363,171 +417,16 @@ for (p in programs) {
                                  type_prevalence(get(p), p, subsample=TRUE))
 }
 
-
-# Output to LaTeX tables ####
-# Forest output
-forest_tex <- function(causal_result, instrumental_result) {
-  row_tr <- function(row, se=FALSE, abc=FALSE) {
-    if (se) {
-      if (abc) {
-        out <- TexRow(c(NA, NA,
-                        causal_result[row, 9:10], NA,
-                        instrumental_result[row, 9:10], NA) %>% as.numeric(), se=TRUE, dec=3)
-      } else{
-        out <- TexRow(c(NA, NA,
-                        causal_result[row, 9:11],
-                        instrumental_result[row, 9:11]) %>% as.numeric(), se=TRUE, dec=3) 
-      }
-    } else {
-      if (abc) {
-        out <- TexRow(c(causal_result[row, c(4:5, 7)]) %>% as.numeric(),
-                      pvalues=c(1, causal_result[row, 12:13]) %>% as.numeric(),
-                      dec=c(0, rep(3, 2))) /
-          TexRow(c("-")) /
-          TexRow(c(instrumental_result[row, c(5,7)]) %>% as.numeric(),
-                 pvalues=c(instrumental_result[row, 12:13]) %>% as.numeric(),
-                 dec=3) /
-          TexRow(c("-"))
-      } else {
-        out <- TexRow(c(causal_result[row, c(4:5, 7:8)],
-                        instrumental_result[row, c(5, 7:8)]) %>% as.numeric(),
-                      pvalues=c(1,
-                                causal_result[row, 12:14],
-                                instrumental_result[row, 12:14]) %>% as.numeric(),
-                      dec=c(0, rep(3, 6)))
-      }
-    }
-    return(out)
-  }
-  
-  tab <- TexRow(c("", "ITT", "LATE"), cspan=c(2, 3, 3)) +
-    TexMidrule(list(c(3, 5), c(6, 8))) +
-    TexRow(c("Sample/Description", "Obs", "OLS", "Causal Forest", "2SLS", "Instrumental Forest"),
-           cspan=c(1, 1, 1, 2, 1, 2)) +
-    TexRow(c("", "$f_X$", "$f_X^{\\text{ABC}}$",
-             "", "$f_X$", "$f_X^{\\text{ABC}}$"),
-           cspan=c(3, 1, 1, 1, 1, 1)) + TexMidrule() +
-    TexRow(c("", "", "Program: EHS, Center $+$ Mixed"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full/All Xs") / row_tr(1) + row_tr(1, se=TRUE) +
-    TexRow("Full/Key Xs") / row_tr(2) + row_tr(2, se=TRUE) +
-    TexRow("Subsample/Key Xs") / row_tr(3) + row_tr(3, se=TRUE) + TexMidrule() +
-    TexRow(c("", "", "Program: EHS, Center Only"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full/All Xs") / row_tr(4) + row_tr(4, se=TRUE) +
-    TexRow("Full/Key Xs") / row_tr(5) + row_tr(5, se=TRUE) +
-    TexRow("Subsample/Key Xs") / row_tr(6) + row_tr(6, se=TRUE) + TexMidrule() +
-    TexRow(c("", "", "Program: ABC"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full/All Xs") / row_tr(7, abc=TRUE) + row_tr(7, se=TRUE, abc=TRUE) +
-    TexRow("Full/Key Xs") / row_tr(8, abc=TRUE) + row_tr(8, se=TRUE, abc=TRUE) +
-    TexRow("Subsample/Key Xs") / row_tr(9, abc=TRUE) + row_tr(9, se=TRUE, abc=TRUE)
-  return(tab)
-}
-
-tab <- forest_tex(causal_output, instrumental_output)
-TexSave(tab, filename="forest_base", positions=c('l', rep('c', 7)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="forest_base", positions=c('l', rep('c', 7)),
-        output_path=output_git, stand_alone=FALSE)
+# Save
 write.csv(causal_output,
           file=paste0(output_git, "causal_output.csv"),
           row.names=FALSE)
 write.csv(instrumental_output,
           file=paste0(output_git, "instrumental_output.csv"),
           row.names=FALSE)
-
-# Regression output
-regression_tex <- function(regression_result) {
-  row_tr <- function(r_name, row, se=FALSE) {
-    if (se) {
-      out <- TexRow("") /
-        TexRow(regression_result[row, seq(3, 33, 4)] %>%
-                 as.numeric(), se=TRUE, dec=3)
-    } else {
-      out <- TexRow(r_name) /
-        TexRow(regression_result[row, seq(2, 33, 4)] %>% as.numeric(),
-               pvalues=c(replace_na(regression_result[row, seq(4, 33, 4)] %>%
-                                      as.numeric(), 1)), dec=3)
-    }
-    return(out)
-  }
-  
-  tab <- TexRow(c("", "Full", "Subsample"), cspan=c(1, 4, 4)) +
-    TexMidrule(list(c(2, 5), c(6, 9))) +
-    TexRow(c("", rep(c("OLS", "2SLS"), 2)), cspan=c(1, 2, 2, 2, 2)) +
-    TexMidrule(list(c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
-    TexRow("") / TexRow(1:8, surround="(%s)", dec=0) +
-    TexRow(c("", rep(c("All", "Short"), 4))) +
-    TexMidrule() +
-    row_tr("Received Offer", 1) + row_tr("R", 1, se=TRUE) +
-    row_tr("Participated", 2) + row_tr("R", 2, se=TRUE) +
-    row_tr("Mom IQ", 3) + row_tr("Mom IQ", 3, se=TRUE) +
-    row_tr("Black", 4) + row_tr("Black", 4, se=TRUE) +
-    row_tr("Sex", 5) + row_tr("Sex", 5, se=TRUE) +
-    row_tr("Mom Age", 6) + row_tr("Mom Age", 6, se=TRUE) +
-    row_tr("Mom Edu$=$HS", 7) + row_tr("Mom Edu$=$HS", 7, se=TRUE) +
-    row_tr("Mom Edu$>$HS", 8) + row_tr("Mom Edu$>$HS", 8, se=TRUE) +
-    row_tr("Sibling", 9) + row_tr("Sibling", 9, se=TRUE) +
-    row_tr("Gestational Age", 10) + row_tr("Gestational Age", 10, se=TRUE) +
-    row_tr("Father Home", 11) + row_tr("Father Home", 11, se=TRUE) +
-    row_tr("(Constant)", 12) + row_tr("(Constant)", 12, se=TRUE) +
-    TexMidrule() +
-    TexRow("Observation") /
-    TexRow(regression_result[12, seq(5, 33, 4)] %>% as.numeric(), dec=0)
-  return(tab)
-}
-
-tab <- regression_tex(regression_output[, 1:33])
-TexSave(tab, filename="regression_ehsmixed_center", positions=c('l', rep('c', 8)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="regression_ehsmixed_center", positions=c('l', rep('c', 8)),
-        output_path=output_git, stand_alone=FALSE)
-tab <- regression_tex(regression_output[, c(1, 34:65)])
-TexSave(tab, filename="regression_ehscenter", positions=c('l', rep('c', 8)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="regression_ehscenter", positions=c('l', rep('c', 8)),
-        output_path=output_git, stand_alone=FALSE)
-tab <- regression_tex(regression_output[, c(1, 66:97)])
-TexSave(tab, filename="regression_abc", positions=c('l', rep('c', 8)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="regression_abc", positions=c('l', rep('c', 8)),
-        output_path=output_git, stand_alone=FALSE)
 write.csv(regression_output,
           file=paste0(output_git, "regression_output.csv"),
           row.names=FALSE)
-
-# Type prevalence output
-prevalence_tex <- function(prevalence_result) {
-  row_tr <- function(row) {
-    out <- TexRow(prevalence_result[row, 2:8] %>% as.numeric(),
-                  dec=c(0, rep(3, 6)))
-    return(out)
-  }
-  
-  tab <- TexRow(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
-    TexMidrule(list(c(3, 4), c(6, 8))) +
-    TexRow(c("Sample", "Obs",
-             "$p_{nh}$", "$p_{ch}$", "$nh$-share", "$p_{hh}$", "$p_{cc}$", "$p_{nn}$")) +
-    TexMidrule() +
-    TexRow(c("", "", "Programme: EHS, Center $+$ Mixed"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(1) + TexRow("Subsample") / row_tr(2) + TexMidrule() +
-    TexRow(c("", "", "Programme: EHS, Center Only"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(3) + TexRow("Subsample") / row_tr(4) +
-    TexMidrule() +
-    TexRow(c("", "", "Programme: ABC"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(5) + TexRow("Subsample") / row_tr(6)
-  return(tab)
-}
-
-tab <- prevalence_tex(prevalence_output)
-TexSave(tab, filename="type_prevalence", positions=c('l', rep('c', 7)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="type_prevalence", positions=c('l', rep('c', 7)),
-        output_path=output_git, stand_alone=FALSE)
 write.csv(prevalence_output,
           file=paste0(output_git, "prevalence_output.csv"),
           row.names=FALSE)
