@@ -172,16 +172,11 @@ prevalence_tex <- function(prevalence_result) {
   
   tab <- TexRow(c("", "Compliers", "", "Always-Takers"), cspan=c(2, 2, 1, 3)) +
     TexMidrule(list(c(3, 4), c(6, 8))) +
-    TexRow(c("Sample", "Obs",
+    TexRow(c("Program", "Obs",
              "$p_{nh}$", "$p_{ch}$", "$nh$-share", "$p_{hh}$", "$p_{cc}$", "$p_{nn}$")) +
     TexMidrule() +
-    TexRow(c("", "", "Program: EHS, Center Only"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(5) + TexRow("EHS, Center Only") / row_tr(6) +
-    TexMidrule() +
-    TexRow(c("", "", "Program: ABC"), cspan=c(1, 1, 6)) +
-    TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(7) + TexRow("Subsample") / row_tr(8)
+    TexRow("EHS, Center Only") / row_tr(6) +
+    TexRow("ABC") / row_tr(8)
   return(tab)
 }
 
