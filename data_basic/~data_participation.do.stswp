@@ -392,12 +392,32 @@ gen alt=.
 replace alt=0 if center!=.
 replace alt=1 if center==1 & D==0 // D==0 is equivalent to doing center_ehs==0
 
-asd
+reg D_6 R	//Cons .02	Coef .19
+reg P_6 R	//Cons .18	Coef -0.2
+
+
 
 keep id center any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months ///
 	R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt alt1 alt2 program_type
 cd "$data_working"
 
+
+matrix M=J(6,2,.)
+matrix rownames M=P P_1 P_12 D D_1 D_12
+matrix colnames M=avg_t avg_c
+local r=1
+
+foreach var in P P_1 P_12 D D_1 D_12{
+	sum `var' if R==1
+	matrix M[`r',1]=r(mean)
+	sum `var' if R==0
+	matrix M[`r',2]=r(mean)
+	local r=`r'+1
+}
+matrix list M
+
+
+asd
 save "ehs-participation.dta", replace
 
 * --------- *

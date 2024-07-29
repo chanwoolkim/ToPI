@@ -12,7 +12,8 @@ covariates_short <- c("m_iq", "m_age")
 # Input for the program of interest
 clean_data <- function(df, subsample) {
   df_output <- df %>%
-    filter(!is.na(iq),
+    filter(!is.na(R),
+           !is.na(iq),
            !is.na(D), 
            !is.na(alt),
            !is.na(m_iq),
@@ -57,18 +58,12 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
     forest <- causal_forest(X_from, Y, W,
                             honesty=honesty, min.node.size=min.node.size, seed=seed)
     
-    fit <- lm(as.formula(paste0("iq~R+",
-                                paste(covariates_list, collapse="+"))),
-              data=df_from)
+    fit <- lm(iq~R, data=df_from)
   } else if (method=="LATE") {
     forest <- instrumental_forest(X_from, Y, W, Z,
                                   honesty=honesty, min.node.size=min.node.size, seed=seed)
     
-    fit <- ivreg(as.formula(paste0("iq~D+",
-                                   paste(covariates_list, collapse="+"),
-                                   "|R+",
-                                   paste(covariates_list, collapse="+"))),
-                 data=df_from)
+    fit <- ivreg(iq~D|R, data=df_from)
   }
   
   coefficient=summary(fit)$coefficients[2, 1] %>% as.numeric()

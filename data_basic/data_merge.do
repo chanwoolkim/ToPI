@@ -19,12 +19,12 @@ merge 1:1 id using ehs-outcome, nogen nolabel
 keep id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt program_type sitenum ///
 $covariates poverty bw twin ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
-ppvt3y alt_months hs H ///
+ppvt3y iq_orig alt_months hs H ///
 any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months alt1 alt2 alt center
 
 order id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18  alt program_type sitenum ///
 $covariates poverty bw twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y hs H alt_months
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y iq_orig hs H alt_months
 
 preserve
 keep if program_type==1
@@ -63,7 +63,7 @@ merge 1:1 id using abc-control, nogen nolabel
 merge 1:1 id using abc-labor, nogen nolabel
 merge 1:1 id using abc-outcome, nogen nolabel
 
-keep id R sb* $covariates bw poverty ///
+keep id R sb* iq_orig $covariates bw poverty ///
 D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18
 
 save abc-topi, replace

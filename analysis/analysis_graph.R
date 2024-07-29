@@ -63,7 +63,7 @@ graph_sublate <- function(result) {
     fte_theme() +
     labs(colour="Program") +
     scale_x_continuous(name="nh-LATE",
-                       limits=c(0.8, 1.6)) +
+                       limits=c(0.4, 2)) +
     scale_y_continuous(name="ch-LATE",
                        limits=c(-0.1,
                                 max(ehscenter_late, abc_late)+0.2)) +

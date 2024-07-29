@@ -82,5 +82,7 @@ rename *15y *180
 rename *5y *60
 rename *21y *252
 
+keep if program == "abc"
+
 cd "$data_working"
 save abc-labor, replace
