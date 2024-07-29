@@ -1,5 +1,6 @@
 start_time <- Sys.time()
 
+# Load data
 causal_output <- read.csv(file=paste0(output_git, "causal_output.csv"))
 instrumental_output <- read.csv(paste0(output_git, "instrumental_output.csv"))
 regression_output <- read.csv(paste0(output_git, "regression_output.csv"))
@@ -12,26 +13,25 @@ coefficients_tex <- function(causal_result, instrumental_result, regression_resu
   causal_subset <- causal_result %>% filter(subsample)
   instrumental_subset <- instrumental_result %>% filter(subsample)
   
+  regression_row <- function(colname, row, begin) {
+    out <- TexRow(colname) / 
+      TexRow(regression_result[row, seq(begin, 241, 60)] %>% as.numeric(), 
+             pvalues=regression_result[row, seq(begin+2, 241, 60)] %>% as.numeric(), 
+             dec=3) +
+      TexRow("") / 
+      TexRow(regression_result[row, seq(begin+1, 241, 60)] %>% as.numeric(), 
+             dec=3, se=TRUE)
+    return(out)
+  }
+  
   tab <- TexRow(c("", "EHS", "ABC"), cspan=c(1, 3, 1)) +
     TexMidrule(list(c(2, 4))) +
     TexRow(c("", "All", "Center $+$ Mixed", "Center Only", "")) +
     TexMidrule() +
     TexRow(c("", "ITT"), cspan=c(1, 4)) +
     TexMidrule(list(c(2, 5))) +
-    TexRow("Full/No Xs") / 
-    TexRow(regression_output[1, seq(2, 241, 60)] %>% as.numeric(), 
-           pvalues=regression_output[1, seq(4, 241, 60)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[1, seq(3, 241, 60)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("Subsample/No Xs") / 
-    TexRow(regression_output[1, seq(32, 241, 60)] %>% as.numeric(), 
-           pvalues=regression_output[1, seq(34, 241, 60)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[1, seq(33, 241, 60)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
+    regression_row("Full/No Xs", 1, 2) +
+    regression_row("Subsample/No Xs", 1, 32) +
     TexRow("Subsample/Causal Forest") / 
     TexRow(causal_subset$pre_dr_estimate %>% as.numeric(), 
            pvalues=causal_subset$pre_dr_p_value %>% as.numeric(), 
@@ -49,20 +49,8 @@ coefficients_tex <- function(causal_result, instrumental_result, regression_resu
     TexMidrule() +
     TexRow(c("", "LATE"), cspan=c(1, 4)) +
     TexMidrule(list(c(2, 5))) +
-    TexRow("Full/No Xs") / 
-    TexRow(regression_output[2, seq(17, 241, 60)] %>% as.numeric(), 
-           pvalues=regression_output[2, seq(19, 241, 60)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[2, seq(18, 241, 60)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("Subsample/No Xs") / 
-    TexRow(regression_output[2, seq(47, 241, 60)] %>% as.numeric(), 
-           pvalues=regression_output[2, seq(49, 241, 60)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[2, seq(48, 241, 60)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
+    regression_row("Full/No Xs", 2, 17) +
+    regression_row("Subsample/No Xs", 2, 47) +
     TexRow("Subsample/Causal Forest") / 
     TexRow(instrumental_subset$pre_dr_estimate %>% as.numeric(), 
            pvalues=instrumental_subset$pre_dr_p_value %>% as.numeric(), 
@@ -87,68 +75,91 @@ TexSave(tab, filename="coefficients_base", positions=c('l', rep('c', 5)),
         output_path=output_git, stand_alone=FALSE)
 
 # Progress table
-progress_tex <- function(causal_result, instrumental_result, regression_result) {
+progress_tex <- function(causal_result, instrumental_result, regression_result,
+                         reorder=FALSE) {
   causal_subset <- causal_result %>% filter(subsample)
   instrumental_subset <- instrumental_result %>% filter(subsample)
   
-  tab <- TexRow(c("", "EHS", "ABC")) +
-    TexMidrule() +
-    TexRow("ITT") /
-    TexRow(regression_output[1, 2] %>% as.numeric(), 
-           pvalues=regression_output[1, 4] %>% as.numeric(), 
-           dec=3) / TexRow("-") +
-    TexRow("") / 
-    TexRow(regression_output[1, 3] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("ITT - Center $+$ Mixed") /
-    TexRow(regression_output[1, 62] %>% as.numeric(), 
-           pvalues=regression_output[1, 64] %>% as.numeric(), 
-           dec=3) / TexRow("-") +
-    TexRow("") / 
-    TexRow(regression_output[1, 63] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("ITT - Center Only") /
-    TexRow(regression_output[1, c(122, 182)] %>% as.numeric(), 
-           pvalues=regression_output[1, c(124, 184)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[1, c(123, 183)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("LATE - Center Only") /
-    TexRow(regression_output[2, c(137, 197)] %>% as.numeric(), 
-           pvalues=regression_output[2, c(139, 199)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[2, c(138, 198)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("LATE - Center Only (Subsample)") /
-    TexRow(regression_output[2, c(167, 227)] %>% as.numeric(), 
-           pvalues=regression_output[2, c(169, 229)] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(regression_output[2, c(168, 228)] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("LATE - Instrumental Forest") /
-    TexRow(instrumental_subset$pre_dr_estimate[3:4] %>% as.numeric(), 
-           pvalues=instrumental_subset$pre_dr_p_value[3:4] %>% as.numeric(), 
-           dec=3) +
-    TexRow("") / 
-    TexRow(instrumental_subset$pre_dr_se[3:4] %>% as.numeric(), 
-           dec=3, se=TRUE) +
-    TexRow("LATE - Instrumental Forest (ABC)") /
-    TexRow(instrumental_subset$to_estimate[3] %>% as.numeric(), 
-           pvalues=instrumental_subset$to_p_value[3] %>% as.numeric(), 
-           dec=3) / TexRow("-") +
-    TexRow("") / 
-    TexRow(instrumental_subset$to_se[3] %>% as.numeric(), 
-           dec=3, se=TRUE)
-    return(tab)
+  regression_row <- function(colname, row, col, arrow=TRUE) {
+    if (arrow) {
+      out <- TexRow(colname) / 
+        TexRow(regression_result[row, col] %>% as.numeric(), 
+                    pvalues=regression_result[row, col+2] %>% as.numeric(), 
+                    dec=3) / TexRow("-") +
+        TexRow("") / 
+        TexRow(regression_result[row, col+1] %>% as.numeric(), 
+               dec=3, se=TRUE)
+    } else {
+      out <- TexRow(colname) /
+        TexRow(regression_result[row, c(col, col+60)] %>% as.numeric(), 
+                    pvalues=regression_result[row, c(col+2, col+62)] %>% as.numeric(), 
+                    dec=3) +
+        TexRow("") / 
+        TexRow(regression_result[row, c(col+1, col+61)] %>% as.numeric(), 
+               dec=3, se=TRUE)
+    }
+    return(out)
+  }
+  
+  if (!reorder) {
+    tab <- TexRow(c("", "EHS", "ABC")) +
+      TexMidrule() +
+      regression_row("ITT", 1, 2) +
+      regression_row("ITT - Center $+$ Mixed", 1, 62) +
+      regression_row("ITT - Center Only", 1, 122, arrow=FALSE) +
+      regression_row("LATE - Center Only", 2, 137, arrow=FALSE) +
+      regression_row("LATE - Center Only (Subsample)", 2, 167, arrow=FALSE) +
+      TexRow("LATE - Instrumental Forest") /
+      TexRow(instrumental_subset$pre_dr_estimate[3:4] %>% as.numeric(), 
+             pvalues=instrumental_subset$pre_dr_p_value[3:4] %>% as.numeric(), 
+             dec=3) +
+      TexRow("") / 
+      TexRow(instrumental_subset$pre_dr_se[3:4] %>% as.numeric(), 
+             dec=3, se=TRUE) +
+      TexRow("LATE - Instrumental Forest (ABC)") /
+      TexRow(instrumental_subset$to_estimate[3] %>% as.numeric(), 
+             pvalues=instrumental_subset$to_p_value[3] %>% as.numeric(), 
+             dec=3) / TexRow("-") +
+      TexRow("") / 
+      TexRow(instrumental_subset$to_se[3] %>% as.numeric(), 
+             dec=3, se=TRUE)
+  } else {
+    tab <- TexRow(c("", "EHS", "ABC")) +
+      TexMidrule() +
+      regression_row("ITT", 1, 2) +
+      regression_row("ITT - Center $+$ Mixed", 1, 62) +
+      regression_row("ITT - Center Only", 1, 122, arrow=FALSE) +
+      regression_row("ITT - Center Only (Subsample)", 1, 152, arrow=FALSE) +
+      regression_row("LATE - Center Only (Subsample)", 2, 167, arrow=FALSE) +
+      TexRow("LATE - Instrumental Forest") /
+      TexRow(instrumental_subset$pre_dr_estimate[3:4] %>% as.numeric(), 
+             pvalues=instrumental_subset$pre_dr_p_value[3:4] %>% as.numeric(), 
+             dec=3) +
+      TexRow("") / 
+      TexRow(instrumental_subset$pre_dr_se[3:4] %>% as.numeric(), 
+             dec=3, se=TRUE) +
+      TexRow("LATE - Instrumental Forest (ABC)") /
+      TexRow(instrumental_subset$to_estimate[3] %>% as.numeric(), 
+             pvalues=instrumental_subset$to_p_value[3] %>% as.numeric(), 
+             dec=3) / TexRow("-") +
+      TexRow("") / 
+      TexRow(instrumental_subset$to_se[3] %>% as.numeric(), 
+             dec=3, se=TRUE)
+  }
+  return(tab)
 }
 
 tab <- progress_tex(causal_output, instrumental_output, regression_output)
 TexSave(tab, filename="progress_base", positions=c('l', rep('c', 2)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="progress_base", positions=c('l', rep('c', 2)),
+        output_path=output_git, stand_alone=FALSE)
+
+tab <- progress_tex(causal_output, instrumental_output, regression_output,
+                    reorder=TRUE)
+TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 2)),
+        output_path=output_dir, stand_alone=FALSE)
+TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 2)),
         output_path=output_git, stand_alone=FALSE)
 
 # Type prevalence output
@@ -166,7 +177,7 @@ prevalence_tex <- function(prevalence_result) {
     TexMidrule() +
     TexRow(c("", "", "Program: EHS, Center Only"), cspan=c(1, 1, 6)) +
     TexMidrule(list(c(3, 8))) +
-    TexRow("Full") / row_tr(5) + TexRow("Subsample") / row_tr(6) +
+    TexRow("Full") / row_tr(5) + TexRow("EHS, Center Only") / row_tr(6) +
     TexMidrule() +
     TexRow(c("", "", "Program: ABC"), cspan=c(1, 1, 6)) +
     TexMidrule(list(c(3, 8))) +

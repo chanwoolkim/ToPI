@@ -51,6 +51,8 @@ cd "${code_path}/data_basic"
 * ------ *
 
 cd "${code_path}/analysis"
+rcall : source("preliminary.R")
+rcall : source("descriptive_table_tex.R")
 rcall : source("analysis_table.R")
 rcall : source("analysis_table_tex.R")
 rcall : source("analysis_table_tex_appendix.R")

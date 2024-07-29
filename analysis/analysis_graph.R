@@ -55,56 +55,55 @@ sublate_estimate <- function(share_nh_from, share_nh_to, late_from) {
 
 # Graph
 graph_sublate <- function(result) {
-  full_late <- as.numeric((result %>% filter(type=="Full"))$late_from[1])
-  subsample_late <- as.numeric((result %>% filter(type=="Subsample"))$late_from[1])
+  ehscenter_late <- instrumental_output$coefficient[9]
+  abc_late <- instrumental_output$coefficient[12]
   
   gg <- ggplot(result) +
-    geom_line(aes(x=sublate_nh, y=sublate_ch, group=type, colour=type)) +
+    geom_line(aes(x=sublate_nh, y=sublate_ch, group=program, colour=program)) +
     fte_theme() +
-    labs(colour="Sector") +
-    scale_x_continuous(name="nh-subLATE") +
-    scale_y_continuous(name="ch-subLATE",
-                       limits=c(-0.2,
-                                max(full_late, subsample_late)+0.2)) +
+    labs(colour="Program") +
+    scale_x_continuous(name="nh-LATE",
+                       limits=c(0.8, 1.6)) +
+    scale_y_continuous(name="ch-LATE",
+                       limits=c(-0.1,
+                                max(ehscenter_late, abc_late)+0.2)) +
     scale_color_manual(values=colours_set) +
     annotate("rect",
-             xmin=full_late, xmax=full_late/prevalence_output$nh_share[5],
-             ymin=0, ymax=full_late, 
+             xmin=abc_late, xmax=abc_late/prevalence_output$nh_share[8],
+             ymin=0, ymax=abc_late, 
              fill=colours_set[1], alpha=0.2) +
     annotate("rect",
-             xmin=subsample_late, xmax=subsample_late/prevalence_output$nh_share[6],
-             ymin=0, ymax=subsample_late, 
+             xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
+             ymin=0, ymax=ehscenter_late, 
              fill=colours_set[2], alpha=0.2) +
-    theme(legend.position="bottom",
-          legend.title=element_blank())
+    theme(legend.position="bottom")
   
   return(gg)
 }
 
 graph_late_to <- function(result) {
-  full_late <- as.numeric((result %>% filter(type=="Full"))$late_from[1])
-  subsample_late <- as.numeric((result %>% filter(type=="Subsample"))$late_from[1])
+  ehscenter_late <- instrumental_output$coefficient[9]
+  abc_late <- instrumental_output$coefficient[12]
+  
+  ehscenter_nhlate_upper_bound <- ehscenter_late/prevalence_output$nh_share[6]
+  ehscenter_late_lower_bound <- prevalence_output$nh_share[8]*ehscenter_nhlate_upper_bound
   
   gg <- ggplot(result) +
-    geom_line(aes(x=sublate_nh, y=late_to, group=type, colour=type)) +
-    geom_line(aes(x=sublate_nh, y=late_from, group=type, colour=type), linetype="dotdash") +
+    geom_line(aes(x=sublate_nh, y=late_to, group=program, colour=program)) +
+    geom_line(aes(x=sublate_nh, y=late_from, group=program, colour=program), linetype="dotdash") +
     fte_theme() +
-    labs(colour="Sector") +
-    scale_x_continuous(name="nh-subLATE") +
+    labs(colour="Program") +
+    scale_x_continuous(name="nh-LATE",
+                       limits=c(0.8, 1.6)) +
     scale_y_continuous(name="Total LATE",
-                       limits=c(-0.2,
-                                max(full_late, subsample_late)+0.2)) +
+                       limits=c(-0.1,
+                                max(ehscenter_late, abc_late)+0.2)) +
     scale_color_manual(values=colours_set) +
     annotate("rect",
-             xmin=full_late, xmax=full_late/prevalence_output$nh_share[5],
-             ymin=0, ymax=Inf, 
-             fill=colours_set[1], alpha=0.2) +
-    annotate("rect",
-             xmin=subsample_late, xmax=subsample_late/prevalence_output$nh_share[6],
-             ymin=0, ymax=Inf, 
+             xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
+             ymin=ehscenter_late_lower_bound, ymax=ehscenter_late, 
              fill=colours_set[2], alpha=0.2) +
-    theme(legend.position="bottom",
-          legend.title=element_blank())
+    theme(legend.position="bottom")
   
   return(gg)
 }
@@ -117,18 +116,18 @@ instrumental_output <- read.csv(paste0(output_git, "instrumental_output.csv"))
 regression_output <- read.csv(paste0(output_git, "regression_output.csv"))
 prevalence_output <- read.csv(paste0(output_git, "prevalence_output.csv"))
 
-# EHS Center Only
-sublate_ehscenter <-
-  rbind(sublate_estimate(prevalence_output$nh_share[5],
-                         prevalence_output$nh_share[7],
-                         instrumental_output$coefficient[8]) %>%
-          mutate(type="Full"),
-        sublate_estimate(prevalence_output$nh_share[6],
+# EHS Center Only + ABC
+sublate_data <-
+  rbind(sublate_estimate(prevalence_output$nh_share[6],
                          prevalence_output$nh_share[8],
                          instrumental_output$coefficient[9]) %>%
-          mutate(type="Subsample"))
+          mutate(program="EHS - Center Only"),
+        sublate_estimate(prevalence_output$nh_share[8],
+                         prevalence_output$nh_share[8],
+                         instrumental_output$coefficient[12]) %>%
+          mutate(program="ABC"))
 
-gg_sublate_ehscenter <- graph_sublate(sublate_ehscenter)
+gg_sublate_ehscenter <- graph_sublate(sublate_data)
 gg_sublate_ehscenter
 ggsave(plot=gg_sublate_ehscenter,
        file=paste0(output_dir, "sublate_ch_ehscenter.png"),
@@ -137,7 +136,7 @@ ggsave(plot=gg_sublate_ehscenter,
        file=paste0(output_git, "sublate_ch_ehscenter.png"),
        width=6, height=4)
 
-gg_late_to_ehscenter <- graph_late_to(sublate_ehscenter)
+gg_late_to_ehscenter <- graph_late_to(sublate_data)
 gg_late_to_ehscenter
 ggsave(plot=gg_late_to_ehscenter,
        file=paste0(output_dir, "late_ehscenter.png"),

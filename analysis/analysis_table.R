@@ -1,33 +1,4 @@
-rm(list=ls())
-
 start_time <- Sys.time()
-
-wd <- paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/../..")
-data_dir <- paste0(wd, "/working/")
-output_dir <- paste0(wd, "/../../Apps/Overleaf/ToPI/EHStoABC/Results/")
-output_git <- paste0(wd, "/code/output_backup/")
-
-library(boot)
-library(DiagrammeR)
-library(grf)
-library(ivreg)
-library(tidyverse)
-library(RColorBrewer)
-library(ggplot2)
-library(xtable)
-library(textab)
-library(doParallel)
-library(doSNOW)
-library(snow)
-library(doMPI)
-library(Rmpi)
-library(foreach)
-
-nw <- mpi.universe.size()-1
-my_workers <- parallel::makeCluster(nw)
-registerDoParallel(my_workers)
-
-seed <- 2024
 
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
@@ -42,10 +13,15 @@ covariates_short <- c("m_iq", "m_age")
 clean_data <- function(df, subsample) {
   df_output <- df %>%
     filter(!is.na(iq),
-           !is.na(D),
+           !is.na(D), 
            !is.na(alt),
+           !is.na(m_iq),
            !is.na(black),
-           !is.na(caregiver_home),
+           !is.na(sex),
+           !is.na(m_age),
+           !is.na(sibling),
+           !is.na(gestage),
+           !is.na(mf),
            m_edu %in% c(1, 2, 3))
   
   if (subsample) {
@@ -81,9 +57,9 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
     forest <- causal_forest(X_from, Y, W,
                             honesty=honesty, min.node.size=min.node.size, seed=seed)
     
-      fit <- lm(as.formula(paste0("iq~R+",
-                                  paste(covariates_list, collapse="+"))),
-                data=df_from)
+    fit <- lm(as.formula(paste0("iq~R+",
+                                paste(covariates_list, collapse="+"))),
+              data=df_from)
   } else if (method=="LATE") {
     forest <- instrumental_forest(X_from, Y, W, Z,
                                   honesty=honesty, min.node.size=min.node.size, seed=seed)
@@ -220,10 +196,10 @@ regression_matrix <- function(df, program,
   } else if (method=="LATE") {
     if (covariates) {
       fit <- ivreg(as.formula(paste0("iq~D+",
-                                   paste(covariates_list, collapse="+"),
-                                   "|R+",
-                                   paste(covariates_list, collapse="+"))),
-                 data=df_select)
+                                     paste(covariates_list, collapse="+"),
+                                     "|R+",
+                                     paste(covariates_list, collapse="+"))),
+                   data=df_select)
       output <- data.frame(variable=c("Constant", "D", covariates_list),
                            coefficient=summary(fit)$coefficients[, 1] %>% as.numeric(),
                            se=summary(fit)$coefficients[, 2] %>% as.numeric(),
