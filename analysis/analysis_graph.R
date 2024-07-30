@@ -63,7 +63,7 @@ graph_sublate <- function(result) {
     fte_theme() +
     labs(colour="Program") +
     scale_x_continuous(name="nh-LATE",
-                       limits=c(0.4, 2)) +
+                       limits=c(0.4, 3)) +
     scale_y_continuous(name="ch-LATE",
                        limits=c(-0.1,
                                 max(ehscenter_late, abc_late)+0.2)) +
@@ -94,14 +94,14 @@ graph_late_to <- function(result) {
     fte_theme() +
     labs(colour="Program") +
     scale_x_continuous(name="nh-LATE",
-                       limits=c(0.8, 1.6)) +
+                       limits=c(0.2, 2)) +
     scale_y_continuous(name="Total LATE",
                        limits=c(-0.1,
                                 max(ehscenter_late, abc_late)+0.2)) +
     scale_color_manual(values=colours_set) +
     annotate("rect",
              xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
-             ymin=ehscenter_late_lower_bound, ymax=ehscenter_late, 
+             ymin=ehscenter_late, ymax=ehscenter_late_lower_bound, 
              fill=colours_set[2], alpha=0.2) +
     theme(legend.position="bottom")
   

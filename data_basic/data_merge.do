@@ -7,24 +7,28 @@ clear all
 
 * -------------- *
 * Early Head Start
+* -------------- *
+* Early Head Start
 cd "$data_working"
 use "ehs-participation.dta", clear
+keep id program_type ehs_months
 
+merge 1:1 id using ehs-participation2, nogen nolabel
 merge 1:1 id using ehs-control, nogen nolabel
 merge 1:1 id using ehs-labor, nogen nolabel
 merge 1:1 id using ehs-instruments, nogen nolabel
 merge 1:1 id using ehs-outcome, nogen nolabel
 
 *Create minimal datasets
-keep id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt program_type sitenum ///
+keep id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 program_type sitenum ///
 $covariates poverty bw twin ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
-ppvt3y iq_orig alt_months hs H ///
-any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months alt1 alt2 alt center
+ppvt3y iq_orig hs H ///
+ehs_months
 
-order id R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18  alt program_type sitenum ///
+order id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18  program_type sitenum ///
 $covariates poverty bw twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y iq_orig hs H alt_months
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y iq_orig hs H
 
 preserve
 keep if program_type==1
