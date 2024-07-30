@@ -11,6 +11,7 @@ instrumental_output_all <- read.csv(paste0(output_git, "instrumental_output_E_P.
 regression_output_all <- read.csv(paste0(output_git, "regression_output_E_P.csv"))
 prevalence_output_all <- read.csv(paste0(output_git, "prevalence_output_E_P.csv"))
 
+regression_output_D <- read.csv(paste0(output_git, "regression_output_D_P.csv"))
 
 # Output to LaTeX tables ####
 # Summary of important coefficients
@@ -102,7 +103,8 @@ TexSave(tab, filename="coefficients_base", positions=c('l', rep('c', 5)),
 
 # Progress table
 progress_tex <- function(causal_result, instrumental_result, regression_result,
-                         causal_result_all, instrumental_result_all, regression_result_all) {
+                         causal_result_all, instrumental_result_all, regression_result_all,
+                         regression_result_D) {
   causal_subset <- causal_result %>% filter(subsample)
   instrumental_subset <- instrumental_result %>% filter(subsample)
   causal_subset_all <- causal_result_all %>% filter(subsample)
@@ -144,14 +146,16 @@ progress_tex <- function(causal_result, instrumental_result, regression_result,
     TexRow(c("", "Coefficient", "Obs", "Coefficient", "Obs")) +
     TexMidrule() +
     regression_row("ITT", "", 
-                   regression_result_all, 1, 2) +
+                   regression_result_D, 1, 2) +
     regression_row("ITT - Center $+$ Mixed", "", 
-                   regression_result_all, 1, 62) +
+                   regression_result_D, 1, 62) +
     regression_row("ITT - Center Only", "",
-                   regression_result, 1, 122, arrow=FALSE) +
+                   regression_result_D, 1, 122, arrow=FALSE) +
     regression_row("ITT - Center Only",  "(Subsample)",
-                   regression_result, 1, 152, arrow=FALSE) +
+                   regression_result_D, 1, 152, arrow=FALSE) +
     regression_row("LATE - Center Only", "(Subsample)",
+                   regression_result_D, 2, 167, arrow=FALSE) +
+    regression_row("LATE - Center Only", "(Subsample, Participation=12m)",
                    regression_result, 2, 167, arrow=FALSE) +
     TexRow("LATE - Center Only") /
     TexRow(c(instrumental_subset$to_estimate[3],
@@ -165,7 +169,8 @@ progress_tex <- function(causal_result, instrumental_result, regression_result,
 }
 
 tab <- progress_tex(causal_output, instrumental_output, regression_output,
-                    causal_output_all, instrumental_output_all, regression_output_all)
+                    causal_output_all, instrumental_output_all, regression_output_all,
+                    regression_output_D)
 TexSave(tab, filename="progress_base", positions=c('l', rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="progress_base", positions=c('l', rep('c', 4)),
