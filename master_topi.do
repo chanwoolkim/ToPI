@@ -45,6 +45,8 @@ cd "${code_path}/data_basic"
 	include "data_outcome"
 cd "${code_path}/data_basic"
 	include "data_merge"
+cd "${code_path}/data_basic"
+	include "data_merge_new"
 
 * ------ * 
 * Analysis

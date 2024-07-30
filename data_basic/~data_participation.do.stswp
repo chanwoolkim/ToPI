@@ -408,16 +408,22 @@ matrix colnames M=avg_t avg_c
 local r=1
 
 foreach var in P P_1 P_12 D D_1 D_12{
-	sum `var' if R==1
+	sum `var' if R==1 & program_type==1
 	matrix M[`r',1]=r(mean)
-	sum `var' if R==0
+	sum `var' if R==0 & program_type==1
 	matrix M[`r',2]=r(mean)
 	local r=`r'+1
 }
 matrix list M
 
 
-asd
+* ERASE:
+cd "$data_working"
+merge 1:1 id using ehs-control, keepusing(black m_edu)
+
+asd 
+
+
 save "ehs-participation.dta", replace
 
 * --------- *

@@ -73,20 +73,20 @@ count_summary_data <- function(program) {
 # Table of descriptive statistics
 descriptive_summary_data <- function(program) {
   descriptive_table <- program %>%
-    summarise(sex=sum(sex, na.rm=TRUE)/n(),
+    summarise(iq=mean(iq_orig, na.rm=TRUE),
+      random=sum(R, na.rm=TRUE)/n(),
+      participation=sum(D, na.rm=TRUE)/n(),
+      alternative=sum(alt, na.rm=TRUE)/n(),
+      sex=sum(sex, na.rm=TRUE)/n(),
               black=sum(black, na.rm=TRUE)/n(),
               sibling=mean(sibling, na.rm=TRUE),
               gestage=mean(gestage, na.rm=TRUE),
-              iq=mean(iq_orig, na.rm=TRUE),
               m_iq=mean(m_iq, na.rm=TRUE),
               m_age=mean(m_age, na.rm=TRUE),
               m_edu_2=sum(m_edu_2, na.rm=TRUE)/n(),
               m_edu_3=sum(m_edu_3, na.rm=TRUE)/n(),
               mf=mean(mf, na.rm=TRUE),
-              n=n(),
-              random=sum(R, na.rm=TRUE)/n(),
-              participation=sum(D, na.rm=TRUE)/n(),
-              alternative=sum(alt, na.rm=TRUE)/n()) %>%
+              n=n()) %>%
     ungroup()
   
   descriptive_table <- data.frame(value=descriptive_table[1,] %>% as.numeric())
@@ -146,20 +146,20 @@ number_counts <- cbind(data.frame(rowname=c("All",
                        count_summary_data(abc))
 
 descriptive_summary <- 
-  cbind(data.frame(rowname=c("\\% Male",
+  cbind(data.frame(rowname=c("IQ",
+                             "\\% Randomized",
+                             "\\% Participated",
+                             "\\% Alternative Care",
+                             "\\% Male",
                              "\\% Black", 
                              "\\# Siblings", 
-                             "Gestational Age (Weeks)", 
-                             "IQ", 
+                             "Gestational Age (Weeks)",
                              "Mother's IQ",
                              "Mother's Age",
                              "\\% HS Completed",
                              "\\% College Completed",
                              "\\% Father Figure at Home",
-                             "\\# Observations",
-                             "\\% Randomized",
-                             "\\% Participated",
-                             "\\% Alternative Care")),
+                             "\\# Observations")),
         descriptive_summary_data(clean_data(`ehs-full`)),
         descriptive_summary_data(clean_data(`ehs-full`, subsample=TRUE)),
         descriptive_summary_data(clean_data(ehsmixed_center)),
@@ -200,39 +200,43 @@ descriptive_stat_tex <- function(descriptive_result) {
     TexMidrule(list(c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
     TexRow(c("", rep(c("Full", "Subsample"), 4))) +
     TexMidrule() +
-    TexRow("\\textbf{Children's Characteristics}") +
+    TexRow("\\textbf{Outcome}") +
     TexRow(paste0("\\quad ", descriptive_result[1, 1])) / 
-    TexRow((descriptive_result[1, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow((descriptive_result[1, 2:9] %>% as.numeric()), dec=1) +
+    TexRow("") +
+    TexRow("\\textbf{Assignment and Participation}") +
     TexRow(paste0("\\quad ", descriptive_result[2, 1])) /
     TexRow((descriptive_result[2, 2:9] %>% as.numeric())*100, dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[3, 1])) /
-    TexRow((descriptive_result[3, 2:9] %>% as.numeric()), dec=3) +
+    TexRow((descriptive_result[3, 2:9] %>% as.numeric())*100, dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[4, 1])) /
-    TexRow((descriptive_result[4, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[5, 1])) /
-    TexRow((descriptive_result[5, 2:9] %>% as.numeric()), dec=1) +
+    TexRow((descriptive_result[4, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow("") +
+    TexRow("\\textbf{Children's Characteristics}") +
+    TexRow(paste0("\\quad ", descriptive_result[5, 1])) / 
+    TexRow((descriptive_result[5, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow(paste0("\\quad ", descriptive_result[6, 1])) /
+    TexRow((descriptive_result[6, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow(paste0("\\quad ", descriptive_result[7, 1])) /
+    TexRow((descriptive_result[7, 2:9] %>% as.numeric()), dec=3) +
+    TexRow(paste0("\\quad ", descriptive_result[8, 1])) /
+    TexRow((descriptive_result[8, 2:9] %>% as.numeric()), dec=1) +
     TexRow("") +
     TexRow("\\textbf{Mother's Characteristics}") +
-    TexRow(paste0("\\quad ", descriptive_result[6, 1])) /
-    TexRow((descriptive_result[6, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[7, 1])) /
-    TexRow((descriptive_result[7, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[8, 1])) /
-    TexRow((descriptive_result[8, 2:9] %>% as.numeric())*100, dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[9, 1])) /
-    TexRow((descriptive_result[9, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow((descriptive_result[9, 2:9] %>% as.numeric()), dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[10, 1])) /
-    TexRow((descriptive_result[10, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow("") +
-    TexRow("\\textbf{Sample Size}") +
+    TexRow((descriptive_result[10, 2:9] %>% as.numeric()), dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[11, 1])) /
-    TexRow((descriptive_result[11, 2:9] %>% as.numeric()), dec=0) +
+    TexRow((descriptive_result[11, 2:9] %>% as.numeric())*100, dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[12, 1])) /
     TexRow((descriptive_result[12, 2:9] %>% as.numeric())*100, dec=1) +
     TexRow(paste0("\\quad ", descriptive_result[13, 1])) /
     TexRow((descriptive_result[13, 2:9] %>% as.numeric())*100, dec=1) +
+    TexRow("") +
+    TexRow("\\textbf{Sample Size}") +
     TexRow(paste0("\\quad ", descriptive_result[14, 1])) /
-    TexRow((descriptive_result[14, 2:9] %>% as.numeric())*100, dec=1)
+    TexRow((descriptive_result[14, 2:9] %>% as.numeric()), dec=0)
   return(tab)
 }
 

@@ -1,9 +1,9 @@
 start_time <- Sys.time()
 
-causal_output <- read.csv(file=paste0(output_git, "causal_output.csv"))
-instrumental_output <- read.csv(paste0(output_git, "instrumental_output.csv"))
-regression_output <- read.csv(paste0(output_git, "regression_output.csv"))
-prevalence_output <- read.csv(paste0(output_git, "prevalence_output.csv"))
+causal_output <- read.csv(file=paste0(output_git, "causal_output_D_12_P_12.csv"))
+instrumental_output <- read.csv(paste0(output_git, "instrumental_output_D_12_P_12.csv"))
+regression_output <- read.csv(paste0(output_git, "regression_output_D_12_P_12.csv"))
+prevalence_output <- read.csv(paste0(output_git, "prevalence_output_D_12_P_12.csv"))
 
 
 # Output to LaTeX tables ####

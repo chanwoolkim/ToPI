@@ -249,158 +249,190 @@ type_prevalence <- function(df, program, subsample) {
 
 # Execute! ####
 # Load data
-programs_ehs <- c("ehs-full", "ehsmixed_center", "ehscenter")
-programs <- c(programs_ehs, "abc")
+participation_run <- function(D_var, alt_var, new=FALSE) {
+  programs_ehs <- c("ehs-full", "ehsmixed_center", "ehscenter")
+  programs <- c(programs_ehs, "abc")
+  
+  for (p in programs_ehs) {
+    if (new) {
+      ehs_filename <- paste0(data_dir, p, "-topi-new.csv")
+    } else {
+      ehs_filename <- paste0(data_dir, p, "-topi.csv")
+    }
+    
+    assign(p, read.csv(ehs_filename) %>%
+             mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
+                    m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA)) %>%
+             rename(iq=ppvt3y))
+  }
+  
+  if (new) {
+    abc_filename <- paste0(data_dir, "abc-topi-new.csv")
+  } else {
+    abc_filename <- paste0(data_dir, "abc-topi.csv")
+  }
+  
+  abc <- read.csv(abc_filename) %>%
+    mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
+           m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA),
+           caregiver_home=1) %>%
+    rename(iq=sb3y)
+  
+  `ehs-full` <- `ehs-full` %>%
+    mutate(caregiver_home=caregiver_ever,
+           H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
+  
+  ehscenter <- ehscenter %>%
+    mutate(caregiver_home=caregiver_ever,
+           H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
+  
+  ehsmixed_center <- ehsmixed_center %>%
+    mutate(caregiver_home=caregiver_ever,
+           H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
+  
+  define_participation <- function(df, D_var_int, alt_var_int) {
+    D_values <- df %>% select(D_var_int) %>% unlist() %>% as.numeric()
+    alt_values <- df %>% select(alt_var_int) %>% unlist() %>% as.numeric()
+    df$D <- D_values
+    df$alt <- alt_values
+    return(df)
+  }
+  
+  for (p in programs) {
+    assign(p, define_participation(get(p), D_var, alt_var))
+  }
+  
+  # Build all output
+  # Base case
+  causal_output <- data.frame()
+  instrumental_output <- data.frame()
+  variable_importance_output <- data.frame()
+  regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant"))
+  prevalence_output <- data.frame()
+  
+  for (p in programs) {
+    start_time_p <- Sys.time()
+    
+    causal_output <- bind_rows(causal_output,
+                               causal_matrix(get(p), abc, p, "abc"))
+    instrumental_output <- bind_rows(instrumental_output,
+                                     causal_matrix(get(p), abc, p, "abc", method="LATE"))
+    
+    causal_output <-
+      bind_rows(causal_output,
+                causal_matrix(get(p), abc, p, "abc",
+                              covariates_list=covariates_short))
+    instrumental_output <-
+      bind_rows(instrumental_output,
+                causal_matrix(get(p), abc, p, "abc",
+                              covariates_list=covariates_short,
+                              method="LATE"))
+    
+    causal_output <-
+      bind_rows(causal_output,
+                causal_matrix(get(p), abc, p, "abc",
+                              covariates_list=covariates_short, subsample=TRUE))
+    instrumental_output <-
+      bind_rows(instrumental_output,
+                causal_matrix(get(p), abc, p, "abc",
+                              covariates_list=covariates_short, subsample=TRUE,
+                              method="LATE"))
+    
+    end_time_p <- Sys.time()
+    print(paste0("Program ", p, ": ", end_time_p-start_time_p))
+  }
+  
+  for (p in programs) {
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p, 
+                                                     covariates=FALSE),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_short),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p, 
+                                                     covariates=FALSE,
+                                                     method="LATE"),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p, method="LATE"),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_short,
+                                                     method="LATE"),
+                                   by="variable")
+    
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates=FALSE, 
+                                                     subsample=TRUE),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_subsample_all,
+                                                     subsample=TRUE),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_short,
+                                                     subsample=TRUE),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates=FALSE,
+                                                     subsample=TRUE, method="LATE"),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_subsample_all,
+                                                     subsample=TRUE, method="LATE"),
+                                   by="variable")
+    regression_output <- left_join(regression_output,
+                                   regression_matrix(get(p), p,
+                                                     covariates_list=covariates_short,
+                                                     subsample=TRUE, method="LATE"),
+                                   by="variable")
+    
+    prevalence_output <- bind_rows(prevalence_output,
+                                   type_prevalence(get(p), p, subsample=FALSE))
+    prevalence_output <- bind_rows(prevalence_output,
+                                   type_prevalence(get(p), p, subsample=TRUE))
+  }
+  
+  # Save
+  if (new) {
+    filename_prefix <- paste0("_new_", D_var, "_", alt_var, ".csv")
+  } else {
+    filename_prefix <- paste0("_", D_var, "_", alt_var, ".csv")
+  }
 
-for (p in programs_ehs) {
-  assign(p, read.csv(paste0(data_dir, p, "-topi.csv")) %>%
-           mutate(m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
-                  m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA)) %>%
-           rename(iq=ppvt3y))
+  write.csv(causal_output,
+            file=paste0(output_git, "causal_output", filename_prefix),
+            row.names=FALSE)
+  write.csv(instrumental_output,
+            file=paste0(output_git, "instrumental_output", filename_prefix),
+            row.names=FALSE)
+  write.csv(regression_output,
+            file=paste0(output_git, "regression_output", filename_prefix),
+            row.names=FALSE)
+  write.csv(prevalence_output,
+            file=paste0(output_git, "prevalence_output", filename_prefix),
+            row.names=FALSE)
 }
 
-abc <- read.csv(paste0(data_dir, "abc-topi.csv")) %>%
-  mutate(D=D_12,
-         alt=P_12,
-         m_edu_2=ifelse(!is.na(m_edu), m_edu==2, NA),
-         m_edu_3=ifelse(!is.na(m_edu), m_edu==3, NA),
-         caregiver_home=1) %>%
-  rename(iq=sb3y)
-
-`ehs-full` <- `ehs-full` %>%
-  mutate(caregiver_home=caregiver_ever,
-         D=D_12,
-         alt=P_12,
-         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
-
-ehscenter <- ehscenter %>%
-  mutate(caregiver_home=caregiver_ever,
-         D=D_12,
-         alt=P_12,
-         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
-
-ehsmixed_center <- ehsmixed_center %>%
-  mutate(caregiver_home=caregiver_ever,
-         D=D_12,
-         alt=P_12,
-         H=ifelse(D==1, 4140/6000, ifelse(D==0, 0, NA)))
-
-# Build all output
-# Base case
-causal_output <- data.frame()
-instrumental_output <- data.frame()
-variable_importance_output <- data.frame()
-regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant"))
-prevalence_output <- data.frame()
-
-for (p in programs) {
-  start_time_p <- Sys.time()
-  
-  causal_output <- bind_rows(causal_output,
-                             causal_matrix(get(p), abc, p, "abc"))
-  instrumental_output <- bind_rows(instrumental_output,
-                                   causal_matrix(get(p), abc, p, "abc", method="LATE"))
-  
-  causal_output <-
-    bind_rows(causal_output,
-              causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short))
-  instrumental_output <-
-    bind_rows(instrumental_output,
-              causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short,
-                            method="LATE"))
-  
-  causal_output <-
-    bind_rows(causal_output,
-              causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short, subsample=TRUE))
-  instrumental_output <-
-    bind_rows(instrumental_output,
-              causal_matrix(get(p), abc, p, "abc",
-                            covariates_list=covariates_short, subsample=TRUE,
-                            method="LATE"))
-  
-  end_time_p <- Sys.time()
-  print(paste0("Program ", p, ": ", end_time_p-start_time_p))
-}
-
-for (p in programs) {
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p, 
-                                                   covariates=FALSE),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p, 
-                                                   covariates=FALSE,
-                                                   method="LATE"),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p, method="LATE"),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short,
-                                                   method="LATE"),
-                                 by="variable")
-  
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates=FALSE, 
-                                                   subsample=TRUE),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_subsample_all,
-                                                   subsample=TRUE),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short,
-                                                   subsample=TRUE),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates=FALSE,
-                                                   subsample=TRUE, method="LATE"),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_subsample_all,
-                                                   subsample=TRUE, method="LATE"),
-                                 by="variable")
-  regression_output <- left_join(regression_output,
-                                 regression_matrix(get(p), p,
-                                                   covariates_list=covariates_short,
-                                                   subsample=TRUE, method="LATE"),
-                                 by="variable")
-  
-  prevalence_output <- bind_rows(prevalence_output,
-                                 type_prevalence(get(p), p, subsample=FALSE))
-  prevalence_output <- bind_rows(prevalence_output,
-                                 type_prevalence(get(p), p, subsample=TRUE))
-}
-
-# Save
-write.csv(causal_output,
-          file=paste0(output_git, "causal_output.csv"),
-          row.names=FALSE)
-write.csv(instrumental_output,
-          file=paste0(output_git, "instrumental_output.csv"),
-          row.names=FALSE)
-write.csv(regression_output,
-          file=paste0(output_git, "regression_output.csv"),
-          row.names=FALSE)
-write.csv(prevalence_output,
-          file=paste0(output_git, "prevalence_output.csv"),
-          row.names=FALSE)
+participation_run(D_var="D_1", alt_var="P_1")
+participation_run(D_var="D_12", alt_var="P_12")
+participation_run(D_var="D", alt_var="P", new=TRUE)
+participation_run(D_var="D_1", alt_var="P_1", new=TRUE)
+participation_run(D_var="D_6", alt_var="P_6", new=TRUE)
+participation_run(D_var="D_12", alt_var="P_12", new=TRUE)
+participation_run(D_var="D_18", alt_var="P_18", new=TRUE)
 
 end_time <- Sys.time()
 end_time-start_time

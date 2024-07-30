@@ -1,10 +1,10 @@
 start_time <- Sys.time()
 
 # Load data
-causal_output <- read.csv(file=paste0(output_git, "causal_output.csv"))
-instrumental_output <- read.csv(paste0(output_git, "instrumental_output.csv"))
-regression_output <- read.csv(paste0(output_git, "regression_output.csv"))
-prevalence_output <- read.csv(paste0(output_git, "prevalence_output.csv"))
+causal_output <- read.csv(file=paste0(output_git, "causal_output_D_12_P_12.csv"))
+instrumental_output <- read.csv(paste0(output_git, "instrumental_output_D_12_P_12.csv"))
+regression_output <- read.csv(paste0(output_git, "regression_output_D_12_P_12.csv"))
+prevalence_output <- read.csv(paste0(output_git, "prevalence_output_D_12_P_12.csv"))
 
 
 # Output to LaTeX tables ####
@@ -84,26 +84,38 @@ progress_tex <- function(causal_result, instrumental_result, regression_result,
   regression_row <- function(colname, row, col, arrow=TRUE) {
     if (arrow) {
       out <- TexRow(colname) / 
-        TexRow(regression_result[row, col] %>% as.numeric(), 
-               pvalues=regression_result[row, col+2] %>% as.numeric(), 
-               dec=2) / TexRow("-") +
+        TexRow(c(regression_result[row, col],
+                 regression_result[12, col+4]) %>% as.numeric(), 
+               pvalues=c(regression_result[row, col+2], 1) %>% as.numeric(), 
+               dec=c(2, 0)) / TexRow("-") +
         TexRow("") / 
-        TexRow(regression_result[row, col+1] %>% as.numeric(), 
+        TexRow(c(regression_result[row, col+1], NA) %>% as.numeric(), 
                dec=2, se=TRUE)
     } else {
       out <- TexRow(colname) /
-        TexRow(regression_result[row, c(col, col+60)] %>% as.numeric(), 
-               pvalues=regression_result[row, c(col+2, col+62)] %>% as.numeric(), 
-               dec=2) +
+        TexRow(c(regression_result[row, col],
+                 regression_result[row, col+4],
+                 regression_result[row, col+60],
+                 regression_result[row, col+64]) %>% as.numeric(), 
+               pvalues=c(regression_result[row, col+2],
+                         1,
+                         regression_result[row, col+62],
+                         1) %>% as.numeric(), 
+               dec=rep(c(2, 0), 2)) +
         TexRow("") / 
-        TexRow(regression_result[row, c(col+1, col+61)] %>% as.numeric(), 
-               dec=2, se=TRUE)
+        TexRow(c(regression_result[row, col+1],
+                 NA,
+                 regression_result[row, col+61],
+                 NA) %>% as.numeric(), 
+               dec=rep(c(2, 0), 2), se=TRUE)
     }
     return(out)
   }
   
   if (!reorder) {
-    tab <- TexRow(c("", "EHS", "ABC")) +
+    tab <- TexRow(c("", "EHS", "ABC"), cspan=c(1, 2, 2)) +
+      TexMidrule(list(c(2, 3), c(4, 5))) +
+      TexRow(c("", "Coefficient", "Obs", "Coefficient", "Obs")) +
       TexMidrule() +
       regression_row("ITT", 1, 2) +
       regression_row("ITT - Center $+$ Mixed", 1, 62) +
@@ -118,7 +130,9 @@ progress_tex <- function(causal_result, instrumental_result, regression_result,
       TexRow(instrumental_subset$to_se[3] %>% as.numeric(), 
              dec=2, se=TRUE)
   } else {
-    tab <- TexRow(c("", "EHS", "ABC")) +
+    tab <- TexRow(c("", "EHS", "ABC"), cspan=c(1, 2, 2)) +
+      TexMidrule(list(c(2, 3), c(4, 5))) +
+      TexRow(c("", "Coefficient", "Obs", "Coefficient", "Obs")) +
       TexMidrule() +
       regression_row("ITT", 1, 2) +
       regression_row("ITT - Center $+$ Mixed", 1, 62) +
@@ -126,27 +140,28 @@ progress_tex <- function(causal_result, instrumental_result, regression_result,
       regression_row("ITT - Center Only (Subsample)", 1, 152, arrow=FALSE) +
       regression_row("LATE - Center Only (Subsample)", 2, 167, arrow=FALSE) +
       TexRow("LATE - Instrumental Forest (ABC)") /
-      TexRow(instrumental_subset$to_estimate[3] %>% as.numeric(), 
-             pvalues=instrumental_subset$to_p_value[3] %>% as.numeric(), 
-             dec=2) / TexRow("-") +
+      TexRow(c(instrumental_subset$to_estimate[3],
+               instrumental_subset$N[3]) %>% as.numeric(), 
+             pvalues=c(instrumental_subset$to_p_value[3], 1) %>% as.numeric(), 
+             dec=c(2, 0)) / TexRow("-") +
       TexRow("") / 
-      TexRow(instrumental_subset$to_se[3] %>% as.numeric(), 
-             dec=2, se=TRUE)
+      TexRow(c(instrumental_subset$to_se[3], NA) %>% as.numeric(), 
+             dec=c(2, 0), se=TRUE)
   }
   return(tab)
 }
 
 tab <- progress_tex(causal_output, instrumental_output, regression_output)
-TexSave(tab, filename="progress_base", positions=c('l', rep('c', 2)),
+TexSave(tab, filename="progress_base", positions=c('l', rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="progress_base", positions=c('l', rep('c', 2)),
+TexSave(tab, filename="progress_base", positions=c('l', rep('c', 4)),
         output_path=output_git, stand_alone=FALSE)
 
 tab <- progress_tex(causal_output, instrumental_output, regression_output,
                     reorder=TRUE)
-TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 2)),
+TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 2)),
+TexSave(tab, filename="progress_reorder", positions=c('l', rep('c', 4)),
         output_path=output_git, stand_alone=FALSE)
 
 # Type prevalence output
