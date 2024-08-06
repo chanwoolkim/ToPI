@@ -43,8 +43,7 @@ covariate_selection <- function(df, covariates_list) {
 causal_matrix <- function(df_from, df_to, program_from, program_to,
                           method="ITT", 
                           covariates_list=covariates_all, 
-                          subsample=FALSE,
-                          honesty=FALSE, min.node.size=20) {
+                          subsample=FALSE) {
   
   df_from <- clean_data(df_from, subsample)
   N <- count(df_from) %>% as.numeric()
@@ -56,13 +55,11 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
   
   # Fit the causal/instrumental forest on the program of interest
   if (method=="ITT") {
-    forest <- causal_forest(X_from, Y, W,
-                            honesty=honesty, min.node.size=min.node.size, seed=seed)
+    forest <- causal_forest(X_from, Y, W, seed=seed)
     
     fit <- lm(iq~R, data=df_from)
   } else if (method=="LATE") {
-    forest <- instrumental_forest(X_from, Y, W, Z,
-                                  honesty=honesty, min.node.size=min.node.size, seed=seed)
+    forest <- instrumental_forest(X_from, Y, W, Z, seed=seed)
     
     fit <- ivreg(iq~D|R, data=df_from)
   }
@@ -85,11 +82,9 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
     
     # Fit the causal/instrumental forest on the program of interest
     if (method=="ITT") {
-      forest <- causal_forest(X_select, Y_select, W_select,
-                              honesty=honesty, min.node.size=min.node.size, seed=seed)
+      forest <- causal_forest(X_select, Y_select, W_select, seed=seed)
     } else if (method=="LATE") {
-      forest <- instrumental_forest(X_select, Y_select, W_select, Z_select,
-                                    honesty=honesty, min.node.size=min.node.size, seed=seed)
+      forest <- instrumental_forest(X_select, Y_select, W_select, Z_select, seed=seed)
     }
     
     to_estimate <- mean(predict(forest, X_to)$predictions)
@@ -102,7 +97,7 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
                            parallel="snow")
   
   pre_dr_p_value <- 2*pnorm(-pre_dr_estimate/pre_dr_se)
-  to_p_value <- 2*pnorm(-output_estimates$t0/sd(output_estimates$t))
+  to_p_value <- boot.pval(output_estimates)
   
   output <- data.frame(program_from=program_from,
                        program_to=program_to,
@@ -132,7 +127,7 @@ causal_matrix <- function(df_from, df_to, program_from, program_to,
 # Variable importance can be run outside bootstrap
 variable_importance_matrix <- function(df, program,
                                        covariates_list=covariates_all, subsample=FALSE,
-                                       method="ITT", honesty=FALSE, min.node.size=5) {
+                                       method="ITT") {
   df <- clean_data(df, subsample)
   X <- covariate_selection(df, covariates_list)
   W <- df$R
@@ -141,11 +136,9 @@ variable_importance_matrix <- function(df, program,
   
   # Fit the causal/instrumental forest on the program of interest
   if (method=="ITT") {
-    forest <- causal_forest(X, Y, W,
-                            honesty=honesty, min.node.size=min.node.size, seed=seed)
+    forest <- causal_forest(X, Y, W, seed=seed)
   } else if (method=="LATE") {
-    forest <- instrumental_forest(X, Y, W, Z,
-                                  honesty=honesty, min.node.size=min.node.size, seed=seed)
+    forest <- instrumental_forest(X, Y, W, Z, seed=seed)
   }
   
   var_importance <- variable_importance(forest)
@@ -415,7 +408,6 @@ participation_run <- function(D_var, alt_var) {
 }
 
 participation_run(D_var="E", alt_var="P")
-participation_run(D_var="D", alt_var="P")
 participation_run(D_var="D_1", alt_var="P_1")
 participation_run(D_var="D_6", alt_var="P_6")
 participation_run(D_var="D_12", alt_var="P_12")

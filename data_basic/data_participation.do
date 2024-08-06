@@ -5,43 +5,16 @@
 
 clear all
 
-/*
-	   * Variables on program participation
-	   *		Binary	Binary			Center_		Program_
-	   *		Center	Program			months		months
-	   *		Care	Participation	Care		Participation
+*Objective: create a good binary participation variable and good months of participation variables
 
-	   * EHS	center	D				YES			Need Questionnaire
-	   * ABC	P		D				Q YES?		YES?
-*/
+** Age 3 Parental Interview **
+*  Questionnaire Page 19
 
-* -------------- *
-* Early Head Start
-
-/*
-	   Notes on EHS participation:
-	   - Ever center care age 3 ok
-	   - Months of center care up to age 3 one can build
-	   - Ever EHS age 3 ok, but we do not have the original variables
-	   - Months of EHS up to age 3 we cannot build without the questionnaire (Parent Services Interview) in Mathematica
-*/
-
-* 1. CENTER CARE in EHS *
-
-* HARVARD DATA, FAITHFUL TO QUESTIONNAIRE
-* Parental interview, age 3
 cd "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_interview"
-use "00097_Early_Head_Start_B3P_ruf.dta", clear
-
-* Which arrangements are centers?
-gen center_PI=0
-replace center_PI=1 if b3p405a1==6 // main provider
-replace center_PI=1 if b3p405a2==6 // second provider
-replace center_PI=1 if b3p405a3==6 // third provider
-tab center_PI // 35% yes, 2110 observations
+use "00097_Early_Head_Start_B3P_ruf.dta", clear //2110 obs
 
 * Months of age at the time of the interview
-gen dob=date(cdob,"YMD")
+gen dob=date(cdob,"YMD") //in trimesters
 format dob %td
 gen intervew_date=date(b3p_dat,"YMD")
 format intervew_date %td
@@ -49,12 +22,13 @@ gen age_days=intervew_date-dob
 gen age_months=age_days/30
 tab age_months // almost all children are 36-39 months
 
-* Dummies for each arrangement being centers
-gen a1_center=(b3p405a1==6) // arrangement 1
+*Dummies for current arrangements being centers. People with no parent interview will be missings.
+gen a1_center=(b3p405a1==6)	// arrangement 1
 gen a2_center=(b3p405a2==6) // arrangement 2
 gen a3_center=(b3p405a3==6) // arrangement 3
 
-* Months using each arrangement
+*b3p407 is the variable for months, although its name is 407 rather than 408 (range coincides)
+*Months using each arrangement
 foreach r in 1 2 3 {
 	replace b3p407_`r'=. if b3p407_`r'<0
 	gen mo`r'=age_months-b3p407_`r' // how many months has the child been using the arrangement
@@ -62,29 +36,35 @@ foreach r in 1 2 3 {
 	replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
-*Months center ages 0-3
-gen mo_center=0
-replace mo_center=mo1 if a1_center==1
-replace mo_center=mo2 if a2_center==1 & mo_center==.
-replace mo_center=mo3 if a3_center==1 & mo_center==.
+*Months center ages 0-3, prioritizing the one with more hours
+gen mo_center1=mo1 if a1_center==1
+gen mo_center2=mo2 if a2_center==1
+gen mo_center3=mo3 if a3_center==1
 
-keep id center_PI mo_center
+gen mo_center_3y=mo_center1
+replace mo_center_3y=mo_center2 if mo_center_3y==.
+replace mo_center_3y=mo_center3 if mo_center_3y==.
+replace mo_center_3y=0 if mo_center_3y==.
+
+gen center_PI=mo_center_3y>0
+
+sum mo_center_3y //defined for all 2110
+rename mo_center_3y mo_center_total
+keep id center_PI mo_center_total
 tempfile ehs_PI3
 save `ehs_PI3'
 
-use "00097_Early_Head_Start_B2P_ruf.dta", clear
-merge 1:1 id using `ehs_PI3', nogen nolabel
+*Adding variables:
+* If the age of start for age 3 is older than age of interview at age 2, we need to add age 2
+* If it is not, the age 2 exposure should be included at age 3
 
-* Which arrangements are centers
-gen center_extra=0
-replace center_extra=1 if b2p405a1==6
-replace center_extra=1 if b2p405a2==6
-replace center_extra=1 if b2p405a3==6
-tab center_extra // 23% yes, 2433 observations
+** Parental interview, age 2 **
+use "00097_Early_Head_Start_B2P_ruf.dta", clear //2164 obs
+merge 1:1 id using `ehs_PI3'
 
 * Adding information to our previous variables
-replace center_PI=1 if center_PI==0 & center_extra==1
-tab center_PI // 40% yes, 2110 obs
+replace center_PI=1 if b2p405a1==6|b2p405a2==6|b2p405a3==6
+tab center_PI // 40% yes, 2174 obs
 
 * Months of age at time of the interview
 gen dob = date(cdob,"YMD")
@@ -95,7 +75,7 @@ gen age_days=intervew_date-dob
 gen age_months=age_days/30
 tab age_months
 
-* Dummies for each arrangement being centers
+* Which arrangements are centers
 gen a1_center=(b2p405a1==6)
 gen a2_center=(b2p405a2==6)
 gen a3_center=(b2p405a3==6)
@@ -108,42 +88,39 @@ foreach r in 1 2 3 {
 	replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
-gen mo_center_02=0
-replace mo_center_02=mo1 if a1_center==1
-replace mo_center_02=mo2 if a2_center==1 & mo_center_02==.
-replace mo_center_02=mo3 if a3_center==1 & mo_center_02==.
+gen mo_center_2y=0 if _merge!=2
+replace mo_center_2y=mo1 if a1_center==1
+replace mo_center_2y=mo2 if a2_center==1 & mo_center_2y==.
+replace mo_center_2y=mo3 if a3_center==1 & mo_center_2y==.
 
-gen mo_center_23=12 if mo_center>12 & mo_center!=.
-replace mo_center_23=mo_center if mo_center<12
+*Filling up number of months of exposure between ages 2 and 3: up to 12
+gen mo_center_23=12 if mo_center_total>12 & mo_center_total!=.
+replace mo_center_23=mo_center_total if mo_center_total<12
 
-gen mo_center_total=mo_center_23+mo_center_02
-compare mo_center mo_center_total
-replace mo_center=max(mo_center_total,mo_center)
+gen mo_center_pieces=mo_center_23+mo_center_2y
+compare mo_center_total mo_center_pieces
+replace mo_center_total=max(mo_center_pieces,mo_center_total) 
+replace mo_center_total=mo_center_2y if mo_center_2y!=. & mo_center_total==. // For master-only ppl
 
-keep id center_PI mo_center
+keep id center_PI mo_center_total mo_center_23 mo_center_2y
 tempfile ehs_PI2
 save `ehs_PI2'
 
+** Parental interview, age 1 **
 use "00097_Early_Head_Start_B1P_ruf.dta", clear
 merge 1:1 id using `ehs_PI2', nogen nolabel
 
-gen center_extra=0
-replace center_extra=1 if b1p405a1==6
-replace center_extra=1 if b1p405a2==6
-replace center_extra=1 if b1p405a3==6
-tab center_extra // 20% yes, 2636 obs
-
-replace center_PI=1 if center_PI==0 & center_extra==1
-tab center_PI // 44% yes
+replace center_PI=1 if b1p405a1==6|b1p405a2==6|b1p405a3==6
+tab center_PI // 46% yes
 
 gen dob = date(cdob,"YMD")
 format dob %td
 gen intervew_date = date(b1p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-
 gen age_months=age_days/30
 tab age_months
+
 gen a1_center=(b1p405a1==6)
 gen a2_center=(b1p405a2==6)
 gen a3_center=(b1p405a3==6)
@@ -155,234 +132,247 @@ foreach r in 1 2 3 {
 	replace mo`r'=age_months if mo`r'>age_months & mo`r'!=.
 }
 
-gen mo_center_01=0
-replace mo_center_01=mo1 if a1_center==1
-replace mo_center_01=mo2 if a2_center==1
-replace mo_center_01=mo3 if a3_center==1
+gen mo_center_1y=0
+replace mo_center_1y=mo1 if a1_center==1
+replace mo_center_1y=mo2 if a2_center==1
+replace mo_center_1y=mo3 if a3_center==1
 
-gen mo_center_13=24 if mo_center>24 & mo_center!=.
-replace mo_center_13=mo_center if mo_center<24
+*Just to construct center12:
+gen mo_center_12=12 if mo_center_2y>12 & mo_center_2y!=.
+replace mo_center_12=mo_center_2y if mo_center_2y<12
 
-gen mo_center_total=mo_center_13+mo_center_01
-compare mo_center mo_center_total
-replace mo_center=max(mo_center_total,mo_center)
+gen mo_center_13=24 if mo_center_total>24 & mo_center_total!=.
+replace mo_center_13=mo_center_total if mo_center_total<24
 
-replace mo_center=mo_center_01 if mo_center<mo_center_01 & mo_center_01!=.
+gen mo_center_pieces=mo_center_13+mo_center_1y
+compare mo_center_total mo_center_pieces
+replace mo_center_total=max(mo_center_pieces,mo_center_total)
 
-* Participates more than one month is roughly consistent with participation
-count if mo_center==0 // 1211
-count if center_PI==0 // 1179
-count if mo_center>0 & mo_center !=. // 885
-count if center_PI==1 // 931
+replace mo_center_total=mo_center_1y if mo_center_1y!=. & mo_center_total==. // For master-only ppl
 
-sum center_PI // 44%, 2110 obs
+keep id center_PI mo_center_total mo_center_1y mo_center_12 mo_center_23
+sum id center_PI mo_center_total mo_center_1y mo_center_12 mo_center_23
 
-keep id center_PI mo_center
 tempfile ehs_PI_participation
 save `ehs_PI_participation'
 
-* ALL OTHER VARIABLES
-cd "$data_raw"
-use "std-ehs.dta", clear
+*** Participation in EHS Visits from the Parent Services Interviews ***
 
-merge 1:1 id using `ehs_PI_participation', nogen nolabel
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_services_exit/00097_Early_Head_Start_P0_ruf.dta", clear
+*From the Codebook, page 96, we know that the frequency of EHS home visits is P0F47_1 
+*That variable is in the Harvard data: 00097_Early_Head_Start_P0_ruf, variable p0f47_1
+gen visits0=p0f47_1
+replace visits0=0 if p0f47_1==-2
+replace visits0=. if p0f47_1==-5|p0f47_1==-1
+replace visits0=. if p0f47_1==99
+tab visits0 //2429 observations
+replace visits0=1 if visits0>1 & visits0!=.
+keep id visits0
+tempfile visits0
+save `visits0'
 
-rename center_used6m center_care6m
-label values center_care6m dummy
-rename P2V_CB14 center_care14m
-label values center_care14m dummy
-rename center_used15m center_care15m
-label values center_care15m dummy
-rename P2V_CB24 center_care24m
-label values center_care24m dummy
-rename center_used26m center_care26m
-label values center_care26m dummy
-rename P2V_CB36 center_care30m
-label values center_care30m dummy
-rename center_care3 center_care36m
-label values center_care36m dummy
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_services_exit/00097_Early_Head_Start_P1_ruf.dta", clear
+gen visits1=p1f47_1
+replace visits1=0 if p1f47_1==-2
+replace visits1=. if p1f47_1==-5|p1f47_1==-1|p1f47_1==-4
+replace visits1=. if p1f47_1==99
+tab visits1 //2248 observations
+replace visits1=1 if visits1>1 & visits1!=.
+keep id visits1
+merge 1:1 id using `visits0', nogenerate
+tempfile visits1 
+save `visits1'
 
-* See the analysis of these and other variables in the appendix
-* This creation of the variable gains 300 obs, while keeping average and treatment effects
-egen center_total=rowtotal(center_PI center_care6m center_care14m center_care15m ///
-	center_care24m center_care26m center_care30m center_care36m), missing
-gen center=(center_total>=1) if center_total!=.
-sum center // 2354 obs .50 BIG GAIN IN OBS
-reg center treat if program_type==1 // .27, DECENT
+use "${data_raw}/Harvard Dataverse Sensitive Original Data/parent_services_exit/00097_Early_Head_Start_P2_ruf.dta", clear
+gen visits2=p2f47_1
+replace visits2=0 if p2f47_1==-2
+replace visits2=. if p2f47_1==-5|p2f47_1==-1
+replace visits2=. if p2f47_1==99
+tab visits2 //2080 observations
+replace visits2=1 if visits2>1 & visits2!=.
+keep id visits2
+merge 1:1 id using `visits1', nogenerate
 
-* 2. EHS PARTICIPATION *
+egen ehs_visits=rowtotal(visits0 visits1 visits2)
+replace ehs_visits=1 if ehs_visits>1 & ehs_visits!=.
+sum ehs_visits visits0 visits1 visits2 //2726 obs. Nice.
+keep id ehs_visits visits0 visits1 visits2
+tempfile visits
+save `visits'
 
-/*
-	   Notes:
-	   * ehs1		Tracking: Care provider is EHS center
-	   * P2V_EH14	PSIs: IN EHS CARE AT 14 MONTHS OLD
-	   * ehs2		Tracking: Care provider is EHS center
-	   * P2V_EH24	PSIs: IN EHS CARE AT 24 MONTHS OLD
-	   * ehs3		Tracking: Care provider is EHS center
-	   * P2V_EH36	PSIs: IN EHS CARE AT 36 MONTHS OLD
-	   * ehs_care3	In EHS care at age 3
-*/
+use "${data_raw}/ICPSR_03804/DS0001/03804-0001-Data.dta", clear
+rename IDNUM id
+rename PROGTYPE program_type
+rename PROGRAM R
 
-* gen has_ehs_hrs14m=ehs_hrs14m>0 & ehs_hrs14m!=.
-* gen has_ehs_hrs2=ehs_hrs2>0 & ehs_hrs2!=.
-* gen has_ehs_hrs3=ehs_hrs3>0 & ehs_hrs3!=.
+merge 1:1 id using "${data_raw}/Harvard Dataverse Sensitive Original Data/baseline/00097_Early_Head_Start_ehs_sites.dta", nogen nolabel
+tab sitenum R, row
 
-* replace any_ehs1=1 if has_ehs_hrs14m==1
-* replace any_ehs1=1 if has_ehs_hrs2==1
-* replace any_ehs1=1 if has_ehs_hrs3==1
+merge 1:1 id using `visits'
+rename _merge merge_visits
 
-egen ehs_total=rowtotal(ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3), mi
-gen any_ehs=(ehs_total>=1) if ehs_total!=.
+*Open ICPSR Data
+rename P26_CTR2 			center_used6m  	//By 6th month: Used Any Center Care
+rename P215_CR2 			center_used15m 	//By 15th month: Used Any Center Care
+rename P2V_CTR2 			center_used26m 	//By PSI 26: Used Child Care Center
+rename P2V_CB14 			center_care14m 	//PSIs: IN CENTER CARE AT 14 MONTHS OLD
+rename P2V_CB24 			center_care24m 	//PSIs: IN CENTER CARE AT 24 MONTHS OLD
+rename P2V_CB36 			center_care36m 	//PSIs: IN CENTER CARE AT 36 MONTHS OLD
+rename P2B_CB36				center_care3 	//IN CENTER CARE @36MO W/ PI DATA
+replace center_care3=0 if center_care3==-6 	//(missing care section)
 
-gen mo_center1 =mo_center>=1  & mo_center!=.
-gen mo_center12=mo_center>=12 & mo_center!=.
-label var ehs1 "Tracking: EHS center 14m"
-label var ehs2 "Tracking: EHS center 24m"
-label var ehs3 "Tracking: EHS center 36m"
-label var P2V_EH14 "PSIs: IN EHS CARE 14m"
-label var P2V_EH24 "PSIs: IN EHS CARE 24m"
-label var P2V_EH36 "PSIs: IN EHS CARE 36m"
-label var any_ehs "Indicator: any of the above"
-label var P2V_ENG2 "PSI: Eng min EHS act"
+rename P2V_EH14				ehs14m		//PSIs: IN EHS CARE AT 14 MONTHS OLD
+rename P2V_EH24				ehs24m		//PSIs: IN EHS CARE AT 24 MONTHS OLD
+rename P2V_EH36				ehs36m		//PSIs: IN EHS CARE AT 36 MONTHS OLD
+rename B1CT_EHS 			ehs_care1	//Tracking: Care provider is EHS center 14
+rename B2CT_EHS 			ehs_care2	//Tracking: Care provider is EHS center 24
+rename B3CT_EHS 			ehs_care3	//Tracking: Care provider is EHS center 36
+rename P2B_E36				ehs3		//In EHS care at age3
+replace ehs3=0 if ehs3==-6 				//(missing care section)
+*Don't think this adds information AGEHRSE4: PSIs: HRS/WK IN EHS CARE AT 14 MO
 
-matrix M=J(9,7,.)
-matrix rownames M=ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3 any_ehs P2V_ENG2 
-matrix colnames M=N avg_t avg_c center1_t center1_c center12_t center12_c
-local r=1
-
-foreach var in ehs1 P2V_EH14 ehs2 P2V_EH24 ehs3 P2V_EH36 ehs_care3 any_ehs P2V_ENG2{
-	gen D_`var'_1=`var'*mo_center1
-	gen D_`var'_12=`var'*mo_center12
-	count if `var'!=.
-	matrix M[`r',1]=r(N)
-
-	sum `var' if treat==1
-	matrix M[`r',2]=r(mean)
-	sum `var' if treat==0
-	matrix M[`r',3]=r(mean)
-
-	sum D_`var'_1 if treat==1
-	matrix M[`r',4]=r(mean)
-	sum D_`var'_1 if treat==0
-	matrix M[`r',5]=r(mean)
-
-	sum D_`var'_12 if treat==1
-	matrix M[`r',6]=r(mean)
-	sum D_`var'_12 if treat==0
-	matrix M[`r',7]=r(mean)
-
-	local r=`r'+1
+foreach var in center_used6m center_used15m center_used26m ///
+			   center_care14m center_care24m center_care36m center_care3 ///
+			   ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3{
+replace `var'=.  if `var'<0
 }
 
-matrix list M
+egen any_center=rowtotal(center_used6m center_used15m center_used26m center_care14m center_care24m center_care36m center_care3), missing
+replace any_center=1 if any_center>1 & any_center!=.
+sum any_center //2042
 
-* Comparing two ways of construucting the EHS participation variables
-* With and without the minimal engagement variable
-
-gen any_ehs1=(ehs_total>=1) if ehs_total!=.
-tab any_ehs1 // 15%
-tab any_ehs1 if program_type==1 | program_type==3 // 27%
-
-gen any_ehs2=any_ehs1
-replace any_ehs2=1 if P2V_ENG2==1
-tab any_ehs2 // 47%
-tab any_ehs2 if program_type==1 | program_type==3 // 48%
-
-reg any_ehs1 treat if program_type==1 // .58 effect, nice!
-reg any_ehs2 treat if program_type==1 // .72 effect, huge!
-
-gen center_ehs1=.
-replace center_ehs1=1 if any_ehs1==1 & center==1
-replace center_ehs1=0 if any_ehs1==0 & center!=.
-replace center_ehs1=0 if any_ehs1!=. & center==0
-tab center_ehs1 // 15%
-
-gen center_ehs2=.
-replace center_ehs2=1 if any_ehs2==1 & center==1
-replace center_ehs2=0 if any_ehs2==0 & center!=.
-replace center_ehs2=0 if any_ehs2!=. & center==0
-tab center_ehs2 // 29%
-
-reg center_ehs1 treat if program_type==1 // .58, very nice
-reg center_ehs2 treat if program_type==1 // .67, very nice
-
-* 3. MONTHS IN EHS PARTICIPATION *
-
-gen ehs_months1=.
-replace ehs_months1=0 if center==0
-replace ehs_months1=0 if center==1 & center_ehs1==0
-replace ehs_months1=mo_center if center==1 & center_ehs1==1 // (redundant, just for organization)
-
-gen alt_months1=.
-replace alt_months1=0 if center==0
-replace alt_months1=0 if center==1 & center_ehs1==1
-replace alt_months1=mo_center if center==1 & center_ehs1==0
-
-sum ehs_months1
-sum ehs_months1 if ehs_months1>0
-sum alt_months1
-sum alt_months1 if alt_months1>0
-
-* tab ehs treat
-gen alt1=.
-replace alt1=0 if center!=. 
-replace alt1=1 if center==1 & any_ehs1==0
-gen alt2=.
-replace alt2=0 if center!=.
-replace alt2=1 if center==1 & any_ehs2==0
+egen ehs_c=rowtotal(ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3), missing
+replace ehs_c=1 if ehs_c>1 & ehs_c!=.
+sum ehs_c //2195
 
 /*
-	   * Compare alt_months and ehs_months
-	   * Treated and control groups
-	   cumul mo_center if treat==1, gen(v_t) equal
-	   cumul mo_center if treat==0, gen(v_c) equal
-       line v_t v_c mo_center, sort ylabel(0(0.1)1) legend(order (1 "Treatment" 2 "Control")) 		
+egen ehs_01=rowtotal(ehs14m ehs_care1 ), missing
+replace ehs_01=1 if ehs_01>1 & ehs_01!=.
+egen ehs_12=rowtotal(ehs24m ehs_care2 ), missing
+replace ehs_12=1 if ehs_01>1 & ehs_01!=.
+egen ehs_23=rowtotal(ehs36m ehs_care3 ehs3 ), missing
+replace ehs_23=1 if ehs_23>1 & ehs_23!=.
 
-	   * Months of EHS and non-EHS centers
-       cumul alt_months if ehs_months==0, gen(v_alt) equal
-	   cumul ehs_months if alt_months==0, gen(v_ehs) equal
-	   line v_alt v_ehs mo_center, sort ylabel(0(0.1)1) legend(order (1 "Alternative" 2 "EHS")) 		
+reg ehs_01 R
+reg ehs_12 R
+reg ehs_23 R
 */
 
-foreach m in 1 6 12 18{
-	gen P_`m'=.
-	replace P_`m'=1 if alt_months1>=`m' & alt_months1!=.
-	replace P_`m'=0 if alt_months1<`m'
+keep id R program_type any_center ehs_c center_used6m center_used15m center_used26m center_care14m center_care24m center_care36m center_care3 ehs_visits 
+/*ehs_01 ehs_12 ehs_23*/
 
-	gen D_`m'=.
-	replace D_`m'=1 if ehs_months1>=`m' & ehs_months1!=.
-	replace D_`m'=0 if ehs_months1<`m'
-}
+merge 1:1 id using `ehs_PI_participation'
 
-gen P=.
-replace P=1 if alt_months1>=1 & alt_months1!=.
-replace P=0 if alt_months1<1
+** Constructing the Binary Variables **
+** Notice that this uses more information than just the count variables, so they don't have to coincide **
 
-/*
-	   * Silenced because it is redundant with D_1
-	   * and later gets replaced by the old construction of the variable
-	   gen D=.
-	   replace D=1 if ehs_months1>=1 & ehs_months1!=.
-	   replace D=0 if ehs_months1<1
-	   tab ehs D, mi
-*/
+*Binary Center Variable
+gen C=center_PI
+replace C=0 if C==. & any_center==0
+replace C=1 if any_center==1
+label var C "Ever Participated in Any Center"
+sum C //.52
 
-rename treat R
-rename P2V_ENG2 D
+*Binary EHS Center Variable
+gen D=ehs_c
+label var D "Ever Participated in EHS Center"
+sum D //.15
 
-tab D, mi
-replace D = 1 if (D > 0 & D != .) // 0 changes
-sum D
-tab D R, col
+*Binary Vists
+gen V=ehs_visits
+sum V //.47
+label var V "Ever Received an EHS Visit"
 
-gen alt=.
-replace alt=0 if center!=.
-replace alt=1 if center==1 & D==0 // D==0 is equivalent to doing center_ehs==0
+*Binary Any EHS Variable
+gen E=.
+replace E=0 if D!=.|V!=.
+replace E=1 if D==1|V==1
+sum E //.5
+label var E "Ever Participated in Any EHS (C/V) Activity"
 
-keep id center any_ehs1 any_ehs2 center_ehs1 center_ehs2 ehs_months alt_months ///
-	R D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 alt alt1 alt2 program_type
+*Binary Non-EHS Centers Variable (Defines non-EHS as)
+gen P=C
+replace P=. if D==. //we lose 200 obs
+replace P=0 if D==1
+label var P "Participated in Non-EHS Centers"
+sum P //.38
+
+*Constructing variables in months
+gen mo_ehs=mo_center_total if D!=.
+replace mo_ehs=0 if D==0
+
+gen D_1=mo_ehs>1 		if mo_ehs!=. & C!=.
+gen P_1=C==1 & D_1==0	if mo_ehs!=. & C!=.
+
+gen D_6=mo_ehs>6 		if mo_ehs!=. & C!=.
+gen P_6=C==1 & D_6==0	if mo_ehs!=. & C!=.
+
+gen D_12=mo_ehs>12 		if mo_ehs!=. & C!=.
+gen P_12=C==1 & D_12==0	if mo_ehs!=. & C!=.
+
+gen D_18=mo_ehs>18 		if mo_ehs!=. & C!=.
+gen P_18=C==1 & D_18==0	if mo_ehs!=. & C!=.
+
 cd "$data_working"
 save "ehs-participation.dta", replace
+
+merge 1:1 id using ehs-control, keepusing(black m_edu) nogenerate
+
+sum E    if R==1								 //.88
+sum E    if R==1 & program_type==1 						 //.79
+sum E    if R==1 & program_type==1 & black==1 & m_edu<=2 //.68
+sum D    if R==1 & program_type==1 & black==1 & m_edu<=2 //.56
+sum D_12 if R==1 & program_type==1 & black==1 & m_edu<=2 //.52
+
+matrix M=J(6,9,.)
+matrix rownames M=E D D_1 D_6 D_12 D_18
+matrix colnames M=Dt Dc(p_hh) Pt(p_cc) Pc P_nn p_ch p_nh om_c om_n
+local r=1
+
+local p_E		P			
+local p_D		P	
+local p_D_1		P_1
+local p_D_6		P_6	
+local p_D_12	P_12	
+local p_D_18	P_18	
+
+foreach m in E D D_1 D_6 D_12 D_18{
+	sum `m' if R==1 & program_type==1
+	matrix M[`r',1]=r(mean)
+	
+	sum `m' if R==0 &  program_type==1
+	local p_hh=r(mean)
+	matrix M[`r',2]=`p_hh'
+		
+	sum `p_`m'' if R==1 & program_type==1
+	local p_cc=r(mean)
+	matrix M[`r',3]=`p_cc'
+	
+	sum `p_`m'' if R==0 & program_type==1
+	matrix M[`r',4]=r(mean)
+	
+	gen N=`m'==0 & `p_`m''==0 if `m'!=. & `p_`m''!=.
+	sum N if R==1 & program_type==1
+	local p_nn=r(mean)
+	matrix M[`r',5]=`p_nn'
+	
+	sum `p_`m'' if R==0 & program_type==1
+	local p_ch=r(mean)-`p_cc'
+	matrix M[`r',6]=`p_ch'
+	
+	sum N if R==0 & program_type==1
+	local p_nh=r(mean)-`p_nn'
+	matrix M[`r',7]=`p_nh'
+
+	matrix M[`r',8]=`p_ch'/(`p_ch'+`p_nh')
+	
+	matrix M[`r',9]=`p_nh'/(`p_ch'+`p_nh')
+
+	drop N
+	
+	local r=`r'+1
+}
+matrix list M , format(%12.2f)
 
 * --------- *
 * Abecedarian

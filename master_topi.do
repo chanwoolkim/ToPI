@@ -16,7 +16,7 @@ global git_out			"${code_path}/output_backup"
 global covariates		m_age m_edu sibling m_iq black sex gestage mf
 global programs			ehs abc
 
-set seed 2022
+set seed 2024
 
 * [UNMUTE THIS IF YOU DO NOT HAVE RELEVANT PACKAGES]
 * cd $code_path
@@ -37,8 +37,6 @@ cd "${code_path}/data_basic"
 	include "data_labor"
 cd "${code_path}/data_basic"
 	include "data_instruments"
-*cd "${code_path}/data_basic"
-*	include "data_ehs_participation_explore" // exploring EHS participation
 cd "${code_path}/data_basic"
 	include "data_participation"
 cd "${code_path}/data_basic"
@@ -55,5 +53,5 @@ rcall : source("preliminary.R")
 rcall : source("descriptive_table_tex.R")
 rcall : source("analysis_table.R")
 rcall : source("analysis_table_tex.R")
-rcall : source("analysis_table_tex_appendix.R")
+rcall : source("analysis_table_participation_tex.R")
 rcall : source("analysis_grpah.R")

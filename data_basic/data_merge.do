@@ -11,9 +11,6 @@ clear all
 * Early Head Start
 cd "$data_working"
 use "ehs-participation.dta", clear
-keep id program_type ehs_months
-
-merge 1:1 id using ehs-participation2, nogen nolabel
 merge 1:1 id using ehs-control, nogen nolabel
 merge 1:1 id using ehs-labor, nogen nolabel
 merge 1:1 id using ehs-instruments, nogen nolabel
@@ -23,8 +20,7 @@ merge 1:1 id using ehs-outcome, nogen nolabel
 keep id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 program_type sitenum ///
 $covariates poverty bw twin ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
-ppvt3y iq_orig hs H ///
-ehs_months
+ppvt3y iq_orig hs H
 
 order id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18  program_type sitenum ///
 $covariates poverty bw twin ///
@@ -32,24 +28,18 @@ caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y iq_orig hs 
 
 preserve
 keep if program_type==1
-gen ehscenter_months=ehs_months
-drop ehs_months
 outsheet using ehscenter-topi.csv, comma nolabel replace
 save ehscenter-topi, replace
 restore
 
 preserve
 keep if program_type==3
-gen ehsmixed_months=ehs_months
-drop ehs_months
 outsheet using ehsmixed-topi.csv, comma nolabel replace
 save ehsmixed-topi, replace
 restore
 
 preserve
 keep if program_type==1 | program_type==3
-gen ehsmixed_center_months=ehs_months
-drop ehs_months
 outsheet using ehsmixed_center-topi.csv, comma nolabel replace
 save ehs_mixed_center-topi, replace
 restore

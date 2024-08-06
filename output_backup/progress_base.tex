@@ -1,25 +1,32 @@
-% created using textab on Tue Jul 30 17:10:03 2024
-\begin{tabular}{lcccc}
+% created using textab on Wed Jul 31 11:36:11 2024
+\begin{tabular}{lllcccc}
 \toprule 
 \midrule 
- & \multicolumn{2}{c}{EHS} & \multicolumn{2}{c}{ABC} \\
- \cmidrule(lr){2-3} \cmidrule(lr){4-5} 
- & Coefficient & Obs & Coefficient & Obs \\
+\multicolumn{3}{l}{Program} & \multicolumn{2}{c}{EHS} & \multicolumn{2}{c}{ABC} \\
+ \cmidrule(lr){1-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} 
+Type & Sample & Participation & Coefficient & Obs & Coefficient & Obs \\
 \midrule 
-ITT & 0.07 & 1,267 & - \\
- & (0.06) &  \\
-ITT - Center $+$ Mixed & 0.12* & 768 & - \\
- & (0.07) &  \\
-ITT - Center Only & 0.18* & 375 & 0.97*** & 103 \\
- & (0.10) &  & (0.18) &  \\
-ITT - Center Only & 0.48*** & 110 & 0.93*** & 98 \\
-(Subsample) & (0.14) &  & (0.18) &  \\
-LATE - Center Only & 1.43*** & 110 & 1.06*** & 98 \\
-(Subsample) & (0.50) &  & (0.20) &  \\
-LATE - Center Only & 1.11*** & 110 & 1.06*** & 98 \\
-(Subsample, Participation=12m) & (0.34) &  & (0.20) &  \\
-LATE - Center Only & 1.30*** & 110 & - \\
-(Instrumental Forest (ABC)) & (0.39) &  \\
+\multicolumn{3}{c}{} & \multicolumn{4}{c}{ITT} \\
+ \cmidrule(lr){4-7} 
+All & Full & Any & 0.07 & 1,267 & - \\
+ &  &  & (0.06) &  \\
+Center $+$ Mixed & Full & Any & 0.12* & 768 & - \\
+ &  &  & (0.07) &  \\
+Center Only & Full & Any & 0.18* & 375 & 0.97*** & 103 \\
+ &  &  & (0.10) &  & (0.18) &  \\
+Center Only & Common Support & Any & 0.48*** & 110 & 0.93*** & 98 \\
+ &  &  & (0.14) &  & (0.18) &  \\
+\midrule 
+\multicolumn{3}{c}{} & \multicolumn{4}{c}{LATE} \\
+ \cmidrule(lr){4-7} 
+Center Only & Common Support & Any & 1.21*** & 110 & 1.06*** & 98 \\
+ &  &  & (0.42) &  & (0.20) &  \\
+Center Only & Common Support & 1m & 1.34*** & 110 & 1.06*** & 98 \\
+ &  &  & (0.43) &  & (0.20) &  \\
+Center Only & Common Support & 12m & 1.11*** & 110 & 1.06*** & 98 \\
+ &  &  & (0.34) &  & (0.20) &  \\
+Center Only & Common Support & 12m & 1.27*** & 110 & - \\
+ & (Instrumental Forest (ABC)) &  & (0.34) &  \\
 \midrule 
 \bottomrule 
 \end{tabular}

@@ -45,7 +45,7 @@ fte_theme <- function() {
 # Function to create data frame for graph inputs ####
 # Create subLATE and combined LATE for the data
 sublate_estimate <- function(share_nh_from, share_nh_to, late_from) {
-  result <- data.frame(sublate_nh=seq(-0.2, late_from/share_nh_from+0.2, 0.001))
+  result <- data.frame(sublate_nh=seq(-0.2, 3, 0.001))
   result <- result %>%
     mutate(sublate_ch=(late_from-share_nh_from*sublate_nh)/(1-share_nh_from),
            late_to=share_nh_to*sublate_nh+(1-share_nh_to)*sublate_ch,
@@ -63,10 +63,9 @@ graph_sublate <- function(result) {
     fte_theme() +
     labs(colour="Program") +
     scale_x_continuous(name="nh-LATE",
-                       limits=c(0.4, 3)) +
+                       limits=c(-0.1, 3.1)) +
     scale_y_continuous(name="ch-LATE",
-                       limits=c(-0.1,
-                                max(ehscenter_late, abc_late)+0.2)) +
+                       limits=c(-0.1, 2)) +
     scale_color_manual(values=colours_set) +
     annotate("rect",
              xmin=abc_late, xmax=abc_late/prevalence_output$nh_share[8],
@@ -86,7 +85,7 @@ graph_late_to <- function(result) {
   abc_late <- instrumental_output$coefficient[12]
   
   ehscenter_nhlate_upper_bound <- ehscenter_late/prevalence_output$nh_share[6]
-  ehscenter_late_lower_bound <- prevalence_output$nh_share[8]*ehscenter_nhlate_upper_bound
+  ehscenter_late_upper_bound <- prevalence_output$nh_share[8]*ehscenter_nhlate_upper_bound
   
   gg <- ggplot(result) +
     geom_line(aes(x=sublate_nh, y=late_to, group=program, colour=program)) +
@@ -94,14 +93,13 @@ graph_late_to <- function(result) {
     fte_theme() +
     labs(colour="Program") +
     scale_x_continuous(name="nh-LATE",
-                       limits=c(0.2, 2)) +
+                       limits=c(-0.1, 3.1)) +
     scale_y_continuous(name="Total LATE",
-                       limits=c(-0.1,
-                                max(ehscenter_late, abc_late)+0.2)) +
+                       limits=c(-0.1, 2)) +
     scale_color_manual(values=colours_set) +
     annotate("rect",
              xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
-             ymin=ehscenter_late, ymax=ehscenter_late_lower_bound, 
+             ymin=ehscenter_late, ymax=ehscenter_late_upper_bound, 
              fill=colours_set[2], alpha=0.2) +
     theme(legend.position="bottom")
   

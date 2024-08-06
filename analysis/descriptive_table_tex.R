@@ -184,9 +184,9 @@ descriptive_summary <-
 
 # Output to LaTeX tables ####
 number_counts_tex <- function(counts_result) {
-  tab <- TexRow(c("", "EHS", ""), cspan=c(1, 3, 1)) +
-    TexMidrule(list(c(2, 4))) +
-    TexRow(c("", "Full", "Center $+$ Mixed", "Center Only", "ABC")) +
+  tab <- TexRow(c("Program", "EHS", "ABC"), cspan=c(1, 3, 1)) +
+    TexMidrule(list(c(1, 1), c(2, 4), c(5, 5))) +
+    TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", "")) +
     TexMidrule() +
     TexRow(counts_result[1, 1]) / TexRow(counts_result[1, 2:5] %>% as.numeric(), dec=0) +
     TexRow(counts_result[2, 1]) / TexRow(counts_result[2, 2:5] %>% as.numeric(), dec=0) +
@@ -205,13 +205,14 @@ TexSave(tab, filename="number_counts", positions=c('l', rep('c', 4)),
         output_path=output_git, stand_alone=FALSE)
 
 descriptive_stat_tex <- function(descriptive_result) {
-  tab <- TexRow(c("", "EHS", ""), 
+  tab <- TexRow(c("Program", "EHS", "ABC"), 
                 cspan=c(1, 6, 2)) +
-    TexMidrule(list(c(2, 7), c(8, 9))) +
-    TexRow(c("", "Full", "Center $+$ Mixed", "Center Only", "ABC"), 
+    TexMidrule(list(c(1, 1), c(2, 7), c(8, 9))) +
+    TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), 
            cspan=c(1, 2, 2, 2, 2)) +
-    TexMidrule(list(c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
-    TexRow(c("", rep(c("Full", "Subsample"), 4))) +
+    TexMidrule(list(c(1, 1), c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
+    TexRow(c("", rep(c("", "Common"), 4))) +
+    TexRow(c("Sample", rep(c("Full", "Support"), 4))) +
     TexMidrule() +
     TexRow("\\textbf{Outcome}") +
     TexRow(paste0("\\quad ", descriptive_result[1, 1])) / 
