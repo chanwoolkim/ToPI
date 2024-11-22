@@ -211,8 +211,7 @@ descriptive_stat_tex <- function(descriptive_result) {
     TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), 
            cspan=c(1, 2, 2, 2, 2)) +
     TexMidrule(list(c(1, 1), c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
-    TexRow(c("", rep(c("", "Common"), 4))) +
-    TexRow(c("Sample", rep(c("Full", "Support"), 4))) +
+    TexRow(c("Sample", rep(c("Full", "Subsample"), 4))) +
     TexMidrule() +
     TexRow("\\textbf{Outcome}") +
     TexRow(paste0("\\quad ", descriptive_result[1, 1])) / 

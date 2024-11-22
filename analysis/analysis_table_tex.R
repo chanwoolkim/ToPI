@@ -172,18 +172,18 @@ progress_tex <- function(instrumental_result,
                    regression_result_all, 1, 62) +
     regression_row(c("Center Only", "Full", "Any"),
                    regression_result_all, 1, 122, arrow=FALSE) +
-    regression_row(c("Center Only", "Common Support", "Any"),
+    regression_row(c("Center Only", "Subsample", "Any"),
                    regression_result_all, 1, 152, arrow=FALSE) +
     TexMidrule() +
     TexRow(c("", "LATE"), cspan=c(3, 4)) +
     TexMidrule(list(c(4, 7))) +
-    regression_row(c("Center Only", "Common Support", "Any"),
+    regression_row(c("Center Only", "Subsample", "Any"),
                    regression_result_all, 2, 167, arrow=FALSE) +
-    regression_row(c("Center Only", "Common Support", "1m"),
+    regression_row(c("Center Only", "Subsample", "1m"),
                    regression_result_D, 2, 167, arrow=FALSE) +
-    regression_row(c("Center Only", "Common Support", "12m"),
+    regression_row(c("Center Only", "Subsample", "12m"),
                    regression_result, 2, 167, arrow=FALSE) +
-    TexRow(c("Center Only", "Common Support", "12m")) /
+    TexRow(c("Center Only", "Subsample", "12m")) /
     TexRow(c(instrumental_subset$to_estimate[3],
              instrumental_subset$N[3]) %>% as.numeric(), 
            pvalues=c(instrumental_subset$to_p_value[3], 1) %>% as.numeric(), 
