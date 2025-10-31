@@ -211,6 +211,51 @@ regression_matrix <- function(df, program,
   return(output)
 }
 
+# FRA matrix
+fra_matrix <- function(df, program,
+                       method="ITT", 
+                       covariates_list=covariates_all, 
+                       subsample=FALSE) {
+  df_select <- clean_data(df, subsample)
+  
+  # Fit the (IV) regression on the program of interest
+  if (method=="ITT") {
+    fra_df <- FRA(df_select, outcome_cols="iq",
+                  treat_col="R", method="linear",
+                  covariate_cols=covariates_list)
+    
+    fra_ate <- FRA_ATE(fra_df, outcome_col='iq', 1, 0)
+    z_value <- fra_ate[1]/fra_ate[2]
+    p_value_z <- 2*(1-pnorm(abs(z_value)))
+    
+    output <- data.frame(estimate=fra_ate[1],
+                         se=fra_ate[2],
+                         p_value=p_value_z)
+    
+  } else if (method=="LATE") {
+    fra_df <- FRA(df_select, outcome_cols="iq",
+                  treat_col="R", method="rf",
+                  covariate_cols=covariates_list)
+    
+    fra_denom <- FRA(df_select, outcome_cols="D",
+                     treat_col="R", method="rf",
+                     covariate_cols=covariates_list)
+    
+    fra_df <- fra_df %>%
+      left_join(fra_denom %>% select(id, u_D_0, u_D_1), by="id")
+    
+    fra_late <- FRA_LATE(fra_df, outcome_col='iq', endog_col='D', 1, 0)
+    z_value <- fra_late[1]/fra_late[2]
+    p_value_z <- 2*(1-pnorm(abs(z_value)))
+    
+    output <- data.frame(estimate=fra_late[1],
+                         se=fra_late[2],
+                         p_value=p_value_z)
+  }
+  
+  return(output)
+}
+
 # Type Prevalence
 type_prevalence <- function(df, program, subsample) {
   df <- clean_data(df, subsample)
@@ -291,6 +336,7 @@ participation_run <- function(D_var, alt_var) {
   instrumental_output <- data.frame()
   variable_importance_output <- data.frame()
   regression_output <- data.frame(variable=c("R", "D", covariates_all, "Constant"))
+  fra_output <- data.frame()
   prevalence_output <- data.frame()
   
   for (p in programs) {
@@ -381,7 +427,39 @@ participation_run <- function(D_var, alt_var) {
                                                      covariates_list=covariates_short,
                                                      subsample=TRUE, method="LATE"),
                                    by="variable")
+  }
+  
+  for (p in programs) {
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_short))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p, method="LATE"))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_short))
     
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_subsample_all,
+                                       subsample=TRUE))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_short,
+                                       subsample=TRUE))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_subsample_all,
+                                       subsample=TRUE, method="LATE"))
+    fra_output <- bind_rows(fra_output,
+                            fra_matrix(get(p), p,
+                                       covariates_list=covariates_short,
+                                       subsample=TRUE, method="LATE"))
+  }
+  
+  for (p in programs) {
     prevalence_output <- bind_rows(prevalence_output,
                                    type_prevalence(get(p), p, subsample=FALSE))
     prevalence_output <- bind_rows(prevalence_output,
@@ -399,6 +477,10 @@ participation_run <- function(D_var, alt_var) {
             row.names=FALSE)
   write.csv(regression_output,
             file=paste0(output_git, "regression_output", 
+                        "_", D_var, "_", alt_var, ".csv"),
+            row.names=FALSE)
+  write.csv(fra_output,
+            file=paste0(output_git, "fra_output",
                         "_", D_var, "_", alt_var, ".csv"),
             row.names=FALSE)
   write.csv(prevalence_output,

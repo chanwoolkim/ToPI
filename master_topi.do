@@ -23,6 +23,7 @@ set seed 2024
 * ssc install estout, replace
 * ssc install ivreg2, replace
 * ssc install ranktest, replace
+* ssc install leebounds, replace
 * net install github, from("https://haghish.github.io/github/")
 * github install haghish/rcall, stable
 
@@ -55,3 +56,7 @@ rcall : source("analysis_table.R")
 rcall : source("analysis_table_tex.R")
 rcall : source("analysis_table_participation_tex.R")
 rcall : source("analysis_grpah.R")
+
+cd "${code_path}/analysis"
+	include "lee_bounds"
+rcall : source("lee_bounds_tex.R")
