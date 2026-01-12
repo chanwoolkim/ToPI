@@ -44,11 +44,22 @@ foreach p of local programs {
     gen m_edu_3 = (m_edu==3) if !missing(m_edu)
 
     * ITT: leebounds of iq on r
-    if ("`p'" == "ehscenter") {
+	if ("`p'" == "ehs-full") {
         tabulate sitenum, generate(sitenum)
-		leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4)
+		leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9 sitenum10 sitenum11 sitenum12 sitenum13 sitenum14 sitenum15 sitenum16)
     }
-	else quietly leebounds iq r
+	else if ("`p'" == "ehsmixed_center") {
+        tabulate sitenum, generate(sitenum)
+		leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9)
+    }
+	else if ("`p'" == "ehscenter") {
+        tabulate sitenum, generate(sitenum)
+		leebounds iq r, tight(sitenum1 sitenum2 sitenum3)
+    }
+	else {
+		quietly leebounds iq r
+	}
+	
     mat b = r(table)
     scalar lb = b[1,1]
     scalar ub = b[1,2]
@@ -77,20 +88,40 @@ foreach p of local programs {
 		
         gen m_edu_2 = (m_edu==2) if !missing(m_edu)
         gen m_edu_3 = (m_edu==3) if !missing(m_edu)
-
-        if ("`p'" == "ehscenter") {
+		
+		if ("`p'" == "ehs-full") {
 			tabulate sitenum, generate(sitenum)
-			leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4)
+			leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9 sitenum10 sitenum11 sitenum12 sitenum13 sitenum14 sitenum15 sitenum16)
 		}
-		else quietly leebounds iq r
+		else if ("`p'" == "ehsmixed_center") {
+			tabulate sitenum, generate(sitenum)
+			leebounds iq r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9)
+		}
+		else if ("`p'" == "ehscenter") {
+			tabulate sitenum, generate(sitenum)
+			leebounds iq r, tight(sitenum1 sitenum2 sitenum3)
+		}
+		else {
+			quietly leebounds iq r
+		}
+		
         mat itt = r(table)
         scalar itt_lb = itt[1,1]
         scalar itt_ub = itt[1,2]
 
-        if ("`p'" == "ehscenter") {
-			leebounds `d' r, tight(sitenum1 sitenum2 sitenum3 sitenum4)
+		if ("`p'" == "ehs-full") {
+			leebounds `d' r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9 sitenum10 sitenum11 sitenum12 sitenum13 sitenum14 sitenum15 sitenum16)
 		}
-		else quietly leebounds `d' r
+		else if ("`p'" == "ehsmixed_center") {
+			leebounds `d' r, tight(sitenum1 sitenum2 sitenum3 sitenum4 sitenum5 sitenum6 sitenum7 sitenum8 sitenum9)
+		}
+		else if ("`p'" == "ehscenter") {
+			leebounds `d' r, tight(sitenum1 sitenum2 sitenum3)
+		}
+		else {
+			quietly leebounds `d' r
+		}
+		
         mat fs = r(table)
         scalar fs_lb = fs[1,1]
         scalar fs_ub = fs[1,2]
@@ -124,11 +155,22 @@ foreach p of local programs {
     gen m_edu_3 = (m_edu==3) if !missing(m_edu)
     keep if black==1 & inlist(m_edu,1,2)
 
-    if ("`p'" == "ehscenter") {
-        tabulate sitenum, generate(sitenum)
+	if ("`p'" == "ehs-full") {
+		tabulate sitenum, generate(sitenum)
+		leebounds iq r, tight(sitenum3 sitenum5 sitenum6 sitenum7 sitenum10 sitenum11 sitenum12 sitenum13 sitenum15 sitenum16)
+	}
+	else if ("`p'" == "ehsmixed_center") {
+		tabulate sitenum, generate(sitenum)
+		leebounds iq r, tight(sitenum2 sitenum3 sitenum4 sitenum7 sitenum8 sitenum9)
+	}
+	else if ("`p'" == "ehscenter") {
+		tabulate sitenum, generate(sitenum)
 		leebounds iq r, tight(sitenum1 sitenum4)
-    }
-	else quietly leebounds iq r
+	}
+	else {
+		quietly leebounds iq r
+	}
+	
     mat b = r(table)
     scalar lb = b[1,1]
     scalar ub = b[1,2]
@@ -141,6 +183,8 @@ foreach p of local programs {
     replace lower = lb in L
     replace upper = ub in L
     save `results', replace
+	
+	di as txt "Done with program: `p' on Subsample ITT"
 
     foreach d in d d_1 d_12 {
         import delimited "`p'-topi.csv", clear
@@ -154,19 +198,39 @@ foreach p of local programs {
         gen m_edu_3 = (m_edu==3) if !missing(m_edu)
 		keep if black==1 & inlist(m_edu,1,2)
 
-		if ("`p'" == "ehscenter") {
+		if ("`p'" == "ehs-full") {
+			tabulate sitenum, generate(sitenum)
+			leebounds iq r, tight(sitenum3 sitenum5 sitenum6 sitenum7 sitenum10 sitenum11 sitenum12 sitenum13 sitenum15 sitenum16)
+		}
+		else if ("`p'" == "ehsmixed_center") {
+			tabulate sitenum, generate(sitenum)
+			leebounds iq r, tight(sitenum2 sitenum3 sitenum4 sitenum7 sitenum8 sitenum9)
+		}
+		else if ("`p'" == "ehscenter") {
 			tabulate sitenum, generate(sitenum)
 			leebounds iq r, tight(sitenum1 sitenum4)
 		}
-		else quietly leebounds iq r
+		else {
+			quietly leebounds iq r
+		}
+		
         mat itt = r(table)
         scalar itt_lb = itt[1,1]
         scalar itt_ub = itt[1,2]
 
-        if ("`p'" == "ehscenter") {
+        if ("`p'" == "ehs-full") {
+			leebounds `d' r, tight(sitenum3 sitenum5 sitenum6 sitenum7 sitenum10 sitenum11 sitenum12 sitenum13 sitenum15 sitenum16)
+		}
+		else if ("`p'" == "ehsmixed_center") {
+			leebounds `d' r, tight(sitenum2 sitenum3 sitenum4 sitenum7 sitenum8 sitenum9)
+		}
+		else if ("`p'" == "ehscenter") {
 			leebounds `d' r, tight(sitenum1 sitenum4)
 		}
-		else quietly leebounds `d' r
+		else {
+			quietly leebounds `d' r
+		}
+		
         mat fs = r(table)
         scalar fs_lb = fs[1,1]
         scalar fs_ub = fs[1,2]
@@ -182,7 +246,9 @@ foreach p of local programs {
         replace lower = late_lb in L
         replace upper = late_ub in L
         save `results', replace
-    }
+
+		di as txt "Done with program: `p' on Subsample LATE"
+	}
 }
 
 * ---------- *

@@ -2,9 +2,9 @@ start_time <- Sys.time()
 
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
-                    "sibling", "gestage", "mf")
+                    "sibling", "gestage", "mf", "poverty")
 covariates_subsample_all <- c("m_iq", "sex", "m_age",
-                              "sibling", "gestage", "mf")
+                              "sibling", "gestage", "mf", "poverty")
 covariates_short <- c("m_iq", "m_age")
 
 
@@ -24,7 +24,8 @@ clean_data <- function(df, subsample) {
            !is.na(sibling),
            !is.na(gestage),
            !is.na(mf),
-           m_edu %in% c(1, 2, 3))
+           m_edu %in% c(1, 2, 3),
+           !is.na(poverty))
   
   if (subsample) {
     df_output <- df_output %>% filter(black==1, m_edu %in% c(1, 2))

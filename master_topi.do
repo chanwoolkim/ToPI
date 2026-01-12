@@ -13,7 +13,7 @@ global data_working		"${master_path}/working"
 global out				"${master_path}/../../Apps/Overleaf/ToPI/EHStoABC/Results"
 global git_out			"${code_path}/output_backup"
 
-global covariates		m_age m_edu sibling m_iq black sex gestage mf
+global covariates		m_age m_edu sibling m_iq black sex gestage mf poverty
 global programs			ehs abc
 
 set seed 2024
