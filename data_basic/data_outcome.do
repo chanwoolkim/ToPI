@@ -27,10 +27,19 @@ foreach var of varlist ppvt*  {
 * Price
 rename ccare_cost26m	price_care26
 
+* Achenbach
+rename ach_score3 ach3y
+
+foreach var of varlist ach*  {
+	sum `var'
+	replace `var'= (`var'-r(mean))/r(sd)
+}
+
 #delimit ;
 keep id
 treat
 ppvt3y
+ach3y
 iq_orig
 ppvt48
 ppvt120

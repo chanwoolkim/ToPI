@@ -41,6 +41,10 @@ cd "${code_path}/data_basic"
 cd "${code_path}/data_basic"
 	include "data_participation"
 cd "${code_path}/data_basic"
+	include "data_home_item"
+cd "${code_path}/data_basic"
+	include "data_home_aggregate"
+cd "${code_path}/data_basic"
 	include "data_outcome"
 cd "${code_path}/data_basic"
 	include "data_merge"
@@ -52,6 +56,7 @@ cd "${code_path}/data_basic"
 cd "${code_path}/analysis"
 rcall : source("preliminary.R")
 rcall : source("descriptive_table_tex.R")
+rcall : source("descriptive_balance_table_tex.R")
 rcall : source("analysis_table.R")
 rcall : source("analysis_table_tex.R")
 rcall : source("analysis_table_participation_tex.R")

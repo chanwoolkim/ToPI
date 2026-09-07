@@ -1,0 +1,56 @@
+\documentclass{standalone}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{pifont}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\begin{document}
+% created using textab on Thu Sep 03 22:54:09 2026
+\begin{tabular}{lccc}
+\toprule 
+\midrule 
+Program  & \multicolumn{3}{c}{EHS} \\
+ \cmidrule(lr){2-4} 
+Type & All & Center $+$ Mixed & Center Only \\
+\midrule 
+ & \multicolumn{3}{c}{ITT} \\
+ \cmidrule(lr){2-4} 
+Full/No Conditioning & -0.06 & -0.07 & -0.09 \\
+ & (0.04) & (0.06) & (0.09) \\
+Full/Has IQ & -0.09* & -0.14* & -0.16 \\
+ & (0.05) & (0.07) & (0.10) \\
+Full/$p$-value: Has IQ $=$ No Conditioning & 0.289 & 0.081 & 0.215 \\
+ \cmidrule(lr){1-1} \cmidrule(lr){2-4} 
+Subsample/No Conditioning & -0.20** & -0.21* & -0.20 \\
+ & (0.09) & (0.11) & (0.17) \\
+Subsample/Has IQ & -0.16 & -0.22* & -0.25 \\
+ & (0.10) & (0.12) & (0.18) \\
+Subsample/$p$-value: Has IQ $=$ No Conditioning & 0.366 & 0.931 & 0.401 \\
+\midrule 
+\midrule 
+ & \multicolumn{3}{c}{LATE} \\
+ \cmidrule(lr){2-4} 
+Full/No Conditioning & -0.09 & -0.11 & -0.16 \\
+ & (0.06) & (0.08) & (0.15) \\
+Full/Has IQ & -0.12* & -0.19* & -0.26 \\
+ & (0.07) & (0.10) & (0.17) \\
+Full/$p$-value: Has IQ $=$ No Conditioning & 0.356 & 0.104 & 0.228 \\
+ \cmidrule(lr){1-1} \cmidrule(lr){2-4} 
+Subsample/No Conditioning & -0.31** & -0.38** & -0.52 \\
+ & (0.13) & (0.19) & (0.45) \\
+Subsample/Has IQ & -0.24 & -0.38* & -0.64 \\
+ & (0.15) & (0.22) & (0.46) \\
+Subsample/$p$-value: Has IQ $=$ No Conditioning & 0.339 & 0.966 & 0.483 \\
+\midrule 
+\midrule 
+Sample Size: Full/No Conditioning & 2,031 & 1,101 & 451 \\
+Sample Size: Full/Has IQ & 1,367 & 789 & 378 \\
+Sample Size: Subsample/No Conditioning & 487 & 332 & 129 \\
+Sample Size: Subsample/Has IQ & 368 & 255 & 113 \\
+\midrule 
+\bottomrule 
+\end{tabular}
+\end{document}

@@ -14,17 +14,19 @@ use "ehs-participation.dta", clear
 merge 1:1 id using ehs-control, nogen nolabel
 merge 1:1 id using ehs-labor, nogen nolabel
 merge 1:1 id using ehs-instruments, nogen nolabel
+merge 1:1 id using ehs-home-item, nogen nolabel
+merge 1:1 id using ehs-home-agg, nogen nolabel
 merge 1:1 id using ehs-outcome, nogen nolabel
 
 *Create minimal datasets
 keep id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 program_type sitenum ///
-$covariates poverty bw twin ///
+$covariates poverty bw twin race ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
-ppvt3y iq_orig hs H
+ppvt3y ach3y home* iq_orig hs H
 
 order id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18  program_type sitenum ///
-$covariates poverty bw twin ///
-caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y iq_orig hs H
+$covariates poverty bw twin race ///
+caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y ach3y iq_orig hs H home*
 
 preserve
 keep if program_type==1
@@ -55,10 +57,12 @@ use "abc-participation.dta", clear
 
 merge 1:1 id using abc-control, nogen nolabel
 merge 1:1 id using abc-labor, nogen nolabel
+merge 1:1 id using abc-home-item, nogen nolabel
+merge 1:1 id using abc-home-agg, nogen nolabel
 merge 1:1 id using abc-outcome, nogen nolabel
 
 keep id R sb* iq_orig $covariates bw poverty ///
-D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18
+D D_1 D_6 D_12 D_18 P P_1 P_6 P_12 P_18 home*
 
 save abc-topi, replace
 outsheet using abc-topi.csv, comma nolabel replace

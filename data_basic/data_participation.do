@@ -237,6 +237,28 @@ foreach var in center_used6m center_used15m center_used26m ///
 replace `var'=.  if `var'<0
 }
 
+sum ehs14m						//PSIs: IN EHS CARE AT 14 MONTHS OLD Almost 2000 answers
+sum ehs14m if R==0  			//0.01 controls
+sum ehs14m if program_type==1
+
+sum ehs24m						//PSIs: IN EHS CARE AT 24 MONTHS OLD
+sum ehs24m if R==0
+
+sum ehs36m						//PSIs: IN EHS CARE AT 36 MONTHS OLD
+sum ehs36m if R==0
+
+sum ehs_care1					//Tracking: Care provider is EHS center 14
+sum ehs_care1 if R==0			//17%, but just 93 obs
+
+sum ehs_care2	//Tracking: Care provider is EHS center 24
+sum ehs_care2 if R==0			//17%
+
+sum ehs_care3	//Tracking: Care provider is EHS center 36
+
+sum ehs3		//In EHS care at age3
+
+
+
 egen any_center=rowtotal(center_used6m center_used15m center_used26m center_care14m center_care24m center_care36m center_care3), missing
 replace any_center=1 if any_center>1 & any_center!=.
 sum any_center //2042
@@ -244,6 +266,45 @@ sum any_center //2042
 egen ehs_c=rowtotal(ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3), missing
 replace ehs_c=1 if ehs_c>1 & ehs_c!=.
 sum ehs_c //2195
+
+*NEW DIAGNOSTICS
+egen psi_participation=rowtotal(ehs14m ehs24m ehs36m), missing
+replace psi_participation=1 if psi_participation>1 & psi_participation!=.
+
+regress psi_participation R if program_type==1
+regress ehs_c R				if program_type==1
+
+
+* Which source generates the apparent contamination?
+
+foreach x in ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3 {
+    di "---------------- `x' ----------------"
+    tab `x' R if program_type==1, col
+}
+
+* Overall EHS-center indicator
+tab ehs_c R if program_type==1, col
+
+* How many different sources identify each child as EHS?
+egen n_ehs_sources = rowtotal(ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3)
+tab n_ehs_sources if R==0 & program_type==1
+
+* Are apparent control EHS users concentrated in a few sites?
+tab sitenum if R==0 & program_type==1 & ehs_c==1
+
+* Inspect the actual apparent control crossovers
+list id sitenum ehs14m ehs24m ehs36m ehs_care1 ehs_care2 ehs_care3 ehs3 if R==0 & program_type==1 & ehs_c==1
+	
+	
+*END NEW DIAGNOSTICS
+
+
+
+
+
+
+
+
 
 /*
 egen ehs_01=rowtotal(ehs14m ehs_care1 ), missing
@@ -301,6 +362,21 @@ sum P //.38
 gen mo_ehs=mo_center_total if D!=.
 replace mo_ehs=0 if D==0
 
+*NEW TOO: 
+*hist mo_ehs if mo_ehs>0
+
+gen mo1=mo_ehs>=1 if mo_ehs!=.
+
+tab mo1 ehs_c if program_type==1, mi 	//THIS IS IN THE REFEREE REPORT
+
+tab mo1 E if program_type==1, mi 		//THIS IS IN THE REFEREE REPORT
+
+tab mo1 D if program_type==1, mi 		//THIS IS IN THE REFEREE REPORT
+
+
+ASD ASD
+
+
 gen D_1=mo_ehs>1 		if mo_ehs!=. & C!=.
 gen P_1=C==1 & D_1==0	if mo_ehs!=. & C!=.
 
@@ -313,8 +389,21 @@ gen P_12=C==1 & D_12==0	if mo_ehs!=. & C!=.
 gen D_18=mo_ehs>18 		if mo_ehs!=. & C!=.
 gen P_18=C==1 & D_18==0	if mo_ehs!=. & C!=.
 
+
+*ssc install cdfplot // Only run this once to install
+cdfplot mo_ehs if program_type==1, by(R) xline(1) xline(12) ///
+legend (order(1 "Treated" 2 "Control") position(6) rows(1)) ///
+xtitle(Months in Early Head Start)
+cd /Users/andres/Dropbox/Apps/Overleaf/ToPI/EHStoABC/Graphs
+graph export CDF_months.pdf
+
+
+asd
+
 cd "$data_working"
 save "ehs-participation.dta", replace
+
+
 
 merge 1:1 id using ehs-control, keepusing(black m_edu) nogenerate
 
