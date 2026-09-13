@@ -55,74 +55,154 @@ sublate_estimate <- function(share_nh_from, share_nh_to, late_from) {
 
 # Graph
 graph_sublate <- function(result) {
-  ehscenter_late <- instrumental_output$coefficient[9]
-  abc_late <- instrumental_output$coefficient[12]
+  ehscenter_late <- late("ehscenter")
+  abc_late <- late("abc")
+  
+  program_levels <- c("ABC", "EHS - Center Only")
+  result <- result %>%
+    mutate(program=factor(program, levels=program_levels))
+  
+  # Feasible (nh-LATE, ch-LATE) region for each program, drawn as a mapped
+  # fill so that the bounds appear in the legend
+  bounds <- data.frame(program=factor(program_levels, levels=program_levels),
+                       xmin=c(abc_late, ehscenter_late),
+                       xmax=c(abc_late/nh_share("abc"),
+                              ehscenter_late/nh_share("ehscenter")),
+                       ymin=0,
+                       ymax=c(abc_late, ehscenter_late))
   
   gg <- ggplot(result) +
+    geom_rect(data=bounds,
+              aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=program),
+              alpha=0.2, inherit.aes=FALSE) +
     geom_line(aes(x=sublate_nh, y=sublate_ch, group=program, colour=program)) +
     fte_theme() +
-    labs(colour="Program") +
+    labs(colour=NULL, fill=NULL) +
     scale_x_continuous(name="nh-LATE",
                        limits=c(-0.1, 3.1)) +
     scale_y_continuous(name="ch-LATE",
                        limits=c(-0.1, 2)) +
-    scale_color_manual(values=colours_set) +
-    annotate("rect",
-             xmin=abc_late, xmax=abc_late/prevalence_output$nh_share[8],
-             ymin=0, ymax=abc_late, 
-             fill=colours_set[1], alpha=0.2) +
-    annotate("rect",
-             xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
-             ymin=0, ymax=ehscenter_late, 
-             fill=colours_set[2], alpha=0.2) +
-    theme(legend.position="bottom")
+    scale_colour_manual(values=colours_set[1:2],
+                        labels=expression("ch-LATE"^"ABC",
+                                          "ch-LATE"^"EHS")) +
+    scale_fill_manual(values=colours_set[1:2],
+                      labels=expression("ch-LATE"^"ABC"~"Bounds",
+                                        "ch-LATE"^"EHS"~"Bounds")) +
+    guides(colour=guide_legend(order=1),
+           fill=guide_legend(order=2)) +
+    theme(legend.position="bottom",
+          legend.box="vertical",
+          legend.spacing.y=unit(0, "pt"))
   
   return(gg)
 }
 
 graph_late_to <- function(result) {
-  ehscenter_late <- instrumental_output$coefficient[9]
-  abc_late <- instrumental_output$coefficient[12]
+  ehscenter_late <- late("ehscenter")
+  abc_late <- late("abc")
   
-  ehscenter_nhlate_upper_bound <- ehscenter_late/prevalence_output$nh_share[6]
-  ehscenter_late_upper_bound <- prevalence_output$nh_share[8]*ehscenter_nhlate_upper_bound
+  ehscenter_nhlate_upper_bound <- ehscenter_late/nh_share("ehscenter")
+  ehscenter_late_upper_bound <- nh_share("abc")*ehscenter_nhlate_upper_bound
   
-  gg <- ggplot(result) +
-    geom_line(aes(x=sublate_nh, y=late_to, group=program, colour=program)) +
-    geom_line(aes(x=sublate_nh, y=late_from, group=program, colour=program), linetype="dotdash") +
+  # Three series: LATE^ABC, LATE_ABC^EHS (EHS estimate mapped to the ABC
+  # complier mix), and the original LATE^EHS as a dotdash reference line.
+  # For ABC late_from equals late_to, so its reference line is dropped.
+  series_levels <- c("ABC", "EHS - LATE", "EHS - Center Only")
+  lines <- bind_rows(
+    result %>%
+      transmute(sublate_nh, value=late_to, series=program),
+    result %>%
+      filter(program=="EHS - Center Only") %>%
+      transmute(sublate_nh, value=late_from, series="EHS - LATE")) %>%
+    mutate(series=factor(series, levels=series_levels))
+  
+  # Feasible region for LATE_ABC^EHS, drawn as a mapped fill so that the
+  # bounds appear in the legend
+  bounds <- data.frame(series=factor("EHS - Center Only", levels=series_levels),
+                       xmin=ehscenter_late,
+                       xmax=ehscenter_nhlate_upper_bound,
+                       ymin=ehscenter_late,
+                       ymax=ehscenter_late_upper_bound)
+  
+  gg <- ggplot(lines) +
+    geom_rect(data=bounds,
+              aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=series),
+              alpha=0.2, inherit.aes=FALSE) +
+    geom_line(aes(x=sublate_nh, y=value, group=series, colour=series,
+                  linetype=series)) +
     fte_theme() +
-    labs(colour="Program") +
-    scale_x_continuous(name="nh-LATE",
+    labs(colour=NULL, fill=NULL) +
+    scale_x_continuous(name=expression("nh-LATE"^"EHS"),
                        limits=c(-0.1, 3.1)) +
     scale_y_continuous(name="Total LATE",
                        limits=c(-0.1, 2)) +
-    scale_color_manual(values=colours_set) +
-    annotate("rect",
-             xmin=ehscenter_late, xmax=ehscenter_late/prevalence_output$nh_share[6],
-             ymin=ehscenter_late, ymax=ehscenter_late_upper_bound, 
-             fill=colours_set[2], alpha=0.2) +
-    theme(legend.position="bottom")
+    scale_colour_manual(values=colours_set[c(1, 2, 2)],
+                        labels=expression("LATE"^"ABC",
+                                          "LATE"^"EHS",
+                                          "LATE"["ABC"]^"EHS")) +
+    scale_linetype_manual(values=c("solid", "dotdash", "solid"),
+                          guide="none") +
+    scale_fill_manual(values=colours_set[2],
+                      labels=expression("LATE"["ABC"]^"EHS"~"Bounds")) +
+    guides(colour=guide_legend(order=1,
+                               override.aes=list(linetype=c("solid", "dotdash",
+                                                            "solid"))),
+           fill=guide_legend(order=2)) +
+    theme(legend.position="bottom",
+          legend.box="vertical",
+          legend.spacing.y=unit(0, "pt"))
   
+  return(gg)
+}
+
+
+# CDF of months in EHS by treatment status, with the 1- and 12-month
+# participation thresholds marked
+graph_cdf_months <- function(df) {
+  gg <- ggplot(df %>%
+                 filter(!is.na(mo_ehs)) %>%
+                 mutate(group=factor(R, levels=c(1, 0), labels=c("Treated", "Control"))),
+               aes(x=mo_ehs, colour=group)) +
+    stat_ecdf(geom="step", linewidth=1) +
+    geom_vline(xintercept=c(6, 12), linetype="dashed", colour="grey40") +
+    scale_colour_manual(values=colours_set[c(2, 1)]) +
+    scale_y_continuous(breaks=seq(0, 1, 0.2), limits=c(0, 1)) +
+    labs(x="Months in Early Head Start", y="Cumulative Probability", colour=NULL) +
+    fte_theme()
   return(gg)
 }
 
 
 # Execute! ####
 # Load data
-causal_output <- read.csv(paste0(output_git, "causal_output_D_12_P_12.csv"))
-instrumental_output <- read.csv(paste0(output_git, "instrumental_output_D_12_P_12.csv"))
-regression_output <- read.csv(paste0(output_git, "regression_output_D_12_P_12.csv"))
-prevalence_output <- read.csv(paste0(output_git, "prevalence_output_D_12_P_12.csv"))
+# Subsample estimates with 12-month participation
+regression_output <- read.csv(paste0(output_git, "regression_output_12m.csv"))
+prevalence_output <- read.csv(paste0(output_git, "prevalence_output_12m.csv"))
+
+# Share of nh-compliers among compliers
+nh_share <- function(program) {
+  prevalence_output %>%
+    filter(program==.env$program, subsample==TRUE) %>%
+    pull(nh_share)
+}
+
+# LATE without covariates: 2SLS coefficient on D
+late <- function(program) {
+  regression_output %>%
+    filter(program==.env$program, subsample==TRUE, method=="LATE", covariates=="none",
+           variable=="D") %>%
+    pull(coefficient)
+}
 
 # EHS Center Only + ABC
 sublate_data <-
-  rbind(sublate_estimate(prevalence_output$nh_share[6],
-                         prevalence_output$nh_share[8],
-                         instrumental_output$coefficient[9]) %>%
+  rbind(sublate_estimate(nh_share("ehscenter"),
+                         nh_share("abc"),
+                         late("ehscenter")) %>%
           mutate(program="EHS - Center Only"),
-        sublate_estimate(prevalence_output$nh_share[8],
-                         prevalence_output$nh_share[8],
-                         instrumental_output$coefficient[12]) %>%
+        sublate_estimate(nh_share("abc"),
+                         nh_share("abc"),
+                         late("abc")) %>%
           mutate(program="ABC"))
 
 gg_sublate_ehscenter <- graph_sublate(sublate_data)
@@ -141,6 +221,18 @@ ggsave(plot=gg_late_to_ehscenter,
        width=6, height=4)
 ggsave(plot=gg_late_to_ehscenter,
        file=paste0(output_git, "late_ehscenter.png"),
+       width=6, height=4)
+
+# CDF of months in EHS (Center Only)
+ehscenter <- read.csv(paste0(data_dir, "ehscenter-topi.csv"))
+
+gg_cdf_months <- graph_cdf_months(ehscenter)
+gg_cdf_months
+ggsave(plot=gg_cdf_months,
+       file=paste0(graph_dir, "CDF_months.pdf"),
+       width=6, height=4)
+ggsave(plot=gg_cdf_months,
+       file=paste0(output_git, "CDF_months.pdf"),
        width=6, height=4)
 
 end_time <- Sys.time()

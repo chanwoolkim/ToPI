@@ -1,5 +1,12 @@
 start_time <- Sys.time()
 
+# Sample selection counts, descriptive statistics, and balance tables.
+# Every summary is a long data frame labelled by
+#   program: "ehs-full", "ehsmixed_center", "ehscenter", "abc"
+#   sample:  "full" or "subsample" (black children, mothers without college)
+#   variable (or type, for the counts)
+# so the table code picks each cell by name.
+
 covariates_all <- c("m_iq", "black", "sex",
                     "m_age", "m_edu_2", "m_edu_3",
                     "sibling", "gestage", "mf", "poverty")
@@ -7,12 +14,16 @@ covariates_subsample_all <- c("m_iq", "sex", "m_age",
                               "sibling", "gestage", "mf", "poverty")
 covariates_short <- c("m_iq", "m_age")
 
+# Columns of the descriptive and count tables, in table order
+table_columns <- expand_grid(program=c("ehs-full", "ehsmixed_center", "ehscenter", "abc"),
+                             sample=c("full", "subsample"))
+
 clean_data <- function(df, subsample=FALSE) {
   df_output <- df %>%
     filter(!is.na(iq),
            !is.na(R),
            !is.na(E),
-           !is.na(D), 
+           !is.na(D),
            !is.na(alt),
            !is.na(m_iq),
            !is.na(black),
@@ -23,155 +34,101 @@ clean_data <- function(df, subsample=FALSE) {
            !is.na(mf),
            m_edu %in% c(1, 2, 3),
            !is.na(poverty))
-  
+
   if (subsample) {
     df_output <- df_output %>% filter(black==1, m_edu %in% c(1, 2))
   }
-  
+
   return(df_output)
 }
 
-# Table of counts for missing data
+# Sample selection: number (n) and share (p, in percent) of observations remaining
+# after each successive requirement
 count_summary_data <- function(program, subsample=FALSE) {
   if (subsample) {
     program <- program %>%
       filter(black==1,
              m_edu %in% c(1, 2))
   }
-  
-  count_table <- program %>%
-    summarise(n_all=sum(!is.na(R)),
-              n_covariates=sum(!is.na(R) &
-                                 !is.na(m_iq) &
-                                 !is.na(black) &
-                                 !is.na(sex) &
-                                 !is.na(m_age) &
-                                 !is.na(sibling) &
-                                 !is.na(gestage) &
-                                 !is.na(mf) &
-                                 m_edu %in% c(1, 2, 3) &
-                                 !is.na(poverty)),
-              n_E=sum(!is.na(R) &
-                        !is.na(m_iq) &
-                        !is.na(black) &
-                        !is.na(sex) &
-                        !is.na(m_age) &
-                        !is.na(sibling) &
-                        !is.na(gestage) &
-                        !is.na(mf) &
-                        m_edu %in% c(1, 2, 3) &
-                        !is.na(poverty) &
-                        !is.na(E)),
-              n_D=sum(!is.na(R) &
-                        !is.na(m_iq) &
-                        !is.na(black) &
-                        !is.na(sex) &
-                        !is.na(m_age) &
-                        !is.na(sibling) &
-                        !is.na(gestage) &
-                        !is.na(mf) &
-                        m_edu %in% c(1, 2, 3) &
-                        !is.na(poverty) &
-                        !is.na(D) &
-                        !is.na(E)),
-              n_alt=sum(!is.na(R) &
-                          !is.na(m_iq) &
-                          !is.na(black) &
-                          !is.na(sex) &
-                          !is.na(m_age) &
-                          !is.na(sibling) &
-                          !is.na(gestage) &
-                          !is.na(mf) &
-                          m_edu %in% c(1, 2, 3) &
-                          !is.na(poverty) &
-                          !is.na(D) &
-                          !is.na(E) &
-                          !is.na(alt)),
-              n_iq=sum(!is.na(R) &
-                         !is.na(m_iq) &
-                         !is.na(black) &
-                         !is.na(sex) &
-                         !is.na(m_age) &
-                         !is.na(sibling) &
-                         !is.na(gestage) &
-                         !is.na(mf) &
-                         m_edu %in% c(1, 2, 3) &
-                         !is.na(poverty) &
-                         !is.na(D) &
-                         !is.na(E) &
-                         !is.na(alt) &
-                         !is.na(iq))) %>%
-    ungroup() %>%
-    mutate(p_all=n_all/n_all*100,
-           p_covariates=n_covariates/n_all*100,
-           p_E=n_E/n_all*100,
-           p_D=n_D/n_all*100,
-           p_alt=n_alt/n_all*100,
-           p_iq=n_iq/n_all*100) %>%
-    pivot_longer(everything(),
-                 names_to=c(".value", "type"),
-                 names_sep="_") %>%
-    select(type, n, p)
-  
-  if (subsample) {
-    count_table <- count_table %>%
-      mutate(sample="subsample")
-  } else {
-    count_table <- count_table %>%
-      mutate(sample="full")
-  }
-  
+
+  program <- program %>%
+    mutate(has_R=!is.na(R),
+           has_iq=has_R & !is.na(iq),
+           has_covariates=has_iq &
+             !is.na(m_iq) &
+             !is.na(black) &
+             !is.na(sex) &
+             !is.na(m_age) &
+             !is.na(sibling) &
+             !is.na(gestage) &
+             !is.na(mf) &
+             m_edu %in% c(1, 2, 3) &
+             !is.na(poverty),
+           has_E=has_covariates & !is.na(E),
+           has_D=has_E & !is.na(D),
+           has_alt=has_D & !is.na(alt))
+
+  count_table <- data.frame(type=c("all", "iq", "covariates", "E", "D", "alt"),
+                            n=c(sum(program$has_R),
+                                sum(program$has_iq),
+                                sum(program$has_covariates),
+                                sum(program$has_E),
+                                sum(program$has_D),
+                                sum(program$has_alt))) %>%
+    mutate(p=n/sum(program$has_R)*100)
+
   return(count_table)
 }
 
-# Table of descriptive statistics
-descriptive_summary_data <- function(program, balance=FALSE) {
-  if (balance) {
-    descriptive_table <- data.frame()
-    for (var in covariates_all) {
-      treat <- program %>% filter(R==1) %>% select(all_of(var)) %>% pull()
-      control <- program %>% filter(R==0) %>% select(all_of(var)) %>% pull()
-      if (sd(treat)==0 | sd(control)==0) {
-        diff_p <- 1
-      } else {
-        diff_p <- t.test(treat, control)$p.value
-      }
-      descriptive_table <- rbind(descriptive_table,
-                                 data.frame(var=var,
-                                            value_treatment=mean(treat, na.rm=TRUE),
-                                            value_control=mean(control, na.rm=TRUE),
-                                            p_value=diff_p))
-    }
-    n_descriptive_table <- program %>% group_by(R) %>% summarise(n=n()) %>% ungroup()
-    descriptive_table <- 
-      rbind(descriptive_table,
-            data.frame(var="n",
-                       value_treatment=n_descriptive_table %>% filter(R==1) %>% select(n) %>% pull(),
-                       value_control=n_descriptive_table %>% filter(R==0) %>% select(n) %>% pull(),
-                       p_value=NA))
-  } else {
-    descriptive_table <- program %>%
-      summarise(iq=mean(iq_orig, na.rm=TRUE),
-                random=sum(R, na.rm=TRUE)/n(),
-                participation_E=sum(E, na.rm=TRUE)/n(),
-                participation_D=sum(D, na.rm=TRUE)/n(),
-                alternative=sum(alt, na.rm=TRUE)/n(),
-                sex=sum(sex, na.rm=TRUE)/n(),
-                black=sum(black, na.rm=TRUE)/n(),
-                sibling=mean(sibling, na.rm=TRUE),
-                gestage=mean(gestage, na.rm=TRUE),
-                m_iq=mean(m_iq, na.rm=TRUE),
-                m_age=mean(m_age, na.rm=TRUE),
-                m_edu_2=sum(m_edu_2, na.rm=TRUE)/n(),
-                m_edu_3=sum(m_edu_3, na.rm=TRUE)/n(),
-                mf=mean(mf, na.rm=TRUE),
-                poverty=sum(poverty, na.rm=TRUE)/n(),
-                n=n()) %>%
-      ungroup()
-    descriptive_table <- data.frame(value=descriptive_table[1,] %>% as.numeric())
-  }
-  
+# Descriptive statistics: mean of each variable (shares for binary variables)
+descriptive_summary_data <- function(program) {
+  descriptive_table <- program %>%
+    summarise(iq=mean(iq_orig, na.rm=TRUE),
+              random=sum(R, na.rm=TRUE)/n(),
+              participation_E=sum(E, na.rm=TRUE)/n(),
+              participation_D=sum(D, na.rm=TRUE)/n(),
+              alternative=sum(alt, na.rm=TRUE)/n(),
+              sex=sum(sex, na.rm=TRUE)/n(),
+              black=sum(black, na.rm=TRUE)/n(),
+              sibling=mean(sibling, na.rm=TRUE),
+              gestage=mean(gestage, na.rm=TRUE),
+              m_iq=mean(m_iq, na.rm=TRUE),
+              m_age=mean(m_age, na.rm=TRUE),
+              m_edu_2=sum(m_edu_2, na.rm=TRUE)/n(),
+              m_edu_3=sum(m_edu_3, na.rm=TRUE)/n(),
+              mf=mean(mf, na.rm=TRUE),
+              poverty=sum(poverty, na.rm=TRUE)/n(),
+              n=n()) %>%
+    ungroup() %>%
+    pivot_longer(everything(), names_to="variable", values_to="value")
+
   return(descriptive_table)
+}
+
+# Balance: treatment mean, control mean, and p-value of the difference for each covariate
+balance_summary_data <- function(program) {
+  balance_table <- data.frame()
+  for (var in covariates_all) {
+    treat <- program %>% filter(R==1) %>% pull(all_of(var))
+    control <- program %>% filter(R==0) %>% pull(all_of(var))
+    if (sd(treat)==0 | sd(control)==0) {
+      diff_p <- 1
+    } else {
+      diff_p <- t.test(treat, control)$p.value
+    }
+    balance_table <- rbind(balance_table,
+                           data.frame(variable=var,
+                                      value_treatment=mean(treat, na.rm=TRUE),
+                                      value_control=mean(control, na.rm=TRUE),
+                                      p_value=diff_p))
+  }
+
+  balance_table <- rbind(balance_table,
+                         data.frame(variable="n",
+                                    value_treatment=sum(program$R==1),
+                                    value_control=sum(program$R==0),
+                                    p_value=NA))
+  return(balance_table)
 }
 
 
@@ -229,7 +186,7 @@ for (p in programs) {
   fit <- (lm(as.formula(paste0("M~R+",
                                paste(covariates_all, collapse="+"))),
              data=get(p)) %>% summary())$coefficients
-  
+
   attrition_results <- rbind(attrition_results,
                              data.frame(program=p,
                                         estimate=round(fit["R", "Estimate"], 3),
@@ -237,232 +194,233 @@ for (p in programs) {
                                         p_value=round(fit["R", "Pr(>|t|)"], 3)))
 }
 
-# Missing data
-number_counts <- 
-  rbind(count_summary_data(`ehs-full`) %>% mutate(program="ehs-full"),
-        count_summary_data(`ehs-full`, subsample=TRUE) %>% mutate(program="ehs-full"),
-        count_summary_data(ehsmixed_center) %>% mutate(program="ehsmixed_center"),
-        count_summary_data(ehsmixed_center, subsample=TRUE) %>% mutate(program="ehsmixed_center"),
-        count_summary_data(ehscenter) %>% mutate(program="ehscenter"),
-        count_summary_data(ehscenter, subsample=TRUE) %>% mutate(program="ehscenter"),
-        count_summary_data(abc) %>% mutate(program="abc"),
-        count_summary_data(abc, subsample=TRUE) %>% mutate(program="abc"))
+# Summaries for every (program, sample) column
+number_counts <- data.frame()
+descriptive_summary <- data.frame()
+balance_summary <- data.frame()
 
-descriptive_summary <-
-  cbind(data.frame(rowname=c("IQ",
-                             "\\% Randomized",
-                             "\\% Participated (Any)",
-                             "\\% Participated (Center)",
-                             "\\% Alternative Care",
-                             "\\% Male",
-                             "\\% Black", 
-                             "\\# Siblings", 
-                             "Gestational Age (Weeks)",
-                             "Mother's IQ",
-                             "Mother's Age",
-                             "\\% HS Completed",
-                             "\\% College Completed",
-                             "\\% Father Figure at Home",
-                             "\\% Above Poverty",
-                             "\\# Observations")),
-        descriptive_summary_data(clean_data(`ehs-full`)),
-        descriptive_summary_data(clean_data(`ehs-full`, subsample=TRUE)),
-        descriptive_summary_data(clean_data(ehsmixed_center)),
-        descriptive_summary_data(clean_data(ehsmixed_center, subsample=TRUE)),
-        descriptive_summary_data(clean_data(ehscenter)),
-        descriptive_summary_data(clean_data(ehscenter, subsample=TRUE)),
-        descriptive_summary_data(clean_data(abc)),
-        descriptive_summary_data(clean_data(abc, subsample=TRUE)))
+for (i in seq_len(nrow(table_columns))) {
+  program <- table_columns$program[i]
+  sample <- table_columns$sample[i]
+  subsample <- sample=="subsample"
+  labels <- data.frame(program=program, sample=sample)
 
-descriptive_balance_summary <- 
-  rbind(descriptive_summary_data(clean_data(`ehs-full`), balance=TRUE) %>%
-          mutate(sample="full", program="ehs-full"),
-        descriptive_summary_data(clean_data(`ehs-full`, subsample=TRUE), balance=TRUE) %>%
-          mutate(sample="subsample", program="ehs-full"),
-        descriptive_summary_data(clean_data(ehsmixed_center), balance=TRUE) %>%
-          mutate(sample="full", program="ehsmixed_center"),
-        descriptive_summary_data(clean_data(ehsmixed_center, subsample=TRUE), balance=TRUE) %>%
-          mutate(sample="subsample", program="ehsmixed_center"),
-        descriptive_summary_data(clean_data(ehscenter), balance=TRUE) %>%
-          mutate(sample="full", program="ehscenter"),
-        descriptive_summary_data(clean_data(ehscenter, subsample=TRUE), balance=TRUE) %>%
-          mutate(sample="subsample", program="ehscenter"),
-        descriptive_summary_data(clean_data(abc), balance=TRUE) %>%
-          mutate(sample="full", program="abc"),
-        descriptive_summary_data(clean_data(abc, subsample=TRUE), balance=TRUE) %>%
-          mutate(sample="subsample", program="abc"))
+  number_counts <-
+    rbind(number_counts,
+          cbind(labels, count_summary_data(get(program), subsample)))
+  descriptive_summary <-
+    rbind(descriptive_summary,
+          cbind(labels, descriptive_summary_data(clean_data(get(program), subsample))))
+  balance_summary <-
+    rbind(balance_summary,
+          cbind(labels, balance_summary_data(clean_data(get(program), subsample))))
+}
 
 
 # Output to LaTeX tables ####
-number_counts_tex <- function(counts_result) {
-  number_counts_type_tex <- function(var_type, var_typename) {
-    tab <- TexRow(var_typename) /
-      TexRow(counts_result %>% filter(type==var_type) %>% pull(n), dec=0) +
-      TexRow("") /
-      TexRow(counts_result %>% filter(type==var_type) %>% pull(p), 
-             dec=0, se=TRUE, percentage=TRUE)
-    return(tab)
-  }
-  
-  tab <- TexRow(c("Program", "EHS", "ABC"), cspan=c(1, 6, 2)) +
+# Values of one statistic for every (program, sample) column, in table order;
+# `result` must hold one row per column
+column_values <- function(result, statistic) {
+  table_columns %>%
+    left_join(result, by=c("program", "sample")) %>%
+    pull(all_of(statistic))
+}
+
+# Header shared by the count and descriptive tables
+program_header <- function() {
+  TexRow(c("Program", "EHS", "ABC"), cspan=c(1, 6, 2)) +
     TexMidrule(list(c(1, 1), c(2, 7), c(8, 9))) +
     TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), cspan=c(1, 2, 2, 2, 2)) +
     TexMidrule(list(c(1, 1), c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
     TexRow(c("Sample", rep(c("Full", "Subsample"), 4))) +
-    TexMidrule() +
-    number_counts_type_tex("all", "All") +
-    number_counts_type_tex("covariates", "Non-Missing Covariates") +
-    number_counts_type_tex("E", "Non-Missing Participation (Any)") +
-    number_counts_type_tex("D", "Non-Missing Participation (Center)") +
-    number_counts_type_tex("alt", "Non-Missing Alternate Care") +
-    number_counts_type_tex("iq", "Non-Missing Outcome")
+    TexMidrule()
+}
+
+# Sample selection counts: number of observations, then share in percent
+number_counts_tex <- function() {
+  count_rows <- function(label, type) {
+    counts <- number_counts %>% filter(type==.env$type)
+    TexRow(label) /
+      TexRow(column_values(counts, "n"), dec=0) +
+      TexRow("") /
+      TexRow(column_values(counts, "p"), dec=0, se=TRUE, percentage=TRUE)
+  }
+
+  tab <- program_header() +
+    count_rows("All", "all") +
+    count_rows("Non-Missing Outcome", "iq") +
+    count_rows("Non-Missing Covariates", "covariates") +
+    count_rows("Non-Missing Participation (Any)", "E") +
+    count_rows("Non-Missing Participation (Center)", "D") +
+    count_rows("Non-Missing Alternate Care", "alt")
   return(tab)
 }
 
-tab <- number_counts_tex(number_counts)
+tab <- number_counts_tex()
 TexSave(tab, filename="number_counts", positions=c('l', rep('c', 8)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="number_counts", positions=c('l', rep('c', 8)),
         output_path=output_git, stand_alone=FALSE)
 
-descriptive_stat_tex <- function(descriptive_result) {
-  tab <- TexRow(c("Program", "EHS", "ABC"), 
-                cspan=c(1, 6, 2)) +
-    TexMidrule(list(c(1, 1), c(2, 7), c(8, 9))) +
-    TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), 
-           cspan=c(1, 2, 2, 2, 2)) +
-    TexMidrule(list(c(1, 1), c(2, 3), c(4, 5), c(6, 7), c(8, 9))) +
-    TexRow(c("Sample", rep(c("Full", "Subsample"), 4))) +
-    TexMidrule() +
+# Descriptive statistics
+descriptive_stat_tex <- function() {
+  descriptive_row <- function(label, variable, percentage=FALSE, dec=1) {
+    values <- column_values(descriptive_summary %>% filter(variable==.env$variable), "value")
+    TexRow(paste0("\\quad ", label)) /
+      TexRow(values*ifelse(percentage, 100, 1), dec=dec)
+  }
+
+  tab <- program_header() +
     TexRow("\\textbf{Outcome}") +
-    TexRow(paste0("\\quad ", descriptive_result[1, 1])) / 
-    TexRow((descriptive_result[1, 2:9] %>% as.numeric()), dec=1) +
+    descriptive_row("IQ", "iq") +
     TexRow("") +
     TexRow("\\textbf{Assignment and Participation}") +
-    TexRow(paste0("\\quad ", descriptive_result[2, 1])) /
-    TexRow((descriptive_result[2, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[3, 1])) /
-    TexRow((descriptive_result[3, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[4, 1])) /
-    TexRow((descriptive_result[4, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[5, 1])) /
-    TexRow((descriptive_result[5, 2:9] %>% as.numeric())*100, dec=1) +
+    descriptive_row("\\% Randomized", "random", percentage=TRUE) +
+    descriptive_row("\\% Participated (Any)", "participation_E", percentage=TRUE) +
+    descriptive_row("\\% Participated (Center)", "participation_D", percentage=TRUE) +
+    descriptive_row("\\% Alternative Care", "alternative", percentage=TRUE) +
     TexRow("") +
     TexRow("\\textbf{Children's Characteristics}") +
-    TexRow(paste0("\\quad ", descriptive_result[6, 1])) /
-    TexRow((descriptive_result[6, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[7, 1])) /
-    TexRow((descriptive_result[7, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[8, 1])) /
-    TexRow((descriptive_result[8, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[9, 1])) / 
-    TexRow((descriptive_result[9, 2:9] %>% as.numeric()), dec=1) +
+    descriptive_row("\\% Male", "sex", percentage=TRUE) +
+    descriptive_row("\\% Black", "black", percentage=TRUE) +
+    descriptive_row("\\# Siblings", "sibling") +
+    descriptive_row("Gestational Age (Weeks)", "gestage") +
     TexRow("") +
     TexRow("\\textbf{Mother's Characteristics}") +
-    TexRow(paste0("\\quad ", descriptive_result[10, 1])) /
-    TexRow((descriptive_result[10, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[11, 1])) /
-    TexRow((descriptive_result[11, 2:9] %>% as.numeric()), dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[12, 1])) /
-    TexRow((descriptive_result[12, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[13, 1])) /
-    TexRow((descriptive_result[13, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[14, 1])) /
-    TexRow((descriptive_result[14, 2:9] %>% as.numeric())*100, dec=1) +
-    TexRow(paste0("\\quad ", descriptive_result[15, 1])) /
-    TexRow((descriptive_result[15, 2:9] %>% as.numeric())*100, dec=1) +
+    descriptive_row("Mother's IQ", "m_iq") +
+    descriptive_row("Mother's Age", "m_age") +
+    descriptive_row("\\% HS Completed", "m_edu_2", percentage=TRUE) +
+    descriptive_row("\\% College Completed", "m_edu_3", percentage=TRUE) +
+    descriptive_row("\\% Father Figure at Home", "mf", percentage=TRUE) +
+    descriptive_row("\\% Above Poverty", "poverty", percentage=TRUE) +
     TexRow("") +
     TexRow("\\textbf{Sample Size}") +
-    TexRow(paste0("\\quad ", descriptive_result[16, 1])) /
-    TexRow((descriptive_result[16, 2:9] %>% as.numeric()), dec=0)
+    descriptive_row("\\# Observations", "n", dec=0)
   return(tab)
 }
 
-tab <- descriptive_stat_tex(descriptive_summary)
+tab <- descriptive_stat_tex()
 TexSave(tab, filename="descriptive_stats", positions=c('l', rep('c', 8)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="descriptive_stats", positions=c('l', rep('c', 8)),
         output_path=output_git, stand_alone=FALSE)
 
-descriptive_stat_balance_tex <- function(descriptive_result) {
-  tab_row <- function(varname, proportion=FALSE) {
-    if (proportion) {
-      tab <- TexRow(c((descriptive_result %>% 
-                         filter(var==varname, sample=="full"))[, 2:3] %>%
-                        as.numeric()*100,
-                      (descriptive_result %>% 
-                         filter(var==varname, sample=="full"))[, 4] %>%
-                        as.numeric(),
-                      (descriptive_result %>% 
-                         filter(var==varname, sample=="subsample"))[, 2:3] %>%
-                        as.numeric()*100,
-                      (descriptive_result %>% 
-                         filter(var==varname, sample=="subsample"))[, 4] %>%
-                        as.numeric()),
-                    dec=rep(c(1, 1, 2), 2), percentage=rep(c(TRUE, TRUE, FALSE), 2))
-      return(tab)
-    } else {
-      tab <- TexRow(c((descriptive_result %>% 
-                         filter(var==varname, sample=="full"))[, 2:4],
-                      (descriptive_result %>% 
-                         filter(var==varname, sample=="subsample"))[, 2:4]) %>%
-                        as.numeric(),
-                    dec=rep(c(1, 1, 2), 2), percentage=FALSE)
+# Balance table for one program: treatment mean, control mean, p-value
+# of the difference, for the full sample and the subsample
+descriptive_stat_balance_tex <- function(program) {
+  balance_result <- balance_summary %>% filter(program==.env$program)
+
+  # Full-sample then subsample values of one variable, as (T, C, p)
+  balance_values <- function(variable, scale=1) {
+    values <- c()
+    for (sample in c("full", "subsample")) {
+      row <- balance_result %>% filter(variable==.env$variable, sample==.env$sample)
+      values <- c(values, row$value_treatment*scale, row$value_control*scale, row$p_value)
     }
-    return(tab)
+    return(values)
   }
-  
+
+  balance_row <- function(label, variable, percentage=FALSE) {
+    TexRow(paste0("\\quad ", label)) /
+      TexRow(balance_values(variable, scale=ifelse(percentage, 100, 1)),
+             dec=rep(c(1, 1, 2), 2), percentage=rep(c(percentage, percentage, FALSE), 2))
+  }
+
   tab <- TexRow(c("Sample", "Full", "Subsample"), cspan=c(1, 3, 3)) +
     TexMidrule(list(c(1, 1), c(2, 4), c(5, 7))) +
     TexRow(c("", rep(c("T", "C", "$p(\\Delta)$"), 2))) +
     TexMidrule() +
     TexRow("\\textbf{Children's Characteristics}") +
-    TexRow("\\quad \\% Male") / tab_row("sex", proportion=TRUE) +
-    TexRow("\\quad \\% Black") / tab_row("black", proportion=TRUE) +
-    TexRow("\\quad \\# Siblings") / tab_row("sibling", proportion=FALSE) +
-    TexRow("\\quad Gestational Age (Weeks)") / tab_row("gestage", proportion=FALSE) +
+    balance_row("\\% Male", "sex", percentage=TRUE) +
+    balance_row("\\% Black", "black", percentage=TRUE) +
+    balance_row("\\# Siblings", "sibling") +
+    balance_row("Gestational Age (Weeks)", "gestage") +
     TexRow("") +
     TexRow("\\textbf{Mother's Characteristics}") +
-    TexRow("\\quad Mother's IQ") / tab_row("m_iq", proportion=FALSE) +
-    TexRow("\\quad Mother's Age") / tab_row("m_age", proportion=FALSE) +
-    TexRow("\\quad \\% HS Completed") / tab_row("m_edu_2", proportion=TRUE) +
-    TexRow("\\quad \\% College Completed") / tab_row("m_edu_3", proportion=TRUE) +
-    TexRow("\\quad \\% Father Figure at Home") / tab_row("mf", proportion=TRUE) +
-    TexRow("\\quad \\% Above Poverty") / tab_row("poverty", proportion=TRUE) +
+    balance_row("Mother's IQ", "m_iq") +
+    balance_row("Mother's Age", "m_age") +
+    balance_row("\\% HS Completed", "m_edu_2", percentage=TRUE) +
+    balance_row("\\% College Completed", "m_edu_3", percentage=TRUE) +
+    balance_row("\\% Father Figure at Home", "mf", percentage=TRUE) +
+    balance_row("\\% Above Poverty", "poverty", percentage=TRUE) +
     TexRow("") +
     TexRow("\\textbf{Sample Size}") +
-    TexRow("\\quad \\# Observations") / 
-    TexRow(c((descriptive_result %>% 
-                filter(var=="n", sample=="full"))[, 2:4],
-             (descriptive_result %>% 
-                filter(var=="n", sample=="subsample"))[, 2:4]) %>%
-             as.numeric(),
-           dec=0, percentage=FALSE)
+    TexRow("\\quad \\# Observations") /
+    TexRow(balance_values("n"), dec=0, percentage=FALSE)
   return(tab)
 }
 
-tab <- descriptive_stat_balance_tex(descriptive_balance_summary %>% filter(program=="ehs-full"))
-TexSave(tab, filename="descriptive_stats_balance_ehs_full", positions=c('l', rep('c', 6)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="descriptive_stats_balance_ehs_full", positions=c('l', rep('c', 6)),
-        output_path=output_git, stand_alone=FALSE)
+balance_filenames <- c(`ehs-full`="descriptive_stats_balance_ehs_full",
+                       ehsmixed_center="descriptive_stats_balance_ehsmixed_center",
+                       ehscenter="descriptive_stats_balance_ehscenter",
+                       abc="descriptive_stats_balance_abc")
 
-tab <- descriptive_stat_balance_tex(descriptive_balance_summary %>% filter(program=="ehsmixed_center"))
-TexSave(tab, filename="descriptive_stats_balance_ehsmixed_center", positions=c('l', rep('c', 6)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="descriptive_stats_balance_ehsmixed_center", positions=c('l', rep('c', 6)),
-        output_path=output_git, stand_alone=FALSE)
+for (p in programs) {
+  tab <- descriptive_stat_balance_tex(p)
+  TexSave(tab, filename=balance_filenames[p], positions=c('l', rep('c', 6)),
+          output_path=output_dir, stand_alone=FALSE)
+  TexSave(tab, filename=balance_filenames[p], positions=c('l', rep('c', 6)),
+          output_path=output_git, stand_alone=FALSE)
+}
 
-tab <- descriptive_stat_balance_tex(descriptive_balance_summary %>% filter(program=="ehscenter"))
-TexSave(tab, filename="descriptive_stats_balance_ehscenter", positions=c('l', rep('c', 6)),
-        output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="descriptive_stats_balance_ehscenter", positions=c('l', rep('c', 6)),
-        output_path=output_git, stand_alone=FALSE)
+# Subgroup means: baseline characteristics by mother's education and race in
+# the full EHS sample (complete-case sample, as in the descriptive table).
+# The HOME score is measured at 36 months, after random assignment, so it is
+# averaged over control children only.
+subgroup_columns <- data.frame(group=c("black_low", "nonblack_low", "black_high", "nonblack_high"),
+                               black=c(1, 0, 1, 0),
+                               college=c(FALSE, FALSE, TRUE, TRUE))
 
-tab <- descriptive_stat_balance_tex(descriptive_balance_summary %>% filter(program=="abc"))
-TexSave(tab, filename="descriptive_stats_balance_abc", positions=c('l', rep('c', 6)),
+subgroup_summary_data <- function(program) {
+  subgroup_table <- data.frame()
+  for (i in seq_len(nrow(subgroup_columns))) {
+    group <- program %>%
+      filter(black==subgroup_columns$black[i],
+             (m_edu==3)==subgroup_columns$college[i])
+    subgroup_table <-
+      rbind(subgroup_table,
+            data.frame(group=subgroup_columns$group[i],
+                       variable=c("m_iq", "m_age", "mf", "poverty", "home"),
+                       value=c(mean(group$m_iq),
+                               mean(group$m_age),
+                               mean(group$mf),
+                               mean(group$poverty),
+                               mean(group$home_total36[group$R==0], na.rm=TRUE))))
+  }
+  return(subgroup_table)
+}
+
+subgroup_summary <- subgroup_summary_data(clean_data(`ehs-full`))
+
+subgroup_means_tex <- function() {
+  # Values of one statistic for the four subgroups, in table order
+  subgroup_values <- function(variable) {
+    subgroup_columns %>%
+      left_join(subgroup_summary %>% filter(variable==.env$variable), by="group") %>%
+      pull(value)
+  }
+
+  subgroup_row <- function(label, variable, percentage=FALSE) {
+    TexRow(label) /
+      TexRow(subgroup_values(variable)*ifelse(percentage, 100, 1), dec=1)
+  }
+
+  tab <- TexRow(c("Mother's Education", "No College", "College"), cspan=c(1, 2, 2)) +
+    TexMidrule(list(c(1, 1), c(2, 3), c(4, 5))) +
+    TexRow(c("Race", rep(c("Black", "Non-Black"), 2))) +
+    TexMidrule() +
+    subgroup_row("Mother's IQ", "m_iq") +
+    subgroup_row("Mother's Age", "m_age") +
+    subgroup_row("\\% Father Figure at Home", "mf", percentage=TRUE) +
+    subgroup_row("\\% Above Poverty", "poverty", percentage=TRUE) +
+    subgroup_row("\\% HOME Items (Control Group)", "home", percentage=TRUE)
+  return(tab)
+}
+
+tab <- subgroup_means_tex()
+TexSave(tab, filename="subgroup_means", positions=c('l', rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
-TexSave(tab, filename="descriptive_stats_balance_abc", positions=c('l', rep('c', 6)),
+TexSave(tab, filename="subgroup_means", positions=c('l', rep('c', 4)),
         output_path=output_git, stand_alone=FALSE)
 
 end_time <- Sys.time()

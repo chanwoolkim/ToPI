@@ -19,7 +19,7 @@ format dob %td
 gen intervew_date=date(b3p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-gen age_months=age_days/30
+gen age_months=age_days/(365.25/12) // average month length; /30 overstated ages by ~1.5%
 tab age_months // almost all children are 36-39 months
 
 *Dummies for current arrangements being centers. People with no parent interview will be missings.
@@ -45,6 +45,7 @@ gen mo_center_3y=mo_center1
 replace mo_center_3y=mo_center2 if mo_center_3y==.
 replace mo_center_3y=mo_center3 if mo_center_3y==.
 replace mo_center_3y=0 if mo_center_3y==.
+replace mo_center_3y=36 if mo_center_3y>36 & mo_center_3y!=. // EHS covers ages 0-3; interviews occur after 36 months
 
 gen center_PI=mo_center_3y>0
 
@@ -72,7 +73,7 @@ format dob %td
 gen intervew_date = date(b2p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-gen age_months=age_days/30
+gen age_months=age_days/(365.25/12) // average month length; /30 overstated ages by ~1.5%
 tab age_months
 
 * Which arrangements are centers
@@ -97,9 +98,11 @@ replace mo_center_2y=mo3 if a3_center==1 & mo_center_2y==.
 gen mo_center_23=12 if mo_center_total>12 & mo_center_total!=.
 replace mo_center_23=mo_center_total if mo_center_total<12
 
-gen mo_center_pieces=mo_center_23+mo_center_2y
+* The age-2 interview can occur after 24 months, so only the first 24 months of mo_center_2y
+* are added; months beyond that are already in mo_center_23. Missing stays missing.
+gen mo_center_pieces=mo_center_23+min(mo_center_2y,24) if mo_center_2y!=.
 compare mo_center_total mo_center_pieces
-replace mo_center_total=max(mo_center_pieces,mo_center_total) 
+replace mo_center_total=max(mo_center_pieces,mo_center_total,mo_center_2y)
 replace mo_center_total=mo_center_2y if mo_center_2y!=. & mo_center_total==. // For master-only ppl
 
 keep id center_PI mo_center_total mo_center_23 mo_center_2y
@@ -118,7 +121,7 @@ format dob %td
 gen intervew_date = date(b1p_dat,"YMD")
 format intervew_date %td
 gen age_days=intervew_date-dob
-gen age_months=age_days/30
+gen age_months=age_days/(365.25/12) // average month length; /30 overstated ages by ~1.5%
 tab age_months
 
 gen a1_center=(b1p405a1==6)
@@ -144,9 +147,10 @@ replace mo_center_12=mo_center_2y if mo_center_2y<12
 gen mo_center_13=24 if mo_center_total>24 & mo_center_total!=.
 replace mo_center_13=mo_center_total if mo_center_total<24
 
-gen mo_center_pieces=mo_center_13+mo_center_1y
+* Same logic: the age-1 interview can occur after 12 months (previously 24+~16 gave totals near 40)
+gen mo_center_pieces=mo_center_13+min(mo_center_1y,12) if mo_center_1y!=.
 compare mo_center_total mo_center_pieces
-replace mo_center_total=max(mo_center_pieces,mo_center_total)
+replace mo_center_total=max(mo_center_pieces,mo_center_total,mo_center_1y)
 
 replace mo_center_total=mo_center_1y if mo_center_1y!=. & mo_center_total==. // For master-only ppl
 
@@ -373,10 +377,6 @@ tab mo1 E if program_type==1, mi 		//THIS IS IN THE REFEREE REPORT
 
 tab mo1 D if program_type==1, mi 		//THIS IS IN THE REFEREE REPORT
 
-
-ASD ASD
-
-
 gen D_1=mo_ehs>1 		if mo_ehs!=. & C!=.
 gen P_1=C==1 & D_1==0	if mo_ehs!=. & C!=.
 
@@ -389,16 +389,8 @@ gen P_12=C==1 & D_12==0	if mo_ehs!=. & C!=.
 gen D_18=mo_ehs>18 		if mo_ehs!=. & C!=.
 gen P_18=C==1 & D_18==0	if mo_ehs!=. & C!=.
 
-
-*ssc install cdfplot // Only run this once to install
-cdfplot mo_ehs if program_type==1, by(R) xline(1) xline(12) ///
-legend (order(1 "Treated" 2 "Control") position(6) rows(1)) ///
-xtitle(Months in Early Head Start)
-cd /Users/andres/Dropbox/Apps/Overleaf/ToPI/EHStoABC/Graphs
-graph export CDF_months.pdf
-
-
-asd
+* The CDF of months in EHS by treatment status (Graphs/CDF_months.pdf) is drawn
+* in R from mo_ehs: see analysis_graph.R
 
 cd "$data_working"
 save "ehs-participation.dta", replace

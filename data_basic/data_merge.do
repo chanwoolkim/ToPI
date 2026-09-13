@@ -19,12 +19,12 @@ merge 1:1 id using ehs-home-agg, nogen nolabel
 merge 1:1 id using ehs-outcome, nogen nolabel
 
 *Create minimal datasets
-keep id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 program_type sitenum ///
+keep id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 mo_ehs program_type sitenum ///
 $covariates poverty bw twin race ///
 caregiver_ever cc_payments_site income_site cc_price_relative ///
 ppvt3y ach3y home* iq_orig hs H
 
-order id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18  program_type sitenum ///
+order id R D D_1 D_6 D_12 D_18 E P P_1 P_6 P_12 P_18 mo_ehs program_type sitenum ///
 $covariates poverty bw twin race ///
 caregiver_ever cc_payments_site income_site cc_price_relative ppvt3y ach3y iq_orig hs H home*
 

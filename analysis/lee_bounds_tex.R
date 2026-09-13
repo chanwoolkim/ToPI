@@ -49,7 +49,7 @@ tab <- TexRow(c("", "ITT"), cspan=c(1, 6)) +
   TexMidrule(list(c(2, 6), c(7, 7))) +
   TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), cspan=c(1, 1, 1, 3, 1)) +
   TexMidrule(list(c(2, 2), c(3, 3), c(4, 6), c(7, 7))) +
-  TexRow(c("Participation", "Any", "Any", "Any", "1m", "12m", "12m")) +
+  TexRow(c("Participation", "Any", "Any", "Any", "6m", "12m", "12m")) +
   TexMidrule() +
   TexRow(c("Full", 
            lee_bounds_results %>% 
@@ -62,7 +62,7 @@ tab <- TexRow(c("", "ITT"), cspan=c(1, 6)) +
              filter(program=="ehscenter", type=="d", subsample==FALSE) %>%
              pull(bounds),
            lee_bounds_results %>% 
-             filter(program=="ehscenter", type=="d_1", subsample==FALSE) %>% 
+             filter(program=="ehscenter", type=="d_6", subsample==FALSE) %>% 
              pull(bounds),
            lee_bounds_results %>% 
              filter(program=="ehscenter", type=="d_12", subsample==FALSE) %>% 
@@ -81,7 +81,7 @@ tab <- TexRow(c("", "ITT"), cspan=c(1, 6)) +
              filter(program=="ehscenter", type=="d", subsample==TRUE) %>%
              pull(bounds),
            lee_bounds_results %>% 
-             filter(program=="ehscenter", type=="d_1", subsample==TRUE) %>% 
+             filter(program=="ehscenter", type=="d_6", subsample==TRUE) %>% 
              pull(bounds),
            lee_bounds_results %>% 
              filter(program=="ehscenter", type=="d_12", subsample==TRUE) %>% 

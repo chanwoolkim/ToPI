@@ -5,6 +5,7 @@
 
 clear all
 set more off
+set maxvar 30000 // append-abccare.dta has more than 5,000 variables
 
 global master_path		"~/Dropbox/Research/TOPI"
 global code_path 		"${master_path}/code"
@@ -60,8 +61,11 @@ rcall : source("descriptive_balance_table_tex.R")
 rcall : source("analysis_table.R")
 rcall : source("analysis_table_tex.R")
 rcall : source("analysis_table_participation_tex.R")
-rcall : source("analysis_grpah.R")
+rcall : source("analysis_graph.R")
 
 cd "${code_path}/analysis"
 	include "lee_bounds"
 rcall : source("lee_bounds_tex.R")
+
+rcall : source("referee_achenbach.R")
+rcall : source("referee_fiz_heterogeneity.R")

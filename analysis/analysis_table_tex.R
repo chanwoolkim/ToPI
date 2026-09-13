@@ -1,153 +1,151 @@
 start_time <- Sys.time()
 
-# Load data
-causal_output <- read.csv(file=paste0(output_git, "causal_output_D_12_P_12.csv"))
-instrumental_output <- read.csv(paste0(output_git, "instrumental_output_D_12_P_12.csv"))
-regression_output <- read.csv(paste0(output_git, "regression_output_D_12_P_12.csv"))
-fra_output <- read.csv(paste0(output_git, "fra_output_D_12_P_12.csv"))
-prevalence_output <- read.csv(paste0(output_git, "prevalence_output_D_12_P_12.csv"))
+# Load estimates ####
+# One file per participation definition ("any", "1m", "6m", "12m", "18m");
+# each file already carries a participation column, so they stack into one data frame
+participation_definitions <- c("any", "1m", "6m", "12m", "18m")
 
-causal_output_all <- read.csv(file=paste0(output_git, "causal_output_E_P.csv"))
-instrumental_output_all <- read.csv(paste0(output_git, "instrumental_output_E_P.csv"))
-regression_output_all <- read.csv(paste0(output_git, "regression_output_E_P.csv"))
-fra_output_all <- read.csv(paste0(output_git, "fra_output_E_P.csv"))
-prevalence_output_all <- read.csv(paste0(output_git, "prevalence_output_E_P.csv"))
+load_output <- function(name) {
+  bind_rows(lapply(participation_definitions, function(participation) {
+    read.csv(paste0(output_git, name, "_", participation, ".csv"))
+  }))
+}
 
-causal_output_D <- read.csv(file=paste0(output_git, "causal_output_D_1_P_1.csv"))
-instrumental_output_D <- read.csv(paste0(output_git, "instrumental_output_D_1_P_1.csv"))
-regression_output_D <- read.csv(paste0(output_git, "regression_output_D_1_P_1.csv"))
-fra_output_D <- read.csv(paste0(output_git, "fra_output_D_1_P_1.csv"))
-prevalence_output_D <- read.csv(paste0(output_git, "prevalence_output_D_1_P_1.csv"))
+forest_output <- load_output("forest_output")
+regression_output <- load_output("regression_output")
+fra_output <- load_output("fra_output")
+prevalence_output <- load_output("prevalence_output")
+
+
+# Lookups ####
+# Each returns one row with estimate, se, p_value (and N) for one specification:
+#   program:       "ehs-full", "ehsmixed_center", "ehscenter", "abc"
+#   participation: "any", "1m", "6m", "12m", "18m"
+#   subsample:     FALSE (full) or TRUE (black children, mothers without college)
+#   method:        "ITT" or "LATE"
+#   covariates:    "none", "all", "short" (mother's IQ and age)
+
+# Regression: coefficient on R (ITT, OLS) or D (LATE, 2SLS)
+regression_estimate <- function(program, participation, subsample, method, covariates) {
+  regression_output %>%
+    filter(program==.env$program,
+           participation==.env$participation,
+           subsample==.env$subsample,
+           method==.env$method,
+           covariates==.env$covariates,
+           variable==ifelse(method=="ITT", "R", "D")) %>%
+    transmute(estimate=coefficient, se, p_value, N)
+}
+
+# Flexible regression adjustment
+fra_estimate <- function(program, participation, subsample, method, covariates) {
+  fra_output %>%
+    filter(program==.env$program,
+           participation==.env$participation,
+           subsample==.env$subsample,
+           method==.env$method,
+           covariates==.env$covariates) %>%
+    transmute(estimate, se, p_value)
+}
+
+# Forest (causal forest for ITT, instrumental forest for LATE):
+# doubly-robust ATE on the program itself, or the forest predicted on ABC covariates
+forest_estimate <- function(program, participation, subsample, method, covariates,
+                            predicted_on_abc=FALSE) {
+  forest_row <- forest_output %>%
+    filter(program==.env$program,
+           participation==.env$participation,
+           subsample==.env$subsample,
+           method==.env$method,
+           covariates==.env$covariates)
+  if (predicted_on_abc) {
+    forest_row %>% transmute(estimate=forest_abc_estimate, se=forest_abc_se, p_value=forest_abc_p_value, N)
+  } else {
+    forest_row %>% transmute(estimate=forest_ate_estimate, se=forest_ate_se, p_value=forest_ate_p_value, N)
+  }
+}
+
+# Same lookup for every column of a table: `columns` has one row per table column
+# (program, participation); the remaining arguments are shared by all columns
+estimates_by_column <- function(columns, estimate_function, ...) {
+  bind_rows(pmap(columns, estimate_function, ...))
+}
+
+# Two rows of a table: estimates with significance stars, then standard errors
+# in parentheses; `dash` adds "-" for a column without an estimate
+estimate_rows <- function(label, estimates, cspan=rep(1, nrow(estimates)), dash=FALSE) {
+  estimate_row <- TexRow(label) /
+    TexRow(estimates$estimate, pvalues=estimates$p_value, cspan=cspan, dec=2)
+  if (dash) {
+    estimate_row <- estimate_row / TexRow("-")
+  }
+  se_row <- TexRow("") /
+    TexRow(estimates$se, cspan=cspan, dec=2, se=TRUE)
+  return(estimate_row+se_row)
+}
+
 
 # Output to LaTeX tables ####
-# Summary of important coefficients
-coefficients_tex <- function(causal_result, instrumental_result, regression_result, fra_result,
-                             causal_result_all, instrumental_result_all, regression_result_all, fra_result_all,
-                             causal_result_D, instrumental_result_D, regression_result_D, fra_result_D) {
-  causal_subset <- causal_result %>% filter(subsample)
-  instrumental_subset <- instrumental_result %>% filter(subsample)
-  causal_subset_all <- causal_result_all %>% filter(subsample)
-  instrumental_subset_all <- instrumental_result_all %>% filter(subsample)
-  causal_subset_D <- causal_result_D %>% filter(subsample)
-  instrumental_subset_D <- instrumental_result_D %>% filter(subsample)
-  
-  regression_row <- function(colname, row, begin, method="ITT") {
-    if (method=="ITT") {
-      out <- TexRow(colname) / 
-        TexRow(c(regression_result_all[row, seq(begin, 181, 60)],
-                 regression_result[row, seq(begin+180, 241, 60)]) %>% as.numeric(),
-               pvalues=c(regression_result_all[row, seq(begin+2, 181, 60)],
-                         regression_result[row, seq(begin+182, 241, 60)]) %>% as.numeric(),
-               cspan=c(1, 1, 3, 1), dec=2) +
-        TexRow("") /
-        TexRow(c(regression_result_all[row, seq(begin+1, 181, 60)],
-                 regression_result[row, seq(begin+181, 241, 60)]) %>% as.numeric(),
-               cspan=c(1, 1, 3, 1), dec=2, se=TRUE)
-    } else if (method=="LATE") {
-      out <- TexRow(colname) / 
-        TexRow(c(regression_result_all[row, seq(begin, 181, 60)],
-                 regression_result_D[row, begin+120],
-                 regression_result[row, seq(begin+120, 241, 60)]) %>% as.numeric(),
-               pvalues=c(regression_result_all[row, seq(begin+2, 181, 60)],
-                         regression_result_D[row, begin+122],
-                         regression_result[row, seq(begin+122, 241, 60)]) %>% as.numeric(),
-               dec=2) +
-        TexRow("") /
-        TexRow(c(regression_result_all[row, seq(begin+1, 181, 60)],
-                 regression_result_D[row, begin+121],
-                 regression_result[row, seq(begin+121, 241, 60)]) %>% as.numeric(),
-               dec=2, se=TRUE)
-    }
-    return(out)
+# Summary of important coefficients: ITT and LATE by program type
+coefficients_tex <- function() {
+  # ITT columns: All, Center + Mixed, Center Only (spanning three columns), ABC
+  itt_columns <- tribble(~program,          ~participation,
+                         "ehs-full",        "any",
+                         "ehsmixed_center", "any",
+                         "ehscenter",       "any",
+                         "abc",             "12m")
+  itt_cspan <- c(1, 1, 3, 1)
+  itt_columns_ehs <- itt_columns %>% filter(program!="abc")
+  itt_cspan_ehs <- c(1, 1, 3)
+
+  # LATE columns: All, Center + Mixed, Center Only by participation (any, 6m, 12m), ABC
+  late_columns <- tribble(~program,          ~participation,
+                          "ehs-full",        "any",
+                          "ehsmixed_center", "any",
+                          "ehscenter",       "any",
+                          "ehscenter",       "6m",
+                          "ehscenter",       "12m",
+                          "abc",             "12m")
+  late_columns_ehs <- late_columns %>% filter(program!="abc")
+
+  # Sample sizes (identical across participation definitions)
+  sample_size <- function(subsample) {
+    estimates_by_column(itt_columns, regression_estimate,
+                        subsample=subsample, method="ITT", covariates="all") %>%
+      pull(N)
   }
-  
-  fra_row <- function(method="ITT", subsample=FALSE) {
-    if (method=="ITT") {
-      if (!subsample) {
-        out <- TexRow("Full/FRA") / 
-          TexRow(c(fra_output_all[seq(1, 24, 8), 1],
-                   fra_output[seq(25, 32, 8), 1]) %>% as.numeric(),
-                 pvalues=c(fra_output_all[seq(1, 24, 8), 3],
-                           fra_output_D[17, 3],
-                           fra_output[seq(17, 32, 8), 3]) %>% as.numeric(),
-                 cspan=c(1, 1, 3, 1), dec=2) +
-          TexRow("") /
-          TexRow(c(fra_output_all[seq(1, 24, 8), 2],
-                   fra_output[seq(25, 32, 8), 2]) %>% as.numeric(),
-                 cspan=c(1, 1, 3, 1), dec=2, se=TRUE)
-      } else if (subsample) {
-        out <- TexRow("Subsample/FRA") / 
-          TexRow(c(fra_output_all[seq(5, 24, 8), 1],
-                   fra_output[seq(29, 32, 8), 1]) %>% as.numeric(),
-                 pvalues=c(fra_output_all[seq(5, 24, 8), 3],
-                           fra_output[seq(29, 32, 8), 3]) %>% as.numeric(),
-                 cspan=c(1, 1, 3, 1), dec=2) +
-          TexRow("") /
-          TexRow(c(fra_output_all[seq(5, 24, 8), 2],
-                   fra_output[seq(29, 32, 8), 2]) %>% as.numeric(),
-                 cspan=c(1, 1, 3, 1), dec=2, se=TRUE)
-      }
-    } else if (method=="LATE") {
-      if (!subsample) {
-        out <- TexRow("Full/FRA") / 
-          TexRow(c(fra_output_all[seq(3, 24, 8), 1],
-                   fra_output_D[19, 1],
-                   fra_output[seq(19, 32, 8), 1]) %>% as.numeric(),
-                 pvalues=c(fra_output_all[seq(3, 24, 8), 3],
-                           fra_output_D[19, 3],
-                           fra_output[seq(19, 32, 8), 3]) %>% as.numeric(),
-                 dec=2) +
-          TexRow("") /
-          TexRow(c(fra_output_all[seq(3, 24, 8), 2],
-                   fra_output_D[19, 2],
-                   fra_output[seq(19, 32, 8), 2]) %>% as.numeric(),
-                 dec=2, se=TRUE)
-      } else if (subsample) {
-        out <- TexRow("Subsample/FRA") /
-          TexRow(c(fra_output_all[seq(7, 24, 8), 1],
-                   fra_output_D[23, 1],
-                   fra_output[seq(23, 32, 8), 1]) %>% as.numeric(),
-                 pvalues=c(fra_output_all[seq(7, 24, 8), 3],
-                           fra_output_D[23, 3],
-                           fra_output[seq(23, 32, 8), 3]) %>% as.numeric(),
-                 dec=2) +
-          TexRow("") /
-          TexRow(c(fra_output_all[seq(7, 24, 8), 2],
-                   fra_output_D[23, 2],
-                   fra_output[seq(23, 32, 8), 2]) %>% as.numeric(),
-                 dec=2, se=TRUE)
-      }
-    }
-    return(out)
-  }
-  
+
   tab <- TexRow(c("", "ITT"), cspan=c(1, 6)) +
     TexMidrule(list(c(2, 7))) +
     TexRow(c("Program ", "EHS", "ABC"), cspan=c(1, 5, 1)) +
     TexMidrule(list(c(2, 6), c(7, 7))) +
     TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), cspan=c(1, 1, 1, 3, 1)) +
     TexMidrule() +
-    regression_row("Full", 1, 2+5) +
-    fra_row("ITT", subsample=FALSE) +
-    regression_row("Subsample", 1, 32+5) +
-    fra_row("ITT", subsample=TRUE) +
-    TexRow("Subsample/Causal Forest") / 
-    TexRow(c(causal_subset_all$pre_dr_estimate[1:3],
-             causal_subset$pre_dr_estimate[4]) %>% as.numeric(), 
-           pvalues=c(causal_subset_all$pre_dr_p_value[1:3],
-                     causal_subset$pre_dr_p_value[4]) %>% as.numeric(), 
-           cspan=c(1, 1, 3, 1), dec=2) +
-    TexRow("") / 
-    TexRow(c(causal_subset_all$pre_dr_se[1:3],
-             causal_subset$pre_dr_se[4]) %>% as.numeric(), 
-           cspan=c(1, 1, 3, 1), dec=2, se=TRUE) +
-    TexRow("Subsample/Causal Forest (ABC)") / 
-    TexRow(c(causal_subset_all$to_estimate[1:3]) %>% as.numeric(), 
-           pvalues=c(causal_subset_all$to_p_value[1:3]) %>% as.numeric(), 
-           cspan=c(1, 1, 3), dec=2) / TexRow("-") +
-    TexRow("") / 
-    TexRow(c(causal_subset_all$to_se[1:3]) %>% as.numeric(), 
-           cspan=c(1, 1, 3), dec=2, se=TRUE) +
+    estimate_rows("Full",
+                  estimates_by_column(itt_columns, regression_estimate,
+                                      subsample=FALSE, method="ITT", covariates="all"),
+                  cspan=itt_cspan) +
+    estimate_rows("Full/FRA",
+                  estimates_by_column(itt_columns, fra_estimate,
+                                      subsample=FALSE, method="ITT", covariates="all"),
+                  cspan=itt_cspan) +
+    estimate_rows("Subsample",
+                  estimates_by_column(itt_columns, regression_estimate,
+                                      subsample=TRUE, method="ITT", covariates="all"),
+                  cspan=itt_cspan) +
+    estimate_rows("Subsample/FRA",
+                  estimates_by_column(itt_columns, fra_estimate,
+                                      subsample=TRUE, method="ITT", covariates="all"),
+                  cspan=itt_cspan) +
+    estimate_rows("Subsample/Causal Forest",
+                  estimates_by_column(itt_columns, forest_estimate,
+                                      subsample=TRUE, method="ITT", covariates="short"),
+                  cspan=itt_cspan) +
+    estimate_rows("Subsample/Causal Forest (ABC)",
+                  estimates_by_column(itt_columns_ehs, forest_estimate,
+                                      subsample=TRUE, method="ITT", covariates="short",
+                                      predicted_on_abc=TRUE),
+                  cspan=itt_cspan_ehs, dash=TRUE) +
     TexMidrule() +
     TexMidrule() +
     TexRow(c("", "LATE"), cspan=c(1, 6)) +
@@ -156,93 +154,64 @@ coefficients_tex <- function(causal_result, instrumental_result, regression_resu
     TexMidrule(list(c(2, 6), c(7, 7))) +
     TexRow(c("Type", "All", "Center $+$ Mixed", "Center Only", ""), cspan=c(1, 1, 1, 3, 1)) +
     TexMidrule(list(c(2, 2), c(3, 3), c(4, 6), c(7, 7))) +
-    TexRow(c("Participation", "Any", "Any", "Any", "1m", "12m", "12m")) +
+    TexRow(c("Participation", "Any", "Any", "Any", "6m", "12m", "12m")) +
     TexMidrule() +
-    regression_row("Full", 2, 17+5, "LATE") +
-    fra_row("LATE", subsample=FALSE) +
-    regression_row("Subsample", 2, 47+5, "LATE") +
-    fra_row("LATE", subsample=TRUE) +
-    TexRow("Subsample/Instrumental Forest") / 
-    TexRow(c(instrumental_subset_all$pre_dr_estimate[1:3],
-             instrumental_subset_D$pre_dr_estimate[3],
-             instrumental_subset$pre_dr_estimate[3:4]) %>% as.numeric(), 
-           pvalues=c(instrumental_subset_all$pre_dr_p_value[1:3],
-                     instrumental_subset_D$pre_dr_p_value[3],
-                     instrumental_subset$pre_dr_p_value[3:4]) %>% as.numeric(), 
-           dec=2) +
-    TexRow("") / 
-    TexRow(c(instrumental_subset_all$pre_dr_se[1:3],
-             instrumental_subset_D$pre_dr_se[3],
-             instrumental_subset$pre_dr_se[3:4]) %>% as.numeric(), 
-           dec=2, se=TRUE) +
-    TexRow("Subsample/Instrumental Forest (ABC)") / 
-    TexRow(c(instrumental_subset_all$to_estimate[1:3],
-             instrumental_subset_D$to_estimate[3],
-             instrumental_subset$to_estimate[3]) %>% as.numeric(), 
-           pvalues=c(instrumental_subset_all$to_p_value[1:3],
-                     instrumental_subset_D$to_p_value[3],
-                     instrumental_subset$to_p_value[3]) %>% as.numeric(), 
-           dec=2) / TexRow("-") +
-    TexRow("") / 
-    TexRow(c(instrumental_subset_all$to_se[1:3],
-             instrumental_subset_D$to_se[3],
-             instrumental_subset$to_se[3]) %>% as.numeric(), 
-           dec=2, se=TRUE) +
+    estimate_rows("Full",
+                  estimates_by_column(late_columns, regression_estimate,
+                                      subsample=FALSE, method="LATE", covariates="all")) +
+    estimate_rows("Full/FRA",
+                  estimates_by_column(late_columns, fra_estimate,
+                                      subsample=FALSE, method="LATE", covariates="all")) +
+    estimate_rows("Subsample",
+                  estimates_by_column(late_columns, regression_estimate,
+                                      subsample=TRUE, method="LATE", covariates="all")) +
+    estimate_rows("Subsample/FRA",
+                  estimates_by_column(late_columns, fra_estimate,
+                                      subsample=TRUE, method="LATE", covariates="all")) +
+    estimate_rows("Subsample/Instrumental Forest",
+                  estimates_by_column(late_columns, forest_estimate,
+                                      subsample=TRUE, method="LATE", covariates="short")) +
+    estimate_rows("Subsample/Instrumental Forest (ABC)",
+                  estimates_by_column(late_columns_ehs, forest_estimate,
+                                      subsample=TRUE, method="LATE", covariates="short",
+                                      predicted_on_abc=TRUE),
+                  dash=TRUE) +
     TexMidrule() +
     TexMidrule() +
     TexRow("Sample Size: Full") /
-    TexRow(causal_result$N[c(1, 4, 7, 10)] %>% as.numeric(), 
-           cspan=c(1, 1, 3, 1), dec=0) +
+    TexRow(sample_size(subsample=FALSE), cspan=itt_cspan, dec=0) +
     TexRow("Sample Size: Subsample") /
-    TexRow(causal_result$N[c(3, 6, 9, 12)] %>% as.numeric(), 
-           cspan=c(1, 1, 3, 1), dec=0)
+    TexRow(sample_size(subsample=TRUE), cspan=itt_cspan, dec=0)
   return(tab)
 }
 
-tab <- coefficients_tex(causal_output, instrumental_output, regression_output, fra_output,
-                        causal_output_all, instrumental_output_all, regression_output_all, fra_output_all,
-                        causal_output_D, instrumental_output_D, regression_output_D, fra_output_D)
+tab <- coefficients_tex()
 TexSave(tab, filename="coefficients_base", positions=c('l', rep('c', 6)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="coefficients_base", positions=c('l', rep('c', 6)),
         output_path=output_git, stand_alone=FALSE)
 
-# Progress table
-progress_tex <- function(instrumental_result,
-                         regression_result, regression_result_all, regression_result_D) {
-  instrumental_subset <- instrumental_result %>% filter(subsample)
-  
-  regression_row <- function(pre, result, row, col, arrow=TRUE) {
-    if (arrow) {
-      out <- TexRow(pre) /
-        TexRow(c(result[row, col],
-                 result[12, col+4]) %>% as.numeric(), 
-               pvalues=c(result[row, col+2], 1) %>% as.numeric(), 
-               dec=c(2, 0)) / TexRow("-") +
-        TexRow(rep("", 3)) / 
-        TexRow(c(result[row, col+1], NA) %>% as.numeric(), 
-               dec=2, se=TRUE)
+# Progress table: EHS estimate next to the ABC estimate, one row per specification
+progress_tex <- function() {
+  # Two rows: (coefficient, N) for EHS and, if given, for ABC; then the standard errors
+  # `labels` are the Type, Sample, and Participation columns
+  progress_rows <- function(labels, ehs, abc=NULL, se_labels=rep("", 3)) {
+    if (is.null(abc)) {
+      estimate_row <- TexRow(labels) /
+        TexRow(c(ehs$estimate, ehs$N), pvalues=c(ehs$p_value, 1), dec=c(2, 0)) /
+        TexRow("-")
+      se_row <- TexRow(se_labels) /
+        TexRow(c(ehs$se, NA), dec=2, se=TRUE)
     } else {
-      out <- TexRow(pre) /
-        TexRow(c(result[row, col],
-                 result[row, col+4],
-                 result[row, col+60],
-                 result[row, col+64]) %>% as.numeric(), 
-               pvalues=c(result[row, col+2],
-                         1,
-                         result[row, col+62],
-                         1) %>% as.numeric(), 
-               dec=rep(c(2, 0), 2)) +
-        TexRow(rep("", 3)) / 
-        TexRow(c(result[row, col+1],
-                 NA,
-                 result[row, col+61],
-                 NA) %>% as.numeric(), 
-               dec=rep(c(2, 0), 2), se=TRUE)
+      estimate_row <- TexRow(labels) /
+        TexRow(c(ehs$estimate, ehs$N, abc$estimate, abc$N),
+               pvalues=c(ehs$p_value, 1, abc$p_value, 1), dec=rep(c(2, 0), 2))
+      se_row <- TexRow(se_labels) /
+        TexRow(c(ehs$se, NA, abc$se, NA), dec=rep(c(2, 0), 2), se=TRUE)
     }
-    return(out)
+    return(estimate_row+se_row)
   }
-  
+
   tab <- TexRow(c("Program", "EHS", "ABC"),
                 cspan=c(3, 2, 2), position=c("l", "c", "c")) +
     TexMidrule(list(c(1, 3), c(4, 5), c(6, 7))) +
@@ -250,90 +219,95 @@ progress_tex <- function(instrumental_result,
     TexMidrule() +
     TexRow(c("", "ITT"), cspan=c(3, 4)) +
     TexMidrule(list(c(4, 7))) +
-    regression_row(c("All", "Full", "Any"),
-                   regression_result_all, 1, 2+5) +
-    regression_row(c("Center $+$ Mixed", "Full", "Any"),
-                   regression_result_all, 1, 62+5) +
-    regression_row(c("Center Only", "Full", "Any"),
-                   regression_result_all, 1, 122+5, arrow=FALSE) +
-    regression_row(c("Center Only", "Subsample", "Any"),
-                   regression_result_all, 1, 152+5, arrow=FALSE) +
+    progress_rows(c("All", "Full", "Any"),
+                  ehs=regression_estimate("ehs-full", "any", subsample=FALSE, "ITT", "all")) +
+    progress_rows(c("Center $+$ Mixed", "Full", "Any"),
+                  ehs=regression_estimate("ehsmixed_center", "any", subsample=FALSE, "ITT", "all")) +
+    progress_rows(c("Center Only", "Full", "Any"),
+                  ehs=regression_estimate("ehscenter", "any", subsample=FALSE, "ITT", "all"),
+                  abc=regression_estimate("abc", "any", subsample=FALSE, "ITT", "all")) +
+    progress_rows(c("Center Only", "Subsample", "Any"),
+                  ehs=regression_estimate("ehscenter", "any", subsample=TRUE, "ITT", "all"),
+                  abc=regression_estimate("abc", "any", subsample=TRUE, "ITT", "all")) +
     TexMidrule() +
     TexRow(c("", "LATE"), cspan=c(3, 4)) +
     TexMidrule(list(c(4, 7))) +
-    regression_row(c("Center Only", "Subsample", "Any"),
-                   regression_result_all, 2, 167+5, arrow=FALSE) +
-    regression_row(c("Center Only", "Subsample", "1m"),
-                   regression_result_D, 2, 167+5, arrow=FALSE) +
-    regression_row(c("Center Only", "Subsample", "12m"),
-                   regression_result, 2, 167+5, arrow=FALSE) +
-    TexRow(c("Center Only", "Subsample", "12m")) /
-    TexRow(c(instrumental_subset$to_estimate[3],
-             instrumental_subset$N[3]) %>% as.numeric(), 
-           pvalues=c(instrumental_subset$to_p_value[3], 1) %>% as.numeric(), 
-           dec=c(2, 0)) / TexRow("-") +
-    TexRow(c("", "(Instrumental Forest (ABC))", "")) / 
-    TexRow(c(instrumental_subset$to_se[3], NA) %>% as.numeric(), 
-           dec=c(2, 0), se=TRUE)
+    progress_rows(c("Center Only", "Subsample", "Any"),
+                  ehs=regression_estimate("ehscenter", "any", subsample=TRUE, "LATE", "all"),
+                  abc=regression_estimate("abc", "any", subsample=TRUE, "LATE", "all")) +
+    progress_rows(c("Center Only", "Subsample", "6m"),
+                  ehs=regression_estimate("ehscenter", "6m", subsample=TRUE, "LATE", "all"),
+                  abc=regression_estimate("abc", "6m", subsample=TRUE, "LATE", "all")) +
+    progress_rows(c("Center Only", "Subsample", "12m"),
+                  ehs=regression_estimate("ehscenter", "12m", subsample=TRUE, "LATE", "all"),
+                  abc=regression_estimate("abc", "12m", subsample=TRUE, "LATE", "all")) +
+    progress_rows(c("Center Only", "Subsample", "12m"),
+                  ehs=forest_estimate("ehscenter", "12m", subsample=TRUE, "LATE", "short",
+                                      predicted_on_abc=TRUE),
+                  se_labels=c("", "(Instrumental Forest (ABC))", ""))
   return(tab)
 }
 
-tab <- progress_tex(instrumental_output,
-                    regression_output, regression_output_all, regression_output_D)
+tab <- progress_tex()
 TexSave(tab, filename="progress_base", positions=c(rep('l', 3), rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="progress_base", positions=c(rep('l', 3), rep('c', 4)),
         output_path=output_git, stand_alone=FALSE)
 
-# Prevalence and subLATE bounds
-prevalence_sublate_tex <- function(instrumental_result, prevalence_result) {
-  ehscenter_late <- instrumental_result$coefficient[9]
-  abc_late <- instrumental_result$coefficient[12]
-  
-  row_tr <- function(col) {
-    out <- TexRow(prevalence_result[c(6, 8), col] %>% as.numeric(),
-                  cspan=c(2, 2), dec=2)
-    return(out)
+# Prevalence of compliance types and subLATE bounds (subsample, 12-month participation)
+prevalence_sublate_tex <- function() {
+  prevalence_ehscenter <- prevalence_output %>%
+    filter(program=="ehscenter", participation=="12m", subsample==TRUE)
+  prevalence_abc <- prevalence_output %>%
+    filter(program=="abc", participation=="12m", subsample==TRUE)
+
+  # LATE without covariates
+  late_ehscenter <- regression_estimate("ehscenter", "12m", subsample=TRUE, "LATE", "none")$estimate
+  late_abc <- regression_estimate("abc", "12m", subsample=TRUE, "LATE", "none")$estimate
+
+  # One prevalence statistic for EHS Center Only and ABC, each spanning two columns
+  prevalence_row <- function(label, statistic, dec=2) {
+    TexRow(label) /
+      TexRow(c(prevalence_ehscenter[[statistic]], prevalence_abc[[statistic]]),
+             cspan=c(2, 2), dec=dec)
   }
-  
+
   tab <- TexRow(c("Program", "EHS Center Only", "ABC"), cspan=c(1, 2, 2)) +
     TexMidrule() +
     TexRow(c("", "Prevalence of Compliance Types"), cspan=c(1, 4)) +
     TexMidrule(list(c(2, 5))) +
-    TexRow(c("\\textbf{Observations}")) / 
-    TexRow(prevalence_result[c(6, 8), 2] %>% as.numeric(),
-           cspan=c(2, 2), dec=0) +
+    prevalence_row("\\textbf{Observations}", "N", dec=0) +
     TexRow("\\textbf{Compliers}") +
-    TexRow("\\quad $p_{nh}$") / row_tr(3) +
-    TexRow("\\quad $p_{ch}$") / row_tr(4) +
+    prevalence_row("\\quad $p_{nh}$", "p_nh") +
+    prevalence_row("\\quad $p_{ch}$", "p_ch") +
     TexRow("\\textbf{Share}") +
-    TexRow("\\quad $\\omega_{nh}$") / row_tr(5) +
+    prevalence_row("\\quad $\\omega_{nh}$", "nh_share") +
     TexRow("\\textbf{Always-Takers}") +
-    TexRow("\\quad $p_{hh}$") / row_tr(6) +
-    TexRow("\\quad $p_{cc}$") / row_tr(7) +
-    TexRow("\\quad $p_{nn}$") / row_tr(8) +
+    prevalence_row("\\quad $p_{hh}$", "p_hh") +
+    prevalence_row("\\quad $p_{cc}$", "p_cc") +
+    prevalence_row("\\quad $p_{nn}$", "p_nn") +
     TexMidrule() +
-    TexRow(c("", "sub-LATE Bounds"), cspan=c(1, 4)) +
+    TexRow(c("", "subLATE Bounds"), cspan=c(1, 4)) +
     TexMidrule(list(c(2, 5))) +
     TexRow(c("", rep(c("ch-LATE", "nh-LATE"), 2))) +
     TexMidrule(list(c(2, 3), c(4, 5))) +
     TexRow("\\textbf{Bounds}") +
     TexRow("\\quad Lower Bound") /
-    TexRow(c(0, 
-             ehscenter_late,
+    TexRow(c(0,
+             late_ehscenter,
              0,
-             abc_late), 
+             late_abc),
            dec=2) +
     TexRow("\\quad Upper Bound") /
-    TexRow(c(ehscenter_late, 
-             ehscenter_late/prevalence_result$nh_share[6],
-             abc_late,
-             abc_late/prevalence_result$nh_share[8]),
+    TexRow(c(late_ehscenter,
+             late_ehscenter/prevalence_ehscenter$nh_share,
+             late_abc,
+             late_abc/prevalence_abc$nh_share),
            dec=2)
   return(tab)
 }
 
-tab <- prevalence_sublate_tex(instrumental_output, prevalence_output)
+tab <- prevalence_sublate_tex()
 TexSave(tab, filename="prevalence_bounds", positions=c('l', rep('c', 4)),
         output_path=output_dir, stand_alone=FALSE)
 TexSave(tab, filename="prevalence_bounds", positions=c('l', rep('c', 4)),

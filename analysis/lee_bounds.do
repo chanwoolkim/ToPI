@@ -78,7 +78,7 @@ foreach p of local programs {
 	di as txt "Done with program: `p' on ITT"
 	
     * LATE: leebounds of iq on r, instrumented by d, d_1, d_12
-    foreach d in d d_1 d_12 {
+    foreach d in d d_6 d_12 {
         import delimited "`p'-topi.csv", clear
         if ("`p'" == "abc") {
             rename sb3y iq
@@ -186,7 +186,7 @@ foreach p of local programs {
 	
 	di as txt "Done with program: `p' on Subsample ITT"
 
-    foreach d in d d_1 d_12 {
+    foreach d in d d_6 d_12 {
         import delimited "`p'-topi.csv", clear
         if ("`p'" == "abc") {
             rename sb3y iq

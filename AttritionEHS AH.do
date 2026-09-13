@@ -140,7 +140,7 @@ gen M = missing(iq)
 tab M //52\% are missing
 
 
-
+asd
 ********************************************************************************
 * 5. Attrition: Do we have differential attrition?
 ********************************************************************************
@@ -348,53 +348,11 @@ frmttable using "${output_dir}/balance_three_programs_all.tex", ///
 ********************************************************************************
 * DISADVANTAGE
 ********************************************************************************
-* Compare BLACK VS NON BLACK and LOW EDUC VS HIGH EDUC
-
-label var m_iq 		"Maternal IQ"
-label var m_age 	"Maternal Age"
-label var gestage 	"Gestational Age (Weeks)"
-label var m_iq 		"Mother's IQ"
-label var m_age		"Mother's Age"
-label var m_edu_2	"\% HS Completed"
-label var m_edu_3	"\% College Completed"
-label var mf 		"\% Father Figure at Home"
-label var poverty	"\% Above Poverty"
-label var home_total36 "Home Environment (HOME)"
-
-
-local advantage_var  m_iq m_age mf poverty home_total36
-
-eststo clear
-
-eststo black_low: 			estpost summarize `advantage_var'	if black==1 & (m_edu==1|m_edu==2)
-eststo no_black_low: 	estpost summarize `advantage_var' 	if black==0 & (m_edu==1|m_edu==2)
-eststo black_high: 		estpost summarize `advantage_var'   if black==1 & m_edu==3
-eststo no_black_high: 	estpost summarize `advantage_var' 	if black==0 & m_edu==3
-
-*------------------------------------------------------------
-* 4. Display table in Stata
-*------------------------------------------------------------
-esttab 			   black_low   no_black_low       black_high    no_black_high,  ///
-	label  ///
-    nonumber noobs cells("mean(fmt(2))") collabels(none)
-
-*mtitles("\shortstack{Black Low Eds.}" "\shortstack{Non-Black Low Ed.}"  "Black High Ed." "Non-Black High Ed.")	
-	
-*------------------------------------------------------------
-* 5. Export to LaTeX
-*------------------------------------------------------------
-cd /Users/andres/Dropbox/Apps/Overleaf/ToPI/EHStoABC/Results
-esttab black_low no_black_low black_high no_black_high using "subgroup_means.tex", replace ///
-    cells("mean(fmt(2))") label mtitles("\shortstack{Black Low \\ Education}" "\shortstack{Non-Black Low \\ Education}" "\shortstack{Black High \\ Education}" "\shortstack{Non-Black High \\ Education}") ///
-	nonumber noobs booktabs fragment collabels(none)
+* Subgroup means (Black vs. non-Black x mother's education) now produced by
+* analysis/descriptive_table_tex.R (subgroup_means.tex), run from master_topi.do.
 
 
 	
-	
-	
-	
-	
-ASD
 
 
 

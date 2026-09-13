@@ -3,6 +3,7 @@ rm(list=ls())
 wd <- paste0(dirname(rstudioapi::getSourceEditorContext()$path), "/../..")
 data_dir <- paste0(wd, "/working/")
 output_dir <- paste0(wd, "/../../Apps/Overleaf/ToPI/EHStoABC/Results/")
+graph_dir <- paste0(wd, "/../../Apps/Overleaf/ToPI/EHStoABC/Graphs/")
 output_git <- paste0(wd, "/code/output_backup/")
 
 library(AER)
